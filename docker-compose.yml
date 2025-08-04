@@ -1,0 +1,147 @@
+version: '3.8'
+
+networks:
+  atspro-network:
+    driver: bridge
+    internal: false
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.20.0.0/16
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: atspro-postgres
+    environment:
+      POSTGRES_DB: atspro
+      POSTGRES_USER: atspro_user
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-dev_password_change_in_prod}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d
+    ports:
+      - "5432:5432"
+    networks:
+      - atspro-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U atspro_user -d atspro"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    restart: unless-stopped
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: atspro-redis
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-dev_redis_password_change_in_prod}
+    command: >
+      --requirepass ${REDIS_PASSWORD:-dev_redis_password_change_in_prod}
+      --appendonly yes
+      --save 900 1
+      --save 300 10
+      --save 60 10000
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - atspro-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+
+  # ArangoDB Document Database
+  arangodb:
+    image: arangodb:3.11
+    container_name: atspro-arangodb
+    environment:
+      ARANGO_ROOT_PASSWORD: ${ARANGO_ROOT_PASSWORD:-dev_arango_password_change_in_prod}
+    volumes:
+      - arangodb_data:/var/lib/arangodb3
+      - arangodb_apps:/var/lib/arangodb3-apps
+    ports:
+      - "8529:8529"
+    networks:
+      - atspro-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8529/_api/version"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    restart: unless-stopped
+
+  # API Service
+  api:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+    container_name: atspro-api
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://atspro_user:${POSTGRES_PASSWORD:-dev_password_change_in_prod}@postgres:5432/atspro
+      - REDIS_URL=redis://:${REDIS_PASSWORD:-dev_redis_password_change_in_prod}@redis:6379
+      - ARANGO_URL=http://arangodb:8529
+      - ARANGO_ROOT_PASSWORD=${ARANGO_ROOT_PASSWORD:-dev_arango_password_change_in_prod}
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      arangodb:
+        condition: service_healthy
+    networks:
+      - atspro-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    restart: unless-stopped
+
+  # Web Service
+  web:
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile
+    container_name: atspro-web
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_URL=http://api:8000
+    ports:
+      - "3000:3000"
+    depends_on:
+      api:
+        condition: service_healthy
+    networks:
+      - atspro-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  arangodb_data:
+    driver: local
+  arangodb_apps:
+    driver: local
