@@ -2,6 +2,14 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Config
+- **Github Username:** dylan-gluck
+- **Git commit:** No claude mention, summarize changes
+- **Emoji use:** minimal
+- **Technical Approach:** Top 1% Staff Engineer, 100x Developer
+- **Test your work:** Always
+- **Documentation:** Keep updated with changes
+
 ## Project Overview
 
 ATSPro is an ATS resume optimization platform built as a **Turborepo monorepo** with containerized services. The system helps users optimize their resumes for Applicant Tracking Systems using AI-powered analysis and document processing.

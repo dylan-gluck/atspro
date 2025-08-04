@@ -69,7 +69,7 @@ atspro/
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/atspro.git
+git clone https://github.com/dylan-gluck/atspro.git
 cd atspro
 
 # Install dependencies
