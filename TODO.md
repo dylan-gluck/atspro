@@ -1,7 +1,6 @@
 # TODO:
 
 Project:
-- Env variables (Redis, postgres etc)
 - Project Plan improvements
   - data model
   - service architecture

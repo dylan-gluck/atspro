@@ -57,95 +57,396 @@ atspro/
 - **ArangoDB** - Document storage and relationships
 - **Docker Compose** - Service orchestration
 
-## 🚀 Quick Start
+## 🚀 Local Development Setup
 
 ### Prerequisites
 
-- **Docker & Docker Compose** - For containerized development
-- **Node.js 20+** with **pnpm** - For frontend development
+- **Docker & Docker Compose** - For containerized development environment
+- **Node.js 20+** with **pnpm** - For monorepo management and frontend development
 - **Python 3.11+** with **uv** - For local API development (optional)
+- **Git** - Version control
 
-### Installation
+### Step 1: Clone & Navigate
 
 ```bash
 # Clone the repository
 git clone https://github.com/dylan-gluck/atspro.git
 cd atspro
-
-# Install dependencies
-pnpm install
-
-# Set up environment
-cp .env.example .env
-# Edit .env with your configuration
-
-# Start development environment
-pnpm docker:dev
 ```
 
-### Access Your Services
+### Step 2: Install Dependencies
 
-- **Web Application**: http://localhost:3000
-- **API Server**: http://localhost:8000
-- **API Health Check**: http://localhost:8000/health
-- **ArangoDB Web UI**: http://localhost:8529 (user: root)
-- **PostgreSQL**: localhost:5432 (database: atspro)
-- **Redis**: localhost:6379
+```bash
+# Install monorepo dependencies with pnpm
+pnpm install
+
+# This installs:
+# - Root workspace dependencies
+# - Next.js web app dependencies
+# - Python dependencies are handled by Docker
+```
+
+### Step 3: Environment Configuration
+
+```bash
+# Copy environment template
+cp .env.example .env
+```
+
+**Edit `.env` file with your settings:**
+
+```env
+# Database Configuration
+POSTGRES_PASSWORD=secure_postgres_password_here
+DATABASE_URL=postgresql://atspro_user:secure_postgres_password_here@localhost:5432/atspro
+
+# Redis Configuration  
+REDIS_PASSWORD=secure_redis_password_here
+REDIS_URL=redis://:secure_redis_password_here@localhost:6379
+
+# ArangoDB Configuration
+ARANGO_ROOT_PASSWORD=secure_arango_password_here
+ARANGO_URL=http://localhost:8529
+
+# Development settings
+NODE_ENV=development
+```
+
+> **Note**: For development, you can keep the default `dev_*_password_change_in_prod` values
+
+### Step 4: Start Development Environment
+
+**Option A: Using pnpm scripts (Recommended)**
+```bash
+# Start all services with hot reload
+pnpm docker:dev
+
+# This runs: docker-compose up -d
+# Includes development overrides with volume mounting
+```
+
+**Option B: Using Docker scripts**
+```bash
+# Use the development script
+chmod +x docker/scripts/dev.sh
+./docker/scripts/dev.sh
+```
+
+**Option C: Manual Docker Compose**
+```bash
+# Start with development overrides
+docker-compose up -d
+
+# View logs in real-time
+docker-compose logs -f
+```
+
+### Step 5: Verify Services
+
+Wait 30-60 seconds for all services to start, then verify:
+
+```bash
+# Check service status
+docker-compose ps
+
+# All services should show "healthy" status
+# If any show "unhealthy", check logs: docker-compose logs [service-name]
+```
+
+### Step 6: Access Your Applications
+
+| Service | URL | Purpose |
+|---------|-----|---------|
+| **Web App** | http://localhost:3000 | Next.js frontend application |
+| **API Server** | http://localhost:8000 | FastAPI backend with docs |
+| **API Health** | http://localhost:8000/health | Service health check |
+| **API Docs** | http://localhost:8000/docs | Interactive API documentation |
+| **ArangoDB UI** | http://localhost:8529 | Database admin interface |
+
+**Database Connections:**
+- **PostgreSQL**: `localhost:5432` (database: `atspro`, user: `atspro_user`)
+- **Redis**: `localhost:6379`
+- **ArangoDB**: `localhost:8529` (user: `root`, password: from `.env`)
+
+### Step 7: Verify Everything Works
+
+**Test API:**
+```bash
+curl http://localhost:8000/health
+# Should return: {"status":"healthy","service":"atspro-api"}
+```
+
+**Test Web App:**
+```bash
+curl http://localhost:3000
+# Should return HTML content
+```
+
+### Troubleshooting
+
+**If services fail to start:**
+
+1. **Check Docker is running:**
+   ```bash
+   docker --version
+   docker-compose --version
+   ```
+
+2. **View service logs:**
+   ```bash
+   # View all logs
+   docker-compose logs
+
+   # View specific service logs
+   docker-compose logs api
+   docker-compose logs web
+   docker-compose logs arangodb
+   ```
+
+3. **Restart services:**
+   ```bash
+   # Stop and restart
+   pnpm docker:stop
+   pnpm docker:dev
+
+   # Or with full cleanup
+   pnpm docker:clean
+   pnpm docker:dev
+   ```
+
+4. **Check port conflicts:**
+   ```bash
+   # Check if ports are in use
+   lsof -i :3000  # Web app
+   lsof -i :8000  # API
+   lsof -i :5432  # PostgreSQL
+   lsof -i :6379  # Redis
+   lsof -i :8529  # ArangoDB
+   ```
+
+**Common Issues:**
+
+- **API container restarting**: Check for Python import errors in logs
+- **ArangoDB unhealthy**: Wait longer for initialization (60-90 seconds)
+- **Web app build errors**: Clear Next.js cache with `rm -rf apps/web/.next`
+- **Permission errors**: Ensure Docker has proper permissions
+
+### Next Steps
+
+Once everything is running:
+
+1. **Explore the API**: Visit http://localhost:8000/docs for interactive documentation
+2. **Start coding**: Make changes to files and see them reflected immediately
+3. **Run tests**: Use `pnpm test` or individual service test commands
+4. **Check the monorepo commands** in the Development section below
 
 ## 🛠️ Development
 
-### Available Commands
+### Docker Environment Commands
 
 ```bash
-# Docker Environment
-pnpm docker:dev      # Start development with hot reload
-pnpm docker:prod     # Start production environment
+# Start/Stop Services
+pnpm docker:dev      # Start development with hot reload & volume mounting
+pnpm docker:prod     # Start production environment (optimized builds)
 pnpm docker:stop     # Stop all services
-pnpm docker:clean    # Stop and remove all volumes
+pnpm docker:clean    # Stop and remove all volumes (fresh start)
 
-# Turborepo Commands
+# Alternative using scripts
+./docker/scripts/dev.sh   # Start dev with health checks
+./docker/scripts/prod.sh  # Start prod with health checks
+
+# Manual Docker Compose
+docker-compose up -d          # Start with development overrides
+docker-compose logs -f        # View logs in real-time
+docker-compose ps             # Check service status
+docker-compose restart api    # Restart specific service
+```
+
+### Monorepo Commands (Turborepo)
+
+```bash
+# Development
+pnpm dev             # Start all apps in development mode
 pnpm build           # Build all applications
-pnpm dev             # Start all apps in development
-pnpm lint            # Lint all applications
+pnpm lint            # Lint all applications  
 pnpm check-types     # Type check all applications
 pnpm test            # Run tests for all applications
 pnpm format          # Format code in all applications
+
+# Individual app commands
+pnpm build --filter=web    # Build only web app
+pnpm test --filter=api     # Test only API
+pnpm dev --filter=web      # Start only web app
 ```
 
-### API Development
+### API Development (Python FastAPI)
 
+**Quick Commands:**
 ```bash
 cd apps/api
 
-# Start development server
+# Start development server (outside Docker)
 uv run fastapi dev
 
-# Run tests with coverage
-uv run pytest --cov=app
+# Run all tests
+uv run pytest
+
+# Run with coverage report  
+uv run pytest --cov=app --cov-report=html
+
+# Run specific test
+uv run pytest tests/test_parse.py::test_parse_resume -v
 
 # Format code
 uvx ruff format
 
+# Type checking  
+uvx mypy app/
+
 # Add new dependency
 uv add <package-name>
+
+# Sync dependencies after pulling changes
+uv sync --dev
 ```
 
-### Web Development
+**Inside Docker Container:**
+```bash
+# Execute commands inside running container
+docker-compose exec api uv run pytest
+docker-compose exec api uvx ruff format
+docker-compose exec api uv add new-package
 
+# Shell access
+docker-compose exec api bash
+```
+
+### Web Development (Next.js TypeScript)
+
+**Quick Commands:**
 ```bash
 cd apps/web
 
-# Start development server
+# Start development server (outside Docker)
 pnpm dev
 
 # Build for production
 pnpm build
+
+# Start production server
+pnpm start
 
 # Type checking
 pnpm check-types
 
 # Linting
 pnpm lint
+
+# Fix linting issues
+pnpm lint:fix
+
+# Add new dependency
+pnpm add <package-name>
+pnpm add -D <dev-package-name>
+```
+
+**Inside Docker Container:**
+```bash
+# Execute commands inside running container
+docker-compose exec web pnpm build
+docker-compose exec web pnpm test
+
+# Shell access
+docker-compose exec web sh
+```
+
+### Database Management
+
+**PostgreSQL:**
+```bash
+# Connect to database
+docker-compose exec postgres psql -U atspro_user -d atspro
+
+# Run SQL commands
+docker-compose exec postgres psql -U atspro_user -d atspro -c "SELECT version();"
+
+# Backup database
+docker-compose exec postgres pg_dump -U atspro_user atspro > backup.sql
+
+# Restore database
+docker-compose exec -T postgres psql -U atspro_user atspro < backup.sql
+```
+
+**ArangoDB:**
+```bash
+# Access ArangoDB shell
+docker-compose exec arangodb arangosh --server.password your_password
+
+# Backup collection
+docker-compose exec arangodb arangodump --server.password your_password
+
+# Access via Web UI
+open http://localhost:8529  # Username: root
+```
+
+**Redis:**
+```bash
+# Access Redis CLI
+docker-compose exec redis redis-cli
+
+# Monitor Redis operations
+docker-compose exec redis redis-cli monitor
+
+# Get Redis info
+docker-compose exec redis redis-cli info
+```
+
+### Development Workflow
+
+**Making Changes:**
+
+1. **Backend Changes** (`apps/api/`):
+   ```bash
+   # Make changes to Python files
+   # FastAPI will automatically reload (when using Docker dev)
+   
+   # Add tests
+   # Run tests: uv run pytest
+   ```
+
+2. **Frontend Changes** (`apps/web/`):
+   ```bash
+   # Make changes to TypeScript/React files
+   # Next.js will automatically reload via HMR
+   
+   # Check types: pnpm check-types
+   # Format: pnpm format
+   ```
+
+3. **Database Schema Changes**:
+   ```bash
+   # Update PostgreSQL init scripts: docker/postgres/init/
+   # Restart database: docker-compose restart postgres
+   
+   # For ArangoDB, use the web interface or API calls
+   ```
+
+**Pre-commit Checklist:**
+```bash
+# Format all code
+pnpm format
+
+# Lint all code  
+pnpm lint
+
+# Type check all code
+pnpm check-types
+
+# Run all tests
+pnpm test
+
+# Build all apps to check for errors
+pnpm build
 ```
 
 ## 📊 API Endpoints

@@ -13,7 +13,7 @@ docker-compose up -d
 echo "⏳ Waiting for services to be healthy..."
 docker-compose exec postgres pg_isready -U atspro_user -d atspro
 docker-compose exec redis redis-cli ping
-docker-compose exec arangodb curl -f http://localhost:8529/_api/version
+docker-compose exec arangodb arangosh --server.endpoint http+tcp://localhost:8529 --server.password ${ARANGO_ROOT_PASSWORD:-dev_arango_password_change_in_prod} --javascript.execute-string "print('ArangoDB is ready'); db._version();"
 
 echo "✅ All services are healthy!"
 echo "🌐 Web app: http://localhost:3000"
