@@ -110,5 +110,11 @@
     ]
   },
   "includeCoAuthoredBy": false,
-  "enabledMcpjsonServers": ["claude-flow", "ruv-swarm"]
+  "enabledMcpjsonServers": [
+    "claude-flow",
+    "ruv-swarm",
+    "postgres",
+    "context7",
+    "language-server"
+  ]
 }
