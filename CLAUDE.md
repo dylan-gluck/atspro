@@ -10,6 +10,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Test your work:** Always
 - **Documentation:** Keep updated with changes
 
+## Documentation
+- **Project Docs:** `docs/project/`
+- **Vendor Docs:** `docs/vendor/`
+
 ## Project Overview
 
 ATSPro is an ATS resume optimization platform built as a **Turborepo monorepo** with containerized services. The system helps users optimize their resumes for Applicant Tracking Systems using AI-powered analysis and document processing.
@@ -128,8 +132,8 @@ ATSPro is an ATS resume optimization platform built as a **Turborepo monorepo** 
 - **Production Mode:** Optimized builds with standalone Next.js output
 
 ### Environment Configuration
-1. Copy environment template: `cp .env.example .env`
-2. Update passwords in `.env` for production use
+1. Copy environment template: `cp .env.example .env.production.local`
+2. Update passwords in `.env.production.local` for production use
 3. Services automatically use development defaults for local development
 
 ## Build System Notes
