@@ -1,0 +1,29 @@
+{
+  "mcpServers": {
+    "postgres": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-postgres",
+        "postgresql://atspro_user:dev_password_change_in_prod@localhost:5432/atspro"
+      ]
+    },
+    "context7": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp"],
+      "env": {}
+    },
+    "language-server": {
+      "command": "mcp-language-server",
+      "args": [
+        "--workspace",
+        "/Users/dylan/Workspace/projects/atspro",
+        "--lsp",
+        "typescript-language-server",
+        "--",
+        "--stdio"
+      ]
+    }
+  }
+}

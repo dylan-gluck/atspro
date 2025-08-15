@@ -100,7 +100,7 @@ cp .env.example .env
 POSTGRES_PASSWORD=secure_postgres_password_here
 DATABASE_URL=postgresql://atspro_user:secure_postgres_password_here@localhost:5432/atspro
 
-# Redis Configuration  
+# Redis Configuration
 REDIS_PASSWORD=secure_redis_password_here
 REDIS_URL=redis://:secure_redis_password_here@localhost:6379
 
@@ -268,7 +268,7 @@ docker-compose restart api    # Restart specific service
 # Development
 pnpm dev             # Start all apps in development mode
 pnpm build           # Build all applications
-pnpm lint            # Lint all applications  
+pnpm lint            # Lint all applications
 pnpm check-types     # Type check all applications
 pnpm test            # Run tests for all applications
 pnpm format          # Format code in all applications
@@ -291,7 +291,7 @@ uv run fastapi dev
 # Run all tests
 uv run pytest
 
-# Run with coverage report  
+# Run with coverage report
 uv run pytest --cov=app --cov-report=html
 
 # Run specific test
@@ -300,7 +300,7 @@ uv run pytest tests/test_parse.py::test_parse_resume -v
 # Format code
 uvx ruff format
 
-# Type checking  
+# Type checking
 uvx mypy app/
 
 # Add new dependency
@@ -409,7 +409,7 @@ docker-compose exec redis redis-cli info
    ```bash
    # Make changes to Python files
    # FastAPI will automatically reload (when using Docker dev)
-   
+
    # Add tests
    # Run tests: uv run pytest
    ```
@@ -418,7 +418,7 @@ docker-compose exec redis redis-cli info
    ```bash
    # Make changes to TypeScript/React files
    # Next.js will automatically reload via HMR
-   
+
    # Check types: pnpm check-types
    # Format: pnpm format
    ```
@@ -427,7 +427,7 @@ docker-compose exec redis redis-cli info
    ```bash
    # Update PostgreSQL init scripts: docker/postgres/init/
    # Restart database: docker-compose restart postgres
-   
+
    # For ArangoDB, use the web interface or API calls
    ```
 
@@ -436,7 +436,7 @@ docker-compose exec redis redis-cli info
 # Format all code
 pnpm format
 
-# Lint all code  
+# Lint all code
 pnpm lint
 
 # Type check all code

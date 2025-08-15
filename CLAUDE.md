@@ -1,265 +1,184 @@
-# Claude Code Configuration - SPARC Development Environment
+# CLAUDE.md
 
-## 🚨 CRITICAL: CONCURRENT EXECUTION & FILE MANAGEMENT
-
-**ABSOLUTE RULES**:
-1. ALL operations MUST be concurrent/parallel in a single message
-2. **NEVER save working files, text/mds and tests to the root folder**
-3. ALWAYS organize files in appropriate subdirectories
-
-### ⚡ GOLDEN RULE: "1 MESSAGE = ALL RELATED OPERATIONS"
-
-**MANDATORY PATTERNS:**
-- **TodoWrite**: ALWAYS batch ALL todos in ONE call (5-10+ todos minimum)
-- **Task tool**: ALWAYS spawn ALL agents in ONE message with full instructions
-- **File operations**: ALWAYS batch ALL reads/writes/edits in ONE message
-- **Bash commands**: ALWAYS batch ALL terminal operations in ONE message
-- **Memory operations**: ALWAYS batch ALL memory store/retrieve in ONE message
-
-### 📁 File Organization Rules
-
-**NEVER save to root folder. Use these directories:**
-- `/src` - Source code files
-- `/tests` - Test files
-- `/docs` - Documentation and markdown files
-- `/config` - Configuration files
-- `/scripts` - Utility scripts
-- `/examples` - Example code
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Project Overview
 
-This project uses SPARC (Specification, Pseudocode, Architecture, Refinement, Completion) methodology with Claude-Flow orchestration for systematic Test-Driven Development.
+ATSPro is an AI-powered ATS resume optimization platform built as a **Turborepo monorepo** with containerized microservices:
 
-## SPARC Commands
+- **Backend**: FastAPI with Python 3.11+, uv package manager, OpenAI Agents SDK
+- **Frontend**: Next.js 15 with TypeScript, Tailwind CSS, shadcn/ui components
+- **Databases**: PostgreSQL (auth), ArangoDB (documents), Redis (cache/jobs)
 
-### Core Commands
-- `npx claude-flow sparc modes` - List available modes
-- `npx claude-flow sparc run <mode> "<task>"` - Execute specific mode
-- `npx claude-flow sparc tdd "<feature>"` - Run complete TDD workflow
-- `npx claude-flow sparc info <mode>` - Get mode details
+## Architecture
 
-### Batchtools Commands
-- `npx claude-flow sparc batch <modes> "<task>"` - Parallel execution
-- `npx claude-flow sparc pipeline "<task>"` - Full pipeline processing
-- `npx claude-flow sparc concurrent <mode> "<tasks-file>"` - Multi-task processing
+```
+atspro/
+├── apps/
+│   ├── api/          # Python FastAPI backend
+│   └── web/          # Next.js TypeScript frontend
+├── docker/           # Docker configuration
+├── docs/            # Documentation
+└── turbo.json       # Turborepo configuration
+```
 
-### Build Commands
-- `npm run build` - Build project
-- `npm run test` - Run tests
-- `npm run lint` - Linting
-- `npm run typecheck` - Type checking
+## Development Commands
 
-## SPARC Workflow Phases
+### Monorepo (Turborepo)
+```bash
+# Start all services
+pnpm dev
 
-1. **Specification** - Requirements analysis (`sparc run spec-pseudocode`)
-2. **Pseudocode** - Algorithm design (`sparc run spec-pseudocode`)
-3. **Architecture** - System design (`sparc run architect`)
-4. **Refinement** - TDD implementation (`sparc tdd`)
-5. **Completion** - Integration (`sparc run integration`)
+# Build all apps
+pnpm build
 
-## Code Style & Best Practices
+# Run tests across all apps
+pnpm test
 
-- **Modular Design**: Files under 500 lines
-- **Environment Safety**: Never hardcode secrets
-- **Test-First**: Write tests before implementation
-- **Clean Architecture**: Separate concerns
-- **Documentation**: Keep updated
+# Type checking
+pnpm check-types
 
-## 🚀 Available Agents (54 Total)
+# Linting
+pnpm lint
 
-### Core Development
-`coder`, `reviewer`, `tester`, `planner`, `researcher`
+# Code formatting
+pnpm format
 
-### Swarm Coordination
-`hierarchical-coordinator`, `mesh-coordinator`, `adaptive-coordinator`, `collective-intelligence-coordinator`, `swarm-memory-manager`
+# Individual app commands
+pnpm build --filter=web    # Build only web app
+pnpm test --filter=api     # Test only API
+```
 
-### Consensus & Distributed
-`byzantine-coordinator`, `raft-manager`, `gossip-coordinator`, `consensus-builder`, `crdt-synchronizer`, `quorum-manager`, `security-manager`
+### Docker Environment
+```bash
+# Start development with hot reload & volume mounting
+pnpm docker:dev
 
-### Performance & Optimization
-`perf-analyzer`, `performance-benchmarker`, `task-orchestrator`, `memory-coordinator`, `smart-agent`
+# Start production environment
+pnpm docker:prod
 
-### GitHub & Repository
-`github-modes`, `pr-manager`, `code-review-swarm`, `issue-tracker`, `release-manager`, `workflow-automation`, `project-board-sync`, `repo-architect`, `multi-repo-swarm`
+# Stop all services
+pnpm docker:stop
 
-### SPARC Methodology
-`sparc-coord`, `sparc-coder`, `specification`, `pseudocode`, `architecture`, `refinement`
+# Clean restart (removes volumes)
+pnpm docker:clean
+```
 
-### Specialized Development
-`backend-dev`, `mobile-dev`, `ml-developer`, `cicd-engineer`, `api-docs`, `system-architect`, `code-analyzer`, `base-template-generator`
+### API Development (Python/FastAPI)
+```bash
+cd apps/api
 
-### Testing & Validation
-`tdd-london-swarm`, `production-validator`
+# Start dev server
+uv run fastapi dev
 
-### Migration & Planning
-`migration-planner`, `swarm-init`
+# Run all tests
+uv run pytest
 
-## 🎯 Claude Code vs MCP Tools
+# Run specific test
+uv run pytest tests/test_parse.py::test_parse_resume -v
 
-### Claude Code Handles ALL:
-- File operations (Read, Write, Edit, MultiEdit, Glob, Grep)
-- Code generation and programming
-- Bash commands and system operations
-- Implementation work
-- Project navigation and analysis
-- TodoWrite and task management
-- Git operations
-- Package management
-- Testing and debugging
+# Run with coverage
+uv run pytest --cov=app --cov-report=html
 
-### MCP Tools ONLY:
-- Coordination and planning
-- Memory management
-- Neural features
-- Performance tracking
-- Swarm orchestration
-- GitHub integration
+# Format code (REQUIRED before commits)
+uvx ruff format
 
-**KEY**: MCP coordinates, Claude Code executes.
+# Add dependency
+uv add <package-name>
 
-## 🚀 Quick Setup
+# Sync dependencies
+uv sync --dev
+```
+
+### Web Development (Next.js/TypeScript)
+```bash
+cd apps/web
+
+# Start dev server
+pnpm dev
+
+# Build for production
+pnpm build
+
+# Type checking
+pnpm check-types
+
+# Linting
+pnpm lint
+
+# Add dependency
+pnpm add <package-name>
+```
+
+## Key Development Practices
+
+### Python (API)
+- Use **uv** for all package management (never edit pyproject.toml manually)
+- Always use type hints and Pydantic models
+- Run `uvx ruff format` before committing
+- Tests are required for new features (currently 100% coverage)
+- Use `uv run pytest` for testing
+
+### TypeScript (Web)
+- Strict typing enforced
+- Uses shadcn/ui components and Tailwind CSS
+- Better-auth for authentication
+- Component-based architecture
+
+### Database Access
+```bash
+# PostgreSQL
+docker-compose exec postgres psql -U atspro_user -d atspro
+
+# ArangoDB Web UI
+open http://localhost:8529
+
+# Redis CLI
+docker-compose exec redis redis-cli
+```
+
+## API Endpoints
+
+Core functionality:
+- `/api/parse` - Parse resume documents to structured JSON
+- `/api/optimize` - Optimize resume content for specific jobs
+- `/api/job` - Extract and analyze job descriptions
+- `/health` - Service health check
+
+## Testing
+
+API tests have 100% code coverage. Always run tests before committing:
 
 ```bash
-# Add Claude Flow MCP server
-claude mcp add claude-flow npx claude-flow@alpha mcp start
+# API tests
+cd apps/api && uv run pytest
+
+# Web tests
+cd apps/web && pnpm test
 ```
 
-## MCP Tool Categories
+## Pre-commit Checklist
 
-### Coordination
-`swarm_init`, `agent_spawn`, `task_orchestrate`
-
-### Monitoring
-`swarm_status`, `agent_list`, `agent_metrics`, `task_status`, `task_results`
-
-### Memory & Neural
-`memory_usage`, `neural_status`, `neural_train`, `neural_patterns`
-
-### GitHub Integration
-`github_swarm`, `repo_analyze`, `pr_enhance`, `issue_triage`, `code_review`
-
-### System
-`benchmark_run`, `features_detect`, `swarm_monitor`
-
-## 📋 Agent Coordination Protocol
-
-### Every Agent MUST:
-
-**1️⃣ BEFORE Work:**
 ```bash
-npx claude-flow@alpha hooks pre-task --description "[task]"
-npx claude-flow@alpha hooks session-restore --session-id "swarm-[id]"
+# From root directory
+pnpm format      # Format all code
+pnpm lint        # Lint all code
+pnpm check-types # Type check all code
+pnpm test        # Run all tests
+pnpm build       # Build all apps
 ```
 
-**2️⃣ DURING Work:**
-```bash
-npx claude-flow@alpha hooks post-edit --file "[file]" --memory-key "swarm/[agent]/[step]"
-npx claude-flow@alpha hooks notify --message "[what was done]"
-```
+## Service URLs (Development)
 
-**3️⃣ AFTER Work:**
-```bash
-npx claude-flow@alpha hooks post-task --task-id "[task]"
-npx claude-flow@alpha hooks session-end --export-metrics true
-```
+- Web App: http://localhost:3000
+- API Server: http://localhost:8000
+- API Docs: http://localhost:8000/docs
+- ArangoDB UI: http://localhost:8529
 
-## 🎯 Concurrent Execution Examples
+## Important Notes
 
-### ✅ CORRECT (Single Message):
-```javascript
-[BatchTool]:
-  // Initialize swarm
-  mcp__claude-flow__swarm_init { topology: "mesh", maxAgents: 6 }
-  mcp__claude-flow__agent_spawn { type: "researcher" }
-  mcp__claude-flow__agent_spawn { type: "coder" }
-  mcp__claude-flow__agent_spawn { type: "tester" }
-  
-  // Spawn agents with Task tool
-  Task("Research agent: Analyze requirements...")
-  Task("Coder agent: Implement features...")
-  Task("Tester agent: Create test suite...")
-  
-  // Batch todos
-  TodoWrite { todos: [
-    {id: "1", content: "Research", status: "in_progress", priority: "high"},
-    {id: "2", content: "Design", status: "pending", priority: "high"},
-    {id: "3", content: "Implement", status: "pending", priority: "high"},
-    {id: "4", content: "Test", status: "pending", priority: "medium"},
-    {id: "5", content: "Document", status: "pending", priority: "low"}
-  ]}
-  
-  // File operations
-  Bash "mkdir -p app/{src,tests,docs}"
-  Write "app/src/index.js"
-  Write "app/tests/index.test.js"
-  Write "app/docs/README.md"
-```
-
-### ❌ WRONG (Multiple Messages):
-```javascript
-Message 1: mcp__claude-flow__swarm_init
-Message 2: Task("agent 1")
-Message 3: TodoWrite { todos: [single todo] }
-Message 4: Write "file.js"
-// This breaks parallel coordination!
-```
-
-## Performance Benefits
-
-- **84.8% SWE-Bench solve rate**
-- **32.3% token reduction**
-- **2.8-4.4x speed improvement**
-- **27+ neural models**
-
-## Hooks Integration
-
-### Pre-Operation
-- Auto-assign agents by file type
-- Validate commands for safety
-- Prepare resources automatically
-- Optimize topology by complexity
-- Cache searches
-
-### Post-Operation
-- Auto-format code
-- Train neural patterns
-- Update memory
-- Analyze performance
-- Track token usage
-
-### Session Management
-- Generate summaries
-- Persist state
-- Track metrics
-- Restore context
-- Export workflows
-
-## Advanced Features (v2.0.0)
-
-- 🚀 Automatic Topology Selection
-- ⚡ Parallel Execution (2.8-4.4x speed)
-- 🧠 Neural Training
-- 📊 Bottleneck Analysis
-- 🤖 Smart Auto-Spawning
-- 🛡️ Self-Healing Workflows
-- 💾 Cross-Session Memory
-- 🔗 GitHub Integration
-
-## Integration Tips
-
-1. Start with basic swarm init
-2. Scale agents gradually
-3. Use memory for context
-4. Monitor progress regularly
-5. Train patterns from success
-6. Enable hooks automation
-7. Use GitHub tools first
-
-## Support
-
-- Documentation: https://github.com/ruvnet/claude-flow
-- Issues: https://github.com/ruvnet/claude-flow/issues
-
----
-
-Remember: **Claude Flow coordinates, Claude Code creates!**
+- Use Docker for development environment (databases, services)
+- Both apps support hot reload during development
+- Python code must maintain 100% test coverage
+- All commits must pass linting and type checking
+- Use appropriate package managers: `uv` for Python, `pnpm` for Node.js
