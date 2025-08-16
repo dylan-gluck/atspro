@@ -1,23 +1,47 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { ProfileCard } from "@/components/profile-card"
+import { StatsCard } from "@/components/stats-card"
+import { NotificationCard } from "@/components/notification-card"
+import { JobCreation } from "@/components/job-creation"
+import { JobList } from "@/components/job-list"
 import { authClient } from "@/lib/auth-client"
 import { useRouter } from "next/navigation"
+import { useEffect, useState } from "react"
+import { useUserService } from "@/lib/services"
 import { toast } from "sonner"
-
-interface User {
-  id: string
-  name: string
-  email: string
-}
+import { Plus } from "lucide-react"
+import type { BetterAuthUser, UserProfile, JobEntity } from "@/types/database"
 
 interface DashboardProps {
-  user: User
+  user: BetterAuthUser
 }
 
 export function Dashboard({ user }: DashboardProps) {
   const router = useRouter()
+  const userService = useUserService()
+  const [profile, setProfile] = useState<UserProfile | null>(null)
+  const [isJobDialogOpen, setIsJobDialogOpen] = useState(false)
+  const [jobListRefreshTrigger, setJobListRefreshTrigger] = useState(0)
+
+  useEffect(() => {
+    const loadProfile = async () => {
+      if (!userService) return
+
+      try {
+        const response = await userService.getProfile()
+        if (response.success) {
+          setProfile(response.data)
+        }
+      } catch (error) {
+        console.error('Failed to load user profile:', error)
+      }
+    }
+
+    loadProfile()
+  }, [userService])
 
   const handleSignOut = async () => {
     try {
@@ -30,11 +54,17 @@ export function Dashboard({ user }: DashboardProps) {
     }
   }
 
+  const handleJobCreated = (job: JobEntity) => {
+    setIsJobDialogOpen(false)
+    setJobListRefreshTrigger(prev => prev + 1)
+    toast.success(`Job "${job.title}" added successfully!`)
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <h1 className="text-2xl font-bold">ATS Pro</h1>
+          <h1 className="text-2xl font-bold text-foreground">ATS Pro</h1>
           <div className="flex items-center gap-4">
             <span className="text-sm text-muted-foreground">
               Welcome, {user.name}
@@ -47,55 +77,45 @@ export function Dashboard({ user }: DashboardProps) {
       </header>
 
       <main className="container mx-auto px-4 py-8">
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          <Card>
-            <CardHeader>
-              <CardTitle>Dashboard</CardTitle>
-              <CardDescription>
-                Welcome to your ATS Pro dashboard
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                You are successfully signed in as <strong>{user.email}</strong>
-              </p>
-            </CardContent>
-          </Card>
+        {/* Top Row - Main Dashboard Cards */}
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-8">
+          <ProfileCard 
+            user={user} 
+            profile={profile}
+            className="md:col-span-1"
+          />
+          <StatsCard 
+            className="md:col-span-1"
+          />
+          <NotificationCard 
+            className="md:col-span-1 lg:col-span-1"
+          />
+        </div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Profile</CardTitle>
-              <CardDescription>
-                Your account information
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <div>
-                  <span className="text-sm font-medium">Name: </span>
-                  <span className="text-sm">{user.name}</span>
-                </div>
-                <div>
-                  <span className="text-sm font-medium">Email: </span>
-                  <span className="text-sm">{user.email}</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Getting Started</CardTitle>
-              <CardDescription>
-                Next steps for your ATS
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                Your authentication system is now set up and working. You can start building your ATS features.
-              </p>
-            </CardContent>
-          </Card>
+        {/* Job Management Section */}
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-semibold text-foreground">Job Management</h2>
+            <Dialog open={isJobDialogOpen} onOpenChange={setIsJobDialogOpen}>
+              <DialogTrigger asChild>
+                <Button className="flex items-center gap-2">
+                  <Plus className="w-4 h-4" />
+                  Add Job
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl">
+                <DialogHeader>
+                  <DialogTitle>Add New Job</DialogTitle>
+                </DialogHeader>
+                <JobCreation onJobCreated={handleJobCreated} />
+              </DialogContent>
+            </Dialog>
+          </div>
+          
+          <JobList 
+            refreshTrigger={jobListRefreshTrigger}
+            className="mt-6"
+          />
         </div>
       </main>
     </div>

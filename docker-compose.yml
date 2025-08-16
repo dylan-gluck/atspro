@@ -90,7 +90,9 @@ services:
       - DATABASE_URL=postgresql://atspro_user:${POSTGRES_PASSWORD:-dev_password_change_in_prod}@postgres:5432/atspro
       - REDIS_URL=redis://:${REDIS_PASSWORD:-dev_redis_password_change_in_prod}@redis:6379
       - ARANGO_URL=http://arangodb:8529
-      - ARANGO_ROOT_PASSWORD=${ARANGO_ROOT_PASSWORD:-dev_arango_password_change_in_prod}
+      - ARANGO_DATABASE=atspro
+      - ARANGO_USERNAME=atspro_user
+      - ARANGO_PASSWORD=atspro_pass
     ports:
       - "8000:8000"
     depends_on:
@@ -116,6 +118,7 @@ services:
       context: ./apps/web
       dockerfile: Dockerfile
     container_name: atspro-web
+    command: sh -c "pnpm install && pnpm dev"
     environment:
       - NODE_ENV=production
       - NEXT_PUBLIC_API_URL=http://api:8000

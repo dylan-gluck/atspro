@@ -36,6 +36,7 @@ export interface UserProfile extends BaseEntity {
   location?: string;
   title?: string;
   bio?: string;
+  resume_id?: string; // References the active resume in ArangoDB
 }
 
 // Combined user data
@@ -104,6 +105,7 @@ export interface JobEntity extends BaseEntity {
   company: string;
   job_details: Job; // Import from existing job.ts
   status_info: JobStatus;
+  archived?: boolean; // Whether the job is archived
 }
 
 // Job documents (resumes, cover letters, portfolios)

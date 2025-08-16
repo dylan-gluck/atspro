@@ -212,4 +212,40 @@ export class UserServiceImpl extends BaseServiceImpl implements UserService {
       return 'free';
     }
   }
+
+  // Method to update resume_id in user profile
+  async updateResumeId(resumeId: string): Promise<ApiResponse<UserProfile>> {
+    const response = await this.updateProfile({ resume_id: resumeId });
+    
+    if (response.success) {
+      // Clear relevant caches
+      this.clearCachePattern('Profile');
+      this.clearCachePattern('FullProfile');
+    }
+    
+    return response;
+  }
+
+  // Method to check if user has resume_id
+  async hasResumeId(): Promise<boolean> {
+    try {
+      const profileResponse = await this.getProfile();
+      return profileResponse.success && !!profileResponse.data?.resume_id;
+    } catch {
+      return false;
+    }
+  }
+
+  // Method to get user's resume_id
+  async getResumeId(): Promise<string | null> {
+    try {
+      const profileResponse = await this.getProfile();
+      if (profileResponse.success && profileResponse.data?.resume_id) {
+        return profileResponse.data.resume_id;
+      }
+      return null;
+    } catch {
+      return null;
+    }
+  }
 }

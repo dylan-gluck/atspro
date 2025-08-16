@@ -98,6 +98,47 @@ export class ResumeServiceImpl extends BaseServiceImpl implements ResumeService 
   }
 
   // File Operations
+  async parseResume(file: File): Promise<ApiResponse<Resume>> {
+    // Validate file type
+    const allowedTypes = [
+      'application/pdf',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/msword',
+      'text/plain',
+      'text/markdown'
+    ];
+    
+    if (!allowedTypes.includes(file.type)) {
+      return {
+        data: null as any,
+        success: false,
+        message: 'Invalid file type. Please upload a PDF, DOC, DOCX, TXT, or MD file.',
+        errors: ['Invalid file type']
+      };
+    }
+
+    // Validate file size (10MB limit)
+    const maxSize = 10 * 1024 * 1024; // 10MB
+    if (file.size > maxSize) {
+      return {
+        data: null as any,
+        success: false,
+        message: 'File size too large. Maximum size is 10MB.',
+        errors: ['File size too large']
+      };
+    }
+
+    const response = await this.apiClient.upload<Resume>('/api/parse', file);
+    
+    if (response.success) {
+      // Clear resume caches since we have new content
+      this.clearCachePattern('resume');
+      this.clearCachePattern('Resume');
+    }
+    
+    return response;
+  }
+
   async uploadResume(file: File): Promise<ApiResponse<Resume>> {
     // Validate file type
     const allowedTypes = [

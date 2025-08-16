@@ -103,6 +103,57 @@ export class JobsServiceImpl extends BaseServiceImpl implements JobsService {
     return response;
   }
 
+  async parseJobFromDocument(file: File): Promise<ApiResponse<JobEntity>> {
+    if (!file) {
+      return {
+        data: null as any,
+        success: false,
+        message: 'File is required',
+        errors: ['File is required']
+      };
+    }
+
+    // Validate file type
+    const allowedTypes = [
+      'application/pdf',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/msword',
+      'text/plain',
+      'text/markdown'
+    ];
+
+    if (!allowedTypes.includes(file.type)) {
+      return {
+        data: null as any,
+        success: false,
+        message: 'Invalid file type. Only PDF, DOCX, DOC, TXT, and MD files are supported.',
+        errors: ['Invalid file type']
+      };
+    }
+
+    // Validate file size (10MB limit)
+    const maxSize = 10 * 1024 * 1024; // 10MB
+    if (file.size > maxSize) {
+      return {
+        data: null as any,
+        success: false,
+        message: 'File size too large. Maximum size is 10MB.',
+        errors: ['File size too large']
+      };
+    }
+
+    const response = await this.apiClient.upload<JobEntity>('/api/job/parse-document', file);
+    
+    if (response.success) {
+      // Clear job list caches
+      this.clearCachePattern('listJobs');
+      this.clearCachePattern('searchJobs');
+      this.clearCachePattern('filterJobs');
+    }
+    
+    return response;
+  }
+
   async updateJob(id: string, updates: Partial<JobEntity>): Promise<ApiResponse<JobEntity>> {
     if (!id) {
       return {
@@ -456,5 +507,96 @@ export class JobsServiceImpl extends BaseServiceImpl implements JobsService {
     } catch {
       return [];
     }
+  }
+
+  // Archive/Unarchive specific methods
+  async archiveJob(id: string): Promise<ApiResponse<JobEntity>> {
+    return this.updateJob(id, { archived: true });
+  }
+
+  async unarchiveJob(id: string): Promise<ApiResponse<JobEntity>> {
+    return this.updateJob(id, { archived: false });
+  }
+
+  async getArchivedJobs(params?: {
+    page?: number;
+    page_size?: number;
+  }): Promise<JobEntity[]> {
+    try {
+      const response = await this.listJobs({ 
+        ...params, 
+        archived: true 
+      });
+      return response.success ? response.data.data : [];
+    } catch {
+      return [];
+    }
+  }
+
+  async getActiveJobs(params?: {
+    page?: number;
+    page_size?: number;
+  }): Promise<JobEntity[]> {
+    try {
+      const response = await this.listJobs({ 
+        ...params, 
+        archived: false 
+      });
+      return response.success ? response.data.data : [];
+    } catch {
+      return [];
+    }
+  }
+
+  async bulkArchiveJobs(jobIds: string[]): Promise<ApiResponse<void>> {
+    if (!jobIds.length) {
+      return {
+        data: undefined,
+        success: false,
+        message: 'At least one job ID is required',
+        errors: ['At least one job ID is required']
+      };
+    }
+
+    const response = await this.apiClient.patch<void>('/api/jobs/bulk-archive', {
+      job_ids: jobIds,
+      archived: true
+    });
+    
+    if (response.success) {
+      // Clear job-related caches
+      this.clearCachePattern('getJob');
+      this.clearCachePattern('listJobs');
+      this.clearCachePattern('searchJobs');
+      this.clearCachePattern('filterJobs');
+    }
+    
+    return response;
+  }
+
+  async bulkUnarchiveJobs(jobIds: string[]): Promise<ApiResponse<void>> {
+    if (!jobIds.length) {
+      return {
+        data: undefined,
+        success: false,
+        message: 'At least one job ID is required',
+        errors: ['At least one job ID is required']
+      };
+    }
+
+    const response = await this.apiClient.patch<void>('/api/jobs/bulk-archive', {
+      job_ids: jobIds,
+      archived: false
+    });
+    
+    if (response.success) {
+      // Clear job-related caches
+      this.clearCachePattern('getJob');
+      this.clearCachePattern('listJobs');
+      this.clearCachePattern('searchJobs');
+      this.clearCachePattern('filterJobs');
+    }
+    
+    return response;
   }
 }

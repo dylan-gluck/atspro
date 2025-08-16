@@ -21,9 +21,25 @@ WORKDIR /app
 # Copy pyproject.toml and uv.lock first for better layer caching
 COPY pyproject.toml uv.lock ./
 
-# Install dependencies only (no local package)
+# Install dependencies from pyproject.toml
 RUN --mount=type=cache,target=/opt/uv-cache \
-    uv pip install --system fastapi[standard] google-genai httpx openai openai-agents python-multipart unstructured[doc,docx,md,pdf,rtf] vlmrun-hub
+    uv pip install --system \
+    "fastapi[standard]>=0.115.8" \
+    "google-genai>=1.2.0" \
+    "httpx>=0.28.1" \
+    "openai>=1.65.4" \
+    "openai-agents>=0.0.14" \
+    "python-multipart>=0.0.20" \
+    "unstructured[doc,docx,md,pdf,rtf]>=0.16.23" \
+    "vlmrun-hub>=0.1.30" \
+    "psycopg[binary,pool]>=3.1.0" \
+    "redis>=5.0.0" \
+    "python-arango>=7.5.0" \
+    "rq>=1.15.0" \
+    "sse-starlette>=1.6.0" \
+    "alembic>=1.12.0" \
+    "pydantic-settings>=2.0.0" \
+    "psycopg-pool>=3.2.6"
 
 # Copy application code
 COPY . .
@@ -42,4 +58,4 @@ HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:8000/health || exit 1
 
 # Run the application
-CMD ["python", "-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["python", "-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]

@@ -99,6 +99,11 @@ export interface UserService extends BaseService {
   getCurrentUser(): Promise<ApiResponse<BetterAuthUser | null>>;
   updateUserName(name: string): Promise<ApiResponse<BetterAuthUser>>;
   updateUserEmail(email: string): Promise<ApiResponse<BetterAuthUser>>;
+
+  // Onboarding Methods
+  updateResumeId(resumeId: string): Promise<ApiResponse<UserProfile>>;
+  hasResumeId(): Promise<boolean>;
+  getResumeId(): Promise<string | null>;
 }
 
 // ResumeService Interface
@@ -114,6 +119,7 @@ export interface ResumeService extends BaseService {
   restoreVersion(version: number): Promise<ApiResponse<ResumeVersion>>;
 
   // File Operations
+  parseResume(file: File): Promise<ApiResponse<Resume>>;
   uploadResume(file: File): Promise<ApiResponse<Resume>>;
   exportResume(format: 'pdf' | 'docx' | 'txt'): Promise<ApiResponse<Blob>>;
 
@@ -143,6 +149,7 @@ export interface JobsService extends BaseService {
   
   getJob(id: string): Promise<ApiResponse<JobEntity>>;
   createJob(jobUrl: string): Promise<ApiResponse<JobEntity>>;
+  parseJobFromDocument(file: File): Promise<ApiResponse<JobEntity>>;
   updateJob(id: string, updates: Partial<JobEntity>): Promise<ApiResponse<JobEntity>>;
   deleteJob(id: string): Promise<ApiResponse<void>>;
 
@@ -174,6 +181,12 @@ export interface JobsService extends BaseService {
     salary_range?: [number, number];
     date_range?: [string, string];
   }): Promise<ApiResponse<JobEntity[]>>;
+
+  // Archive Management
+  archiveJob(id: string): Promise<ApiResponse<JobEntity>>;
+  unarchiveJob(id: string): Promise<ApiResponse<JobEntity>>;
+  bulkArchiveJobs(jobIds: string[]): Promise<ApiResponse<void>>;
+  bulkUnarchiveJobs(jobIds: string[]): Promise<ApiResponse<void>>;
 }
 
 // AuthService Interface
