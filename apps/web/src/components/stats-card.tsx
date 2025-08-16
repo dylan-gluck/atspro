@@ -39,25 +39,25 @@ export function StatsCard({ className }: StatsCardProps) {
         // Get all jobs to calculate stats
         const response = await jobsService.listJobs({ page: 1, page_size: 100 })
         
-        if (response.success) {
-          const jobs = response.data.data
+        if (response.success && response.data?.data) {
+          const jobs = response.data.data || []
           const totalJobs = jobs.length
           
-          // Count jobs by status
+          // Count jobs by status - with defensive checks
           const activeJobs = jobs.filter(job => 
-            ['saved', 'applied'].includes(job.status_info.status)
+            job.status_info?.status && ['saved', 'applied'].includes(job.status_info.status)
           ).length
           
           const interviewingJobs = jobs.filter(job => 
-            job.status_info.status === 'interviewing'
+            job.status_info?.status === 'interviewing'
           ).length
           
           const offeredJobs = jobs.filter(job => 
-            job.status_info.status === 'offered'
+            job.status_info?.status === 'offered'
           ).length
           
           const appliedJobs = jobs.filter(job => 
-            ['applied', 'interviewing', 'offered', 'rejected'].includes(job.status_info.status)
+            job.status_info?.status && ['applied', 'interviewing', 'offered', 'rejected'].includes(job.status_info.status)
           ).length
           
           // Calculate success rate (offers / applications)
@@ -71,11 +71,24 @@ export function StatsCard({ className }: StatsCardProps) {
             isLoading: false
           })
         } else {
-          setStats(prev => ({ ...prev, isLoading: false }))
+          console.warn('Failed to load jobs or empty response:', response.message)
+          setStats({
+            totalJobs: 0,
+            activeJobs: 0,
+            interviewingJobs: 0,
+            successRate: 0,
+            isLoading: false
+          })
         }
       } catch (error) {
         console.error('Failed to load job stats:', error)
-        setStats(prev => ({ ...prev, isLoading: false }))
+        setStats({
+          totalJobs: 0,
+          activeJobs: 0,
+          interviewingJobs: 0,
+          successRate: 0,
+          isLoading: false
+        })
       }
     }
 

@@ -6,6 +6,7 @@ from pydantic import BaseModel
 from ..logger.logger import logger
 from ..services.optimization_service import OptimizationService
 from ..services.task_service import TaskService
+from ..dependencies import get_current_user, get_task_service
 
 router = APIRouter()
 
@@ -31,29 +32,17 @@ class TaskResponse(BaseModel):
     data: dict
 
 
-# Auth dependency (placeholder for better-auth integration)
-async def get_current_user(authorization: Optional[str] = Header(None)):
-    """Extract user from better-auth session"""
-    if not authorization:
-        raise HTTPException(status_code=401, detail="Authorization header required")
-
-    # TODO: Implement actual better-auth validation
-    # For now, extract user ID from authorization header
-    # In production, this should validate the JWT token from better-auth
-    return {"id": "user_123", "email": "user@example.com"}
+# Auth and service dependencies are now imported from dependencies module
 
 
 # Service dependencies
 async def get_optimization_service():
     """Get optimization service instance"""
-    # TODO: This should be injected via dependency injection in main.py
-    # For now, we'll create a placeholder that will be replaced
-    # when the services are properly initialized
-    from ..database.connections import get_arango_db, get_task_service_instance
-
-    arango_db = await get_arango_db()
-    task_service = await get_task_service_instance()
-
+    task_service = await get_task_service()
+    
+    # Get ArangoDB from the task service
+    arango_db = task_service.arango_db
+    
     return OptimizationService(arango_db, task_service)
 
 

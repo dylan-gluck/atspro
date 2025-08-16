@@ -93,6 +93,8 @@ services:
       - ARANGO_DATABASE=atspro
       - ARANGO_USERNAME=atspro_user
       - ARANGO_PASSWORD=atspro_pass
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
     ports:
       - "8000:8000"
     depends_on:
@@ -115,8 +117,8 @@ services:
   # Web Service
   web:
     build:
-      context: ./apps/web
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ./apps/web/Dockerfile
     container_name: atspro-web
     command: sh -c "pnpm install && pnpm dev"
     environment:

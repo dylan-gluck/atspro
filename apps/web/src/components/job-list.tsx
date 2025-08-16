@@ -20,10 +20,12 @@ import { cn } from '@/lib/utils';
 import type { JobEntity } from '@/types/services';
 import { JobTable } from './job-table';
 import { JobCard } from './job-card';
+import { EmptyJobsState } from './EmptyJobsState';
 
 export interface JobListProps {
   className?: string;
   refreshTrigger?: number; // Used to trigger refresh when new jobs are added
+  onAddJob?: () => void; // Callback for when user wants to add a job
 }
 
 type ViewMode = 'table' | 'cards';
@@ -46,7 +48,7 @@ const DEFAULT_PREFERENCES: ViewPreferences = {
   sortOrder: 'desc'
 };
 
-export function JobList({ className, refreshTrigger }: JobListProps) {
+export function JobList({ className, refreshTrigger, onAddJob }: JobListProps) {
   const [jobs, setJobs] = useState<JobEntity[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -83,7 +85,10 @@ export function JobList({ className, refreshTrigger }: JobListProps) {
   }, [preferences]);
 
   const loadJobs = async () => {
-    if (!jobsService) return;
+    if (!jobsService) {
+      setIsLoading(false);
+      return;
+    }
 
     setIsLoading(true);
     try {
@@ -113,17 +118,35 @@ export function JobList({ className, refreshTrigger }: JobListProps) {
       const response = await jobsService.listJobs(params);
 
       if (response.success) {
-        setJobs(response.data.data);
-        setTotalJobs(response.data.total);
-        setHasNext(response.data.has_next);
-        setHasPrevious(response.data.has_previous);
+        // Ensure we have the expected data structure
+        const jobData = response.data || { data: [], total: 0, has_next: false, has_previous: false };
+        setJobs(jobData.data || []);
+        setTotalJobs(jobData.total || 0);
+        setHasNext(jobData.has_next || false);
+        setHasPrevious(jobData.has_previous || false);
       } else {
-        toast.error('Failed to load jobs');
-        console.error('Failed to load jobs:', response.message);
+        // Handle API errors gracefully - show empty state instead of error
+        setJobs([]);
+        setTotalJobs(0);
+        setHasNext(false);
+        setHasPrevious(false);
+        console.warn('Failed to load jobs:', response.message);
+        // Only show error toast if it's not a 404 (no jobs found)
+        if (response.message && !response.message.includes('not found') && !response.message.includes('No jobs')) {
+          toast.error('Unable to load jobs at this time');
+        }
       }
     } catch (error) {
-      toast.error('An error occurred while loading jobs');
-      console.error('Error loading jobs:', error);
+      // Handle network/service errors gracefully
+      setJobs([]);
+      setTotalJobs(0);
+      setHasNext(false);
+      setHasPrevious(false);
+      console.warn('Error loading jobs:', error);
+      // Only show error if it's a real network error
+      if (error instanceof Error && error.message.includes('fetch')) {
+        toast.error('Network error - please check your connection');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -283,13 +306,11 @@ export function JobList({ className, refreshTrigger }: JobListProps) {
       <CardContent>
         <div className="space-y-4">
           {jobs.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              <Building2 className="w-12 h-12 mx-auto mb-4 opacity-50" />
-              <p className="text-sm">No jobs found</p>
-              <p className="text-xs mt-2">
-                {searchQuery ? 'Try adjusting your search terms' : 'Add your first job by clicking the "Add Job" button above'}
-              </p>
-            </div>
+            <EmptyJobsState
+              isSearching={!!searchQuery.trim()}
+              searchQuery={searchQuery}
+              onAddJob={onAddJob}
+            />
           ) : preferences.viewMode === 'table' ? (
             <JobTable
               jobs={jobs}

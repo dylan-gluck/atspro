@@ -1,8 +1,23 @@
 {
   "mcpServers": {
-    "shadcn-ui": {
+    "memory": {
+      "command": "uvx",
+      "args": ["mcp-memory-service"],
+      "env": {
+        "MCP_MEMORY_STORAGE_BACKEND": "sqlite_vec",
+        "MCP_MEMORY_SQLITE_PATH": ".claude/memory/team_memory.db",
+        "MCP_MEMORY_BACKUPS_PATH": ".claude/memory-backup/"
+      }
+    },
+    "sequential-thinking": {
+      "type": "stdio",
       "command": "npx",
-      "args": ["@jpisnice/shadcn-ui-mcp-server"]
+      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"],
+      "env": {}
+    },
+    "puppeteer": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-puppeteer"]
     },
     "postgres": {
       "command": "npx",
@@ -12,11 +27,9 @@
         "postgresql://atspro_user:dev_password_change_in_prod@localhost:5432/atspro"
       ]
     },
-    "context7": {
-      "type": "stdio",
-      "command": "npx",
-      "args": ["-y", "@upstash/context7-mcp"],
-      "env": {}
+    "docker-mcp": {
+      "command": "uvx",
+      "args": ["docker-mcp"]
     },
     "language-server-ts": {
       "command": "mcp-language-server",
@@ -39,6 +52,10 @@
         "--",
         "--stdio"
       ]
+    },
+    "shadcn-ui": {
+      "command": "npx",
+      "args": ["@jpisnice/shadcn-ui-mcp-server"]
     }
   }
 }

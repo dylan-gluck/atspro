@@ -97,6 +97,97 @@ export class ResumeServiceImpl extends BaseServiceImpl implements ResumeService 
     return response;
   }
 
+  // Task status polling
+  async getTaskStatus(taskId: string): Promise<ApiResponse<{
+    id: string;
+    status: string;
+    progress: number;
+    created_at: string;
+    started_at?: string;
+    completed_at?: string;
+    task_type: string;
+    user_id: string;
+    priority: number;
+    error_message?: string;
+    result_id?: string;
+    estimated_duration_ms?: number;
+    max_retries: number;
+    retry_count: number;
+  }>> {
+    return this.apiClient.get(`/api/tasks/${taskId}`);
+  }
+
+  async getTaskResult(taskId: string): Promise<ApiResponse<any>> {
+    return this.apiClient.get(`/api/tasks/${taskId}/result`);
+  }
+
+  async pollTaskUntilComplete(
+    taskId: string, 
+    onProgress?: (progress: number, status: string) => void,
+    maxWaitTime: number = 300000 // 5 minutes default
+  ): Promise<ApiResponse<any>> {
+    const startTime = Date.now();
+    const pollInterval = 1000; // Poll every second
+
+    while (Date.now() - startTime < maxWaitTime) {
+      try {
+        const statusResponse = await this.getTaskStatus(taskId);
+        
+        if (!statusResponse.success) {
+          return {
+            data: null,
+            success: false,
+            message: statusResponse.message || 'Failed to get task status',
+            errors: statusResponse.errors || ['Failed to get task status']
+          };
+        }
+
+        const task = statusResponse.data;
+        
+        // Call progress callback if provided
+        if (onProgress) {
+          onProgress(task.progress, task.status);
+        }
+
+        // Check if task is complete
+        if (task.status === 'completed') {
+          // Get the result
+          const resultResponse = await this.getTaskResult(taskId);
+          return resultResponse;
+        } else if (task.status === 'failed') {
+          return {
+            data: null,
+            success: false,
+            message: task.error_message || 'Task failed',
+            errors: [task.error_message || 'Task failed']
+          };
+        } else if (task.status === 'cancelled') {
+          return {
+            data: null,
+            success: false,
+            message: 'Task was cancelled',
+            errors: ['Task was cancelled']
+          };
+        }
+
+        // Wait before next poll
+        await new Promise(resolve => setTimeout(resolve, pollInterval));
+        
+      } catch (error) {
+        console.error('Error polling task status:', error);
+        await new Promise(resolve => setTimeout(resolve, pollInterval));
+      }
+    }
+
+    // Timeout reached
+    return {
+      data: null,
+      success: false,
+      message: 'Task polling timeout reached',
+      errors: ['Task polling timeout reached']
+    };
+  }
+
   // File Operations
   async parseResume(file: File): Promise<ApiResponse<{ task_id: string; resume_id: string }>> {
     // Validate file type

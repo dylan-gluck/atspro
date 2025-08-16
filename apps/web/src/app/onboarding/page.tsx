@@ -12,6 +12,7 @@ export default function OnboardingPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [processingStage, setProcessingStage] = useState<ProcessingStage>('idle');
   const [error, setError] = useState<string | null>(null);
+  const [progress, setProgress] = useState<number>(0);
 
   const handleFileUpload = async (file: File) => {
     if (!services) {
@@ -25,30 +26,51 @@ export default function OnboardingPage() {
     try {
       // Stage 1: Uploading
       setProcessingStage('uploading');
-      await new Promise(resolve => setTimeout(resolve, 500)); // Brief delay to show upload stage
+      setProgress(10);
       
-      // Stage 2: Parsing the resume
-      setProcessingStage('parsing');
+      // Upload file and get task ID
       const parseResponse = await services.resumeService.parseResume(file);
       
       if (!parseResponse.success) {
         throw new Error(parseResponse.message || 'Failed to parse resume. Please check your file and try again.');
       }
 
-      const resumeData = parseResponse.data;
+      const { task_id, resume_id } = parseResponse.data;
+      
+      // Stage 2: Parsing the resume - poll task status
+      setProcessingStage('parsing');
+      setProgress(15);
+      
+      const taskResult = await services.resumeService.pollTaskUntilComplete(
+        task_id,
+        (taskProgress, status) => {
+          // Update UI based on actual task progress
+          if (status === 'running' || status === 'pending') {
+            setProcessingStage('parsing');
+          }
+          // Update progress from backend task (15-85% range for parsing)
+          const adjustedProgress = 15 + (taskProgress * 0.7); // Map 0-100% to 15-85%
+          setProgress(Math.round(adjustedProgress));
+        },
+        300000 // 5 minute timeout
+      );
+      
+      if (!taskResult.success) {
+        throw new Error(taskResult.message || 'Failed to process resume. Please try again.');
+      }
       
       // Stage 3: Updating profile
-      if (resumeData && 'resume_id' in resumeData) {
-        setProcessingStage('updating');
-        const updateResponse = await services.userService.updateResumeId(resumeData.resume_id as string);
-        
-        if (!updateResponse.success) {
-          throw new Error(updateResponse.message || 'Failed to update your profile. Please try again.');
-        }
+      setProcessingStage('updating');
+      setProgress(90);
+      const updateResponse = await services.userService.updateResumeId(resume_id);
+      
+      if (!updateResponse.success) {
+        throw new Error(updateResponse.message || 'Failed to update your profile. Please try again.');
       }
 
       // Stage 4: Success
       setProcessingStage('success');
+      setProgress(100);
       
       // Brief success display before redirect
       setTimeout(() => {
@@ -77,6 +99,10 @@ export default function OnboardingPage() {
       setError(errorMessage);
     } finally {
       setIsLoading(false);
+      // Reset progress on error
+      if (processingStage === 'error') {
+        setProgress(0);
+      }
     }
   };
 
@@ -120,6 +146,7 @@ export default function OnboardingPage() {
                 processingStage={processingStage}
                 error={error}
                 disabled={isLoading}
+                progress={progress}
                 className="mx-auto"
               />
 

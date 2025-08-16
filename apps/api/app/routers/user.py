@@ -12,22 +12,18 @@ from ..schema.user import (
     UserProfileResponse,
     UserProfileUpdate,
 )
-from .tasks import task_service
+from ..dependencies import get_current_user, get_task_service
 
 router = APIRouter(prefix="/user", tags=["user"])
 
 
-# Mock authentication for now - replace with better-auth integration
-async def get_current_user(x_user_id: Optional[str] = Header(None)) -> dict:
-    """Mock current user - replace with actual better-auth integration."""
-    # Use X-User-Id header if provided (for testing), otherwise use default
-    user_id = x_user_id if x_user_id else "mock_user_123"
-    return {"id": user_id, "email": "user@example.com"}
+# Auth and service dependencies are now imported from dependencies module
 
 
 @router.get("/profile", response_model=UserProfileResponse)
 async def get_user_profile(
     current_user: dict = Depends(get_current_user),
+    task_service = Depends(get_task_service),
 ):
     """
     Get the current user's profile.
@@ -69,7 +65,7 @@ async def get_user_profile(
                 bio=row[4],
                 resume_id=row[5],
                 created_at=row[6],
-                updated_at=row[7]
+                updated_at=row[7],
             )
 
             return UserProfileResponse(success=True, data=profile)
@@ -83,6 +79,7 @@ async def get_user_profile(
 async def update_user_profile(
     profile_update: UserProfileUpdate,
     current_user: dict = Depends(get_current_user),
+    task_service = Depends(get_task_service),
 ):
     """
     Update the current user's profile (creates profile if it doesn't exist).
@@ -111,7 +108,7 @@ async def update_user_profile(
                         (user_id,),
                     )
                     profile_exists = await cursor.fetchone()
-                    
+
                     if not profile_exists:
                         await cursor.execute(
                             "INSERT INTO user_profiles (user_id) VALUES (%s)",
@@ -132,7 +129,7 @@ async def update_user_profile(
 
                     update_query = f"""
                         UPDATE user_profiles 
-                        SET {', '.join(set_clauses)}
+                        SET {", ".join(set_clauses)}
                         WHERE user_id = %s
                     """
 
@@ -157,7 +154,7 @@ async def update_user_profile(
                     raise HTTPException(
                         status_code=500, detail="Error retrieving updated profile"
                     )
-                    
+
                 # Convert row to UserProfile model
                 # Row is a tuple, access by index based on SELECT order:
                 # SELECT user_id, phone, location, title, bio, resume_id, created_at, updated_at
@@ -169,7 +166,7 @@ async def update_user_profile(
                     bio=row[4],
                     resume_id=row[5],
                     created_at=row[6],
-                    updated_at=row[7]
+                    updated_at=row[7],
                 )
 
                 logger.info(f"Updated profile for user {user_id}")
@@ -187,6 +184,7 @@ async def update_user_profile(
 @router.delete("/profile", response_model=UserProfileDeleteResponse)
 async def delete_user_profile(
     current_user: dict = Depends(get_current_user),
+    task_service = Depends(get_task_service),
 ):
     """
     Delete the current user's profile.
@@ -207,10 +205,12 @@ async def delete_user_profile(
                     """,
                     (user_id,),
                 )
-                
+
                 # Check if profile was actually deleted
                 if cursor.rowcount == 0:
-                    raise HTTPException(status_code=404, detail="User profile not found")
+                    raise HTTPException(
+                        status_code=404, detail="User profile not found"
+                    )
 
             logger.info(f"Deleted profile for user {user_id}")
             return UserProfileDeleteResponse(

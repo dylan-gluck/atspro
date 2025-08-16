@@ -364,6 +364,7 @@ class TestResumeParseWorker:
             patch("app.workers.resume_parser.partition") as mock_partition,
             patch("app.workers.resume_parser.Runner.run") as mock_runner,
             patch("app.workers.resume_parser.get_arango_client") as mock_arango,
+            patch("app.workers.resume_parser.get_postgres_pool") as mock_postgres,
         ):
             # Mock successful processing
             mock_elements = [Mock()]
@@ -379,11 +380,30 @@ class TestResumeParseWorker:
             mock_db.collection.return_value = mock_collection
             mock_arango.return_value = mock_db
 
+            # Mock PostgreSQL pool and connection
+            mock_pool = Mock()
+            mock_conn = Mock()
+            mock_cursor = Mock()
+            
+            # Configure mocks for async context managers
+            mock_pool.connection.return_value.__aenter__ = AsyncMock(return_value=mock_conn)
+            mock_pool.connection.return_value.__aexit__ = AsyncMock(return_value=None)
+            mock_conn.transaction.return_value.__aenter__ = AsyncMock(return_value=mock_conn)
+            mock_conn.transaction.return_value.__aexit__ = AsyncMock(return_value=None)
+            mock_conn.cursor.return_value.__aenter__ = AsyncMock(return_value=mock_cursor)
+            mock_conn.cursor.return_value.__aexit__ = AsyncMock(return_value=None)
+            
+            # Mock cursor operations
+            mock_cursor.execute = AsyncMock()
+            mock_cursor.fetchone = AsyncMock(return_value=("user_123",))  # Profile exists
+            
+            mock_postgres.return_value = mock_pool
+
             await worker.execute_task(base_task_data)
 
             # Verify progress updates were called
             progress_calls = worker.redis_queue.update_progress.call_args_list
-            assert len(progress_calls) == 6
+            assert len(progress_calls) == 7  # Updated to include user profile update
 
             # Check progress sequence
             task_id = "task_123"
@@ -393,6 +413,7 @@ class TestResumeParseWorker:
                 (task_id, 50, "Processing with AI agent"),
                 (task_id, 70, "Validating parsed data"),
                 (task_id, 80, "Storing resume data"),
+                (task_id, 90, "Updating user profile"),
                 (task_id, 100, "Resume parsing completed"),
             ]
 

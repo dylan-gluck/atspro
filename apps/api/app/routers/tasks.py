@@ -9,13 +9,11 @@ from pydantic import BaseModel, Field
 
 from ..services.task_service import TaskService
 from ..websocket.task_updates import broadcast_task_update
+from ..dependencies import get_current_user, get_task_service
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["tasks"])
-
-# Global task service instance
-task_service = TaskService()
 
 
 # Request/Response Models
@@ -58,45 +56,7 @@ class TaskResultResponse(BaseModel):
     error: Optional[str] = None
 
 
-# Auth dependency (placeholder - will integrate with better-auth)
-async def get_current_user(authorization: Optional[str] = Header(None)) -> dict:
-    """Extract user from better-auth session.
-
-    This is a placeholder implementation that should be replaced with
-    actual better-auth integration.
-
-    Args:
-        authorization: Authorization header from request
-
-    Returns:
-        User dictionary with id and other info
-
-    Raises:
-        HTTPException: If authorization is invalid or missing
-    """
-    if not authorization:
-        raise HTTPException(status_code=401, detail="Authorization header required")
-
-    # TODO: Replace with actual better-auth token validation
-    # For now, we'll use a mock implementation
-    try:
-        # This would normally validate the token with better-auth
-        # and return the actual user information
-        if authorization.startswith("Bearer "):
-            token = authorization[7:]
-            if token == "test_token":
-                return {"id": "test_user", "email": "test@example.com"}
-            else:
-                # Parse token and validate (placeholder)
-                return {
-                    "id": f"user_{token[:8]}",
-                    "email": f"user_{token[:8]}@example.com",
-                }
-        else:
-            raise HTTPException(status_code=401, detail="Invalid authorization format")
-    except Exception as e:
-        logger.error(f"Authorization validation error: {e}")
-        raise HTTPException(status_code=401, detail="Invalid authorization token")
+# Auth and service dependencies are now imported from dependencies module
 
 
 def _convert_task_to_response(task_data: dict) -> TaskResponse:
@@ -121,7 +81,9 @@ def _convert_task_to_response(task_data: dict) -> TaskResponse:
 
 @router.get("/{task_id}", response_model=TaskResponse)
 async def get_task_status(
-    task_id: str, user: dict = Depends(get_current_user)
+    task_id: str, 
+    user: dict = Depends(get_current_user),
+    task_service: TaskService = Depends(get_task_service)
 ) -> TaskResponse:
     """Get detailed status and information for a specific task.
 
@@ -139,16 +101,19 @@ async def get_task_status(
         HTTPException: If task not found or access denied
     """
     try:
+        logger.info(f"Looking for task {task_id} for user {user['id']}")
         task_data = await task_service.get_task(task_id)
 
         if not task_data:
-            raise HTTPException(status_code=404, detail="Task not found")
+            logger.warning(f"Task {task_id} not found in Redis or PostgreSQL for user {user['id']}")
+            raise HTTPException(status_code=404, detail=f"Task {task_id} not found")
 
         # Verify task ownership
         if task_data.get("user_id") != user["id"]:
+            logger.warning(f"Access denied for task {task_id}: user {user['id']} tried to access task owned by {task_data.get('user_id')}")
             raise HTTPException(status_code=403, detail="Access denied")
 
-        logger.info(f"Retrieved task {task_id} for user {user['id']}")
+        logger.info(f"Retrieved task {task_id} with status {task_data.get('status')} for user {user['id']}")
         return _convert_task_to_response(task_data)
 
     except HTTPException:
@@ -161,6 +126,7 @@ async def get_task_status(
 @router.get("/", response_model=TaskListResponse)
 async def list_user_tasks(
     user: dict = Depends(get_current_user),
+    task_service: TaskService = Depends(get_task_service),
     status: Optional[str] = Query(None, description="Filter by task status"),
     task_type: Optional[str] = Query(None, description="Filter by task type"),
     page: int = Query(1, ge=1, description="Page number"),
@@ -248,7 +214,11 @@ async def list_user_tasks(
 
 
 @router.delete("/{task_id}")
-async def cancel_task(task_id: str, user: dict = Depends(get_current_user)) -> dict:
+async def cancel_task(
+    task_id: str, 
+    user: dict = Depends(get_current_user),
+    task_service: TaskService = Depends(get_task_service)
+) -> dict:
     """Cancel a pending or running task.
 
     Attempts to gracefully cancel a task. Pending tasks are removed from
@@ -320,7 +290,9 @@ async def cancel_task(task_id: str, user: dict = Depends(get_current_user)) -> d
 
 @router.get("/{task_id}/result", response_model=TaskResultResponse)
 async def get_task_result(
-    task_id: str, user: dict = Depends(get_current_user)
+    task_id: str, 
+    user: dict = Depends(get_current_user),
+    task_service: TaskService = Depends(get_task_service)
 ) -> TaskResultResponse:
     """Get the result of a completed task.
 
@@ -384,4 +356,4 @@ async def get_task_result(
 
 
 # Note: Task service startup/shutdown is handled in main.py
-# to avoid multiple initialization attempts
+# via dependency injection to avoid multiple initialization attempts

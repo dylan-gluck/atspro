@@ -14,13 +14,15 @@ logger = logging.getLogger(__name__)
 class WorkerManager:
     """Manager for orchestrating multiple workers with different configurations."""
 
-    def __init__(self, redis_queue: RedisQueue):
+    def __init__(self, redis_queue: RedisQueue, task_service=None):
         """Initialize worker manager.
 
         Args:
             redis_queue: Redis queue instance for task operations
+            task_service: Task service for PostgreSQL synchronization (optional)
         """
         self.redis_queue = redis_queue
+        self.task_service = task_service
         self.workers: List[BaseWorker] = []
         self.worker_tasks: List[asyncio.Task] = []
         self.running = False
@@ -46,6 +48,7 @@ class WorkerManager:
         for i in range(count):
             worker = worker_class(
                 redis_queue=self.redis_queue,
+                task_service=self.task_service,
                 concurrency=concurrency,
                 timeout_seconds=timeout_seconds,
                 **kwargs,

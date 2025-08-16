@@ -10,8 +10,16 @@ ENV UV_CACHE_DIR=/opt/uv-cache
 RUN apt-get update && apt-get install -y \
     curl \
     build-essential \
+    libgl1 \
+    libegl1 \
+    libmagic1 \
+    file \
+    libglib2.0-0 \
+    libxext6 \
+    libxrender1 \
+    libgomp1 \
+    poppler-utils \
     && rm -rf /var/lib/apt/lists/*
-
 # Install uv
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
@@ -38,15 +46,14 @@ RUN --mount=type=cache,target=/opt/uv-cache \
     "rq>=1.15.0" \
     "sse-starlette>=1.6.0" \
     "alembic>=1.12.0" \
-    "pydantic-settings>=2.0.0" \
-    "psycopg-pool>=3.2.6"
+    "pydantic-settings>=2.0.0"
 
 # Copy application code
 COPY . .
 
 # Create a non-root user and uv cache directory
-RUN groupadd -r appuser && useradd -r -g appuser appuser
-RUN mkdir -p /opt/uv-cache && chown -R appuser:appuser /opt/uv-cache
+RUN groupadd -r appuser && useradd -r -g appuser -m -d /home/appuser appuser
+RUN mkdir -p /opt/uv-cache /home/appuser && chown -R appuser:appuser /opt/uv-cache /home/appuser
 RUN chown -R appuser:appuser /app
 USER appuser
 

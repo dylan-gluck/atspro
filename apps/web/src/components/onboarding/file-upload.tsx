@@ -20,6 +20,7 @@ export interface FileUploadProps {
   accept?: Record<string, string[]>;
   maxSize?: number;
   disabled?: boolean;
+  progress?: number; // Real progress from backend task
 }
 
 const DEFAULT_ACCEPT = {
@@ -40,7 +41,8 @@ export function FileUpload({
   className,
   accept = DEFAULT_ACCEPT,
   maxSize = DEFAULT_MAX_SIZE,
-  disabled = false
+  disabled = false,
+  progress
 }: FileUploadProps) {
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [uploadSuccess, setUploadSuccess] = useState(false);
@@ -124,21 +126,21 @@ export function FileUpload({
         return {
           icon: Upload,
           message: 'Uploading your resume...',
-          progress: 25,
+          progress: progress !== undefined ? Math.min(progress, 15) : 15, // Cap at 15% for upload
           color: 'text-blue-600'
         };
       case 'parsing':
         return {
           icon: FileText,
           message: 'Analyzing your resume...',
-          progress: 50,
+          progress: progress !== undefined ? Math.max(15, Math.min(progress, 85)) : 50, // Between 15-85% for parsing
           color: 'text-purple-600'
         };
       case 'updating':
         return {
           icon: User,
           message: 'Updating your profile...',
-          progress: 75,
+          progress: progress !== undefined ? Math.max(85, Math.min(progress, 95)) : 90, // Between 85-95% for updating
           color: 'text-orange-600'
         };
       case 'success':
@@ -152,7 +154,7 @@ export function FileUpload({
         return {
           icon: FileText,
           message: 'Processing...',
-          progress: undefined,
+          progress: progress !== undefined ? progress : undefined,
           color: 'text-muted-foreground'
         };
     }

@@ -15,34 +15,23 @@ from ..logger.logger import logger
 from ..queue.redis_queue import TaskPriority
 from ..schema.resume import Resume
 from ..services.task_service import TaskService
+from ..dependencies import get_current_user, get_task_service
 
 router = APIRouter()
 
 
-# Mock authentication for now - replace with better-auth integration
-async def get_current_user() -> dict:
-    """Mock current user - replace with actual better-auth integration."""
-    return {"id": "mock_user_123", "email": "user@example.com"}
+# Auth and service dependencies are now imported from dependencies module
 
 
 # Global task service instance
-task_service = None
-
-
-async def get_task_service() -> TaskService:
-    """Get or create task service instance."""
-    global task_service
-    if task_service is None:
-        task_service = TaskService()
-        await task_service.startup()
-    return task_service
+# Task service is now injected via dependencies module
 
 
 @router.post("/parse")
 async def parse_resume(
     file: UploadFile = File(...),
     current_user: dict = Depends(get_current_user),
-    task_svc: TaskService = Depends(get_task_service),
+    task_service: TaskService = Depends(get_task_service),
 ):
     """
     Submit resume document for async parsing and return task/resume IDs immediately.
@@ -50,7 +39,7 @@ async def parse_resume(
     Args:
         file: File object (pdf, md, doc, docx)
         current_user: Current authenticated user
-        task_svc: Task service dependency
+        task_service: Task service dependency
 
     Returns:
         Task ID and resume placeholder ID for tracking the parsing job
@@ -116,7 +105,7 @@ async def parse_resume(
 
     try:
         # Submit task to queue
-        task_id = await task_svc.create_task(
+        task_id = await task_service.create_task(
             task_type="parse_resume",
             payload=task_payload,
             user_id=user_id,
@@ -146,7 +135,7 @@ async def parse_resume(
 async def get_parse_task_status(
     task_id: str,
     current_user: dict = Depends(get_current_user),
-    task_svc: TaskService = Depends(get_task_service),
+    task_service: TaskService = Depends(get_task_service),
 ):
     """
     Get the status and result of a parse task.
@@ -154,13 +143,13 @@ async def get_parse_task_status(
     Args:
         task_id: Task ID to check
         current_user: Current authenticated user
-        task_svc: Task service dependency
+        task_service: Task service dependency
 
     Returns:
         Task status and result if completed
     """
     try:
-        task = await task_svc.get_task(task_id)
+        task = await task_service.get_task(task_id)
 
         if not task:
             raise HTTPException(status_code=404, detail="Task not found")
@@ -172,7 +161,7 @@ async def get_parse_task_status(
         # Get result if completed
         result = None
         if task.get("status") == "completed":
-            result = await task_svc.get_task_result(task_id)
+            result = await task_service.get_task_result(task_id)
 
         return {
             "success": True,

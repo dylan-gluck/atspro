@@ -53,30 +53,46 @@ async def init_postgres() -> AsyncConnectionPool:
 
 
 async def init_redis() -> redis.Redis:
-    """Initialize Redis client."""
+    """Initialize Redis client with proper connection pooling and timeout configuration."""
     global _redis_client
 
     if _redis_client is not None:
         return _redis_client
 
     try:
-        _redis_client = redis.from_url(
+        # Create connection pool with proper configuration
+        connection_pool = redis.ConnectionPool.from_url(
             settings.redis_url,
             encoding="utf-8",
             decode_responses=True,
-            socket_timeout=5.0,
-            socket_connect_timeout=5.0,
+            socket_timeout=30.0,  # Must be > BRPOP timeout (10s)
+            socket_connect_timeout=10.0,  # Connection establishment timeout
+            socket_keepalive=True,  # Enable keepalive
+            socket_keepalive_options={},  # Use system defaults
             retry_on_timeout=True,
+            retry_on_error=[ConnectionError, TimeoutError],
             health_check_interval=30,
+            max_connections=20,  # Pool size
         )
+        
+        _redis_client = redis.Redis(connection_pool=connection_pool)
 
-        # Test connection
-        await _redis_client.ping()
-        logger.info("Redis client initialized")
+        # Test connection with proper error handling
+        try:
+            await _redis_client.ping()
+            logger.info("Redis client initialized with connection pool (socket_timeout=30s)")
+        except Exception as ping_error:
+            logger.error(f"Redis ping failed during initialization: {ping_error}")
+            # Try to close the pool and re-raise
+            await connection_pool.disconnect()
+            raise
+            
         return _redis_client
 
     except Exception as e:
         logger.error(f"Failed to initialize Redis client: {e}")
+        # Clean up global reference on failure
+        _redis_client = None
         raise
 
 

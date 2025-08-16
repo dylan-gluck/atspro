@@ -122,6 +122,29 @@ export interface ResumeService extends BaseService {
   parseResume(file: File): Promise<ApiResponse<{ task_id: string; resume_id: string }>>;
   uploadResume(file: File): Promise<ApiResponse<Resume>>;
   exportResume(format: 'pdf' | 'docx' | 'txt'): Promise<ApiResponse<Blob>>;
+  // Task Operations
+  getTaskStatus(taskId: string): Promise<ApiResponse<{
+    id: string;
+    status: string;
+    progress: number;
+    created_at: string;
+    started_at?: string;
+    completed_at?: string;
+    task_type: string;
+    user_id: string;
+    priority: number;
+    error_message?: string;
+    result_id?: string;
+    estimated_duration_ms?: number;
+    max_retries: number;
+    retry_count: number;
+  }>>;
+  getTaskResult(taskId: string): Promise<ApiResponse<any>>;
+  pollTaskUntilComplete(
+    taskId: string, 
+    onProgress?: (progress: number, status: string) => void,
+    maxWaitTime?: number
+  ): Promise<ApiResponse<any>>;
 
   // Optimization
   optimizeForJob(jobId: string): Promise<ApiResponse<OptimizationResult>>;

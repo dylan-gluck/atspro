@@ -81,21 +81,36 @@ export function ProfileCard({ user, profile, className }: ProfileCardProps) {
           </div>
         </div>
 
-        {/* Action Button */}
-        {!hasResume && (
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="w-full mt-3"
-            onClick={() => {
-              // Navigate to onboarding
-              window.location.href = "/onboarding"
-            }}
-          >
-            <Upload className="h-4 w-4 mr-2" />
-            Upload Resume
-          </Button>
-        )}
+        {/* Action Buttons */}
+        <div className="space-y-2">
+          {hasResume ? (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="w-full"
+              onClick={() => {
+                // Navigate to resume editor
+                window.location.href = "/resume"
+              }}
+            >
+              <CheckCircle className="h-4 w-4 mr-2" />
+              View/Edit Resume
+            </Button>
+          ) : (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="w-full"
+              onClick={() => {
+                // Navigate to onboarding
+                window.location.href = "/onboarding"
+              }}
+            >
+              <Upload className="h-4 w-4 mr-2" />
+              Upload Resume
+            </Button>
+          )}
+        </div>
       </CardContent>
     </Card>
   )

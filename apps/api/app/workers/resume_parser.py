@@ -23,6 +23,7 @@ class ResumeParseWorker(BaseWorker):
     def __init__(
         self,
         redis_queue: RedisQueue,
+        task_service=None,
         concurrency: int = 1,
         timeout_seconds: int = 300,
         graceful_shutdown_timeout: int = 30,
@@ -31,12 +32,13 @@ class ResumeParseWorker(BaseWorker):
 
         Args:
             redis_queue: Redis queue instance for task operations
+            task_service: Task service for PostgreSQL synchronization (optional)
             concurrency: Number of concurrent tasks to process
             timeout_seconds: Task timeout in seconds
             graceful_shutdown_timeout: Shutdown timeout in seconds
         """
         super().__init__(
-            redis_queue, concurrency, timeout_seconds, graceful_shutdown_timeout
+            redis_queue, task_service, concurrency, timeout_seconds, graceful_shutdown_timeout
         )
 
     def get_queue_names(self) -> List[str]:
@@ -190,6 +192,39 @@ class ResumeParseWorker(BaseWorker):
                 raise TaskError(
                     f"Failed to store resume data: {str(e)}", TaskErrorType.TRANSIENT
                 )
+
+            await self.update_progress(task_id, 90, "Updating user profile")
+
+            # Update user profile with resume_id
+            try:
+                postgres_pool = get_postgres_pool()
+                async with postgres_pool.connection() as conn:
+                    async with conn.transaction():
+                        # Check if user profile exists, create if not
+                        async with conn.cursor() as cursor:
+                            await cursor.execute(
+                                "SELECT user_id FROM user_profiles WHERE user_id = %s",
+                                (user_id,),
+                            )
+                            profile_exists = await cursor.fetchone()
+
+                            if not profile_exists:
+                                await cursor.execute(
+                                    "INSERT INTO user_profiles (user_id, resume_id) VALUES (%s, %s)",
+                                    (user_id, resume_id),
+                                )
+                                logger.info(f"Created user profile for user {user_id} with resume {resume_id}")
+                            else:
+                                await cursor.execute(
+                                    "UPDATE user_profiles SET resume_id = %s WHERE user_id = %s",
+                                    (resume_id, user_id),
+                                )
+                                logger.info(f"Updated user profile for user {user_id} with resume {resume_id}")
+
+            except Exception as e:
+                logger.error(f"User profile update failed for task {task_id}: {str(e)}")
+                # Don't fail the task for profile update issues, log warning instead
+                logger.warning(f"Resume {resume_id} stored but user profile update failed: {str(e)}")
 
             await self.update_progress(task_id, 100, "Resume parsing completed")
 

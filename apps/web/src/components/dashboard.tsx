@@ -7,6 +7,7 @@ import { StatsCard } from "@/components/stats-card"
 import { NotificationCard } from "@/components/notification-card"
 import { JobCreation } from "@/components/job-creation"
 import { JobList } from "@/components/job-list"
+import { ErrorBoundary, DashboardErrorFallback, JobErrorFallback } from "@/components/error-boundary"
 import { authClient } from "@/lib/auth-client"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
@@ -69,6 +70,9 @@ export function Dashboard({ user }: DashboardProps) {
             <span className="text-sm text-muted-foreground">
               Welcome, {user.name}
             </span>
+            <Button variant="ghost" size="sm" onClick={() => router.push('/settings')}>
+              Settings
+            </Button>
             <Button variant="outline" onClick={handleSignOut}>
               Sign Out
             </Button>
@@ -79,17 +83,23 @@ export function Dashboard({ user }: DashboardProps) {
       <main className="container mx-auto px-4 py-8">
         {/* Top Row - Main Dashboard Cards */}
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-8">
-          <ProfileCard 
-            user={user} 
-            profile={profile}
-            className="md:col-span-1"
-          />
-          <StatsCard 
-            className="md:col-span-1"
-          />
-          <NotificationCard 
-            className="md:col-span-1 lg:col-span-1"
-          />
+          <ErrorBoundary fallback={DashboardErrorFallback}>
+            <ProfileCard 
+              user={user} 
+              profile={profile}
+              className="md:col-span-1"
+            />
+          </ErrorBoundary>
+          <ErrorBoundary fallback={DashboardErrorFallback}>
+            <StatsCard 
+              className="md:col-span-1"
+            />
+          </ErrorBoundary>
+          <ErrorBoundary fallback={DashboardErrorFallback}>
+            <NotificationCard 
+              className="md:col-span-1 lg:col-span-1"
+            />
+          </ErrorBoundary>
         </div>
 
         {/* Job Management Section */}
@@ -112,10 +122,13 @@ export function Dashboard({ user }: DashboardProps) {
             </Dialog>
           </div>
           
-          <JobList 
-            refreshTrigger={jobListRefreshTrigger}
-            className="mt-6"
-          />
+          <ErrorBoundary fallback={JobErrorFallback}>
+            <JobList 
+              refreshTrigger={jobListRefreshTrigger}
+              className="mt-6"
+              onAddJob={() => setIsJobDialogOpen(true)}
+            />
+          </ErrorBoundary>
         </div>
       </main>
     </div>

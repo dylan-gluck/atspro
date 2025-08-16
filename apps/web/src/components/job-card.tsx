@@ -52,8 +52,8 @@ export function JobCard({ job, onArchiveToggle }: JobCardProps) {
             </CardDescription>
           </div>
           <div className="flex flex-col gap-1 items-end">
-            <Badge variant={getStatusBadgeVariant(job.status_info.status)}>
-              {job.status_info.status}
+            <Badge variant={getStatusBadgeVariant(job.status_info?.status || 'saved')}>
+              {job.status_info?.status || 'saved'}
             </Badge>
             {isArchived && (
               <Badge variant="outline" className="text-xs">
