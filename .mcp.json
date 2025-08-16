@@ -1,5 +1,9 @@
 {
   "mcpServers": {
+    "shadcn-ui": {
+      "command": "npx",
+      "args": ["@jpisnice/shadcn-ui-mcp-server"]
+    },
     "postgres": {
       "command": "npx",
       "args": [
@@ -14,13 +18,24 @@
       "args": ["-y", "@upstash/context7-mcp"],
       "env": {}
     },
-    "language-server": {
+    "language-server-ts": {
       "command": "mcp-language-server",
       "args": [
         "--workspace",
-        "/Users/dylan/Workspace/projects/atspro",
+        "/Users/dylan/Workspace/projects/atspro/apps/web",
         "--lsp",
         "typescript-language-server",
+        "--",
+        "--stdio"
+      ]
+    },
+    "language-server-py": {
+      "command": "mcp-language-server",
+      "args": [
+        "--workspace",
+        "/Users/dylan/Workspace/projects/atspro/apps/api",
+        "--lsp",
+        "pyright-langserver",
         "--",
         "--stdio"
       ]
