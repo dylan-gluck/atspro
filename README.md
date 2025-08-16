@@ -15,11 +15,17 @@ ATSPro isn't just another resume checker—it's the comprehensive career advance
 ### 🎯 ATS Mastery
 Our proprietary engine, reverse-engineered from leading ATS platforms, doesn't just scan your resume—it reconstructs it for maximum algorithmic impact. Watch your match rates soar from 35% to 85%+.
 
+### ⚡ Real-Time Processing
+Advanced async task architecture with WebSocket updates provides instant feedback on resume parsing, job analysis, and optimization progress. No more waiting in the dark—track every step in real-time.
+
 ### 🔬 Company Intelligence
 Go beyond generic applications with deep-dive research reports, insider interview questions, and cultural insights that help you speak their language from day one.
 
 ### 📈 Success Analytics
 Track your entire job search journey with precision. See which strategies drive interviews, which companies respond, and where your next breakthrough is coming from.
+
+### 🏗️ Enterprise Architecture
+Built for scale with Redis-based queues, background workers, multi-database architecture, and comprehensive service layer for reliability and performance.
 
 ## 🏗️ Architecture
 
@@ -38,7 +44,9 @@ atspro/
 ### Technology Stack
 
 **Backend (API)**
-- **FastAPI** - Modern Python web framework
+- **FastAPI** - Modern Python web framework with async task processing
+- **Redis Queue System** - Priority-based task queues with background workers
+- **WebSocket Manager** - Real-time task status updates and notifications
 - **OpenAI Agents SDK** - AI-powered document processing
 - **Unstructured** - Advanced document parsing
 - **Pydantic** - Data validation and serialization
@@ -46,14 +54,15 @@ atspro/
 
 **Frontend (Web)**
 - **Next.js 15** - React framework with App Router
-- **TypeScript** - Type-safe JavaScript
+- **TypeScript** - Type-safe JavaScript with comprehensive service layer
+- **Service Architecture** - Factory pattern with dependency injection
 - **Tailwind CSS** - Utility-first CSS framework
 - **shadcn/ui** - Modern component library
-- **Zustand** - Lightweight state management
+- **Vitest** - Modern testing framework with 97%+ coverage
 
 **Infrastructure**
-- **PostgreSQL** - User auth, settings, subscriptions
-- **Redis** - Caching and background job queues
+- **PostgreSQL** - User auth, task tracking, metrics storage
+- **Redis** - Task queues, caching, and real-time processing
 - **ArangoDB** - Document storage and relationships
 - **Docker Compose** - Service orchestration
 
@@ -345,6 +354,15 @@ pnpm lint
 # Fix linting issues
 pnpm lint:fix
 
+# Run tests with Vitest
+pnpm test
+
+# Run tests in watch mode
+pnpm test:watch
+
+# Run tests with coverage
+pnpm test:coverage
+
 # Add new dependency
 pnpm add <package-name>
 pnpm add -D <dev-package-name>
@@ -451,7 +469,7 @@ pnpm build
 
 ## 📊 API Endpoints
 
-### Core Functionality
+### Core Processing (Synchronous)
 
 | Endpoint | Method | Description |
 |----------|--------|-------------|
@@ -461,26 +479,49 @@ pnpm build
 | `/api/linkedin` | GET | LinkedIn profile integration |
 | `/health` | GET | Service health check |
 
-### Background Processing
+### Async Processing (Background Tasks)
 
-Most endpoints return task IDs for long-running operations. Results are stored in the database and can be polled for completion status.
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/parse/async` | POST | Queue resume parsing with real-time updates |
+| `/api/optimize/async` | POST | Queue optimization with progress tracking |
+| `/api/job/async` | POST | Queue job analysis with status notifications |
+
+### Task Management
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/tasks/{task_id}` | GET | Get task status, progress, and results |
+| `/api/tasks/` | GET | List user tasks with filtering and pagination |
+| `/api/tasks/{task_id}` | DELETE | Cancel running task |
+| `/api/tasks/{task_id}/result` | GET | Retrieve completed task results |
+
+### WebSocket Real-Time Updates
+
+- **Endpoint**: `/ws/tasks`
+- **Authentication**: Token-based (via query parameter)
+- **Messages**: Task status, progress updates, completion notifications
+- **Features**: Auto-reconnection, user-specific task filtering
 
 ## 🗄️ Database Schema
 
-### PostgreSQL (BetterAuth)
-- User authentication and sessions
-- Subscription management
-- Transactional data
+### PostgreSQL (Primary Database)
+- **User Authentication**: BetterAuth integration for secure user management
+- **Task Management**: Comprehensive task tracking with status, progress, and metrics
+- **Performance Analytics**: Task execution metrics and system monitoring
+- **Subscription Management**: User plans and billing information
 
-### ArangoDB (Documents)
-- Resume data and documents
-- Job descriptions and analysis
-- Document relationships and history
+### ArangoDB (Document Store)
+- **Resume Documents**: Structured resume data with version history
+- **Job Descriptions**: Parsed job postings with analysis results
+- **Optimization Results**: Generated resume optimizations and suggestions
+- **Document Relationships**: Links between resumes, jobs, and optimizations
 
-### Redis (Cache & Jobs)
-- Session storage
-- Background job queues (BullMQ)
-- API response caching
+### Redis (Queue & Cache)
+- **Task Queues**: Priority-based background job processing (high/normal/low)
+- **Real-time Updates**: WebSocket connection management and message routing
+- **API Caching**: Response caching for improved performance
+- **Session Storage**: Fast session data access
 
 ## 🚀 Deployment
 
@@ -537,12 +578,24 @@ uv run pytest tests/test_parse.py -v
 ```bash
 cd apps/web
 
-# Run Jest tests
+# Run Vitest tests
 pnpm test
 
 # Run with coverage
 pnpm test:coverage
+
+# Run tests in watch mode
+pnpm test:watch
+
+# Run specific test file
+pnpm test auth.test.ts
 ```
+
+**Test Coverage**: 97%+ coverage with comprehensive service layer testing, including:
+- Service factory and dependency injection patterns
+- API client with retry logic and error handling
+- Authentication flows and user management
+- React hooks integration
 
 ## 🤝 Contributing
 
@@ -555,8 +608,11 @@ pnpm test:coverage
 ### Development Guidelines
 
 - **Python**: Use type hints, Pydantic models, and comprehensive docstrings
-- **TypeScript**: Maintain strict typing and component-based architecture
-- **Testing**: Write tests for all new features with edge case coverage
+- **Async Processing**: Implement new features using the task queue system for long-running operations
+- **TypeScript**: Maintain strict typing, use service layer for API interactions
+- **Service Architecture**: Follow factory pattern and dependency injection for new services
+- **Testing**: Write tests for all new features with edge case coverage (100% API, 97%+ web)
+- **Real-time Updates**: Integrate WebSocket notifications for user-facing operations
 - **Code Style**: Use provided formatters (`uvx ruff format`, `pnpm format`)
 
 ## 📚 Documentation
