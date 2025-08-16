@@ -55,8 +55,8 @@ export function OnboardingGuard({ children }: OnboardingGuardProps) {
     checkOnboardingStatus();
   }, [services, pathname, router]);
 
-  // Show loading state while checking
-  if (isChecking) {
+  // Show loading state while checking (but not on auth pages)
+  if (isChecking && pathname !== '/sign-in' && pathname !== '/sign-up') {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -67,11 +67,19 @@ export function OnboardingGuard({ children }: OnboardingGuardProps) {
     );
   }
 
-  // If we're on the onboarding page or user has resume_id, show children
-  if (pathname === '/onboarding' || hasResumeId) {
+  // Always render children for auth pages and onboarding page
+  // Or if user has completed onboarding (has resume_id)
+  if (pathname === '/sign-in' || pathname === '/sign-up' || pathname === '/onboarding' || hasResumeId) {
     return <>{children}</>;
   }
 
-  // Don't render anything while redirecting
-  return null;
+  // Show loading or nothing while redirecting for other pages
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="text-center">
+        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+        <p className="text-muted-foreground">Redirecting...</p>
+      </div>
+    </div>
+  );
 }
