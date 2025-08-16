@@ -1,0 +1,8 @@
+- Use `uv add <package_name>` to add package to the project, do not edit the pyproject.toml file manually.
+- Use `uv run <script_name>` to run a script and `uvx <tool_name>` to run a python tool on-the-fly.
+- Use `uvx pytest` to run tests and check code coverage.
+- Use `uvx ruff format` to lint the code before committing.
+- Use `uv sync` to re-sync the project dependencies.
+- Always use Pydantic types for data validation.
+- Always add tests for new features. Run tests during development and before committing.
+- Always add a detailed commit message explaining the features added or bugs fixed.

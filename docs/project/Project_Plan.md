@@ -44,12 +44,9 @@ Note: Most of these endpoints are long-running tasks that should be handled as b
 
 **Parse Resume**
 - POST {document: File} => Returns {success, error, data: {resumeId: string, taskId: string}}
-- Create db entry & start background task.
-- Return id of resume document and task
-- Worker:
-  - Extract resume data from document using unstructured + llm extraction
-  - Format using Resume pydantic model
-  - Update db with extracted resume data
+- Parse resume using Agents SDK and Resume model
+- Post resume data to arango db using the user_id as a foreign key.
+- Return json response with success/error & resume_id from db
 
 **Parse Job**
 - POST {job: string} => Returns {success, error, data: {jobId: string, taskId: string}}
