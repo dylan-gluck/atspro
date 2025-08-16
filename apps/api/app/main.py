@@ -1,7 +1,7 @@
 from fastapi import FastAPI, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 
-from .routers import job, linkedin, optimize, parse, tasks
+from .routers import job, linkedin, optimize, parse, tasks, user
 from .websocket.task_updates import websocket_endpoint
 from .services.notification_service import notification_service
 from .routers.tasks import task_service
@@ -33,6 +33,7 @@ app.include_router(linkedin.router)
 app.include_router(job.router)
 app.include_router(optimize.router)
 app.include_router(tasks.router)
+app.include_router(user.router)
 
 
 # WebSocket endpoint for real-time task updates
