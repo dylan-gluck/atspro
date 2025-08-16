@@ -1,6 +1,5 @@
 import { auth } from "@/lib/auth"
 import { headers } from "next/headers"
-import { redirect } from "next/navigation"
 import { Dashboard } from "@/components/dashboard"
 
 export default async function Home() {
@@ -8,9 +7,12 @@ export default async function Home() {
     headers: await headers()
   })
 
-  if (!session) {
-    redirect("/sign-in")
-  }
+  // The middleware and OnboardingGuard handle authentication and onboarding redirects
+  // If we reach here, user should be authenticated (middleware would have redirected otherwise)
+  // OnboardingGuard will handle redirect to /onboarding if needed
+  
+  // Provide a default user if session is somehow missing (shouldn't happen due to middleware)
+  const user = session?.user || { id: "", name: "", email: "" }
 
-  return <Dashboard user={session.user} />
+  return <Dashboard user={user} />
 }

@@ -46,8 +46,13 @@ export class UserServiceImpl extends BaseServiceImpl implements UserService {
         };
       }
 
-      // Get extended profile from API
-      const profileResponse = await this.apiClient.get<UserProfile>('/api/user/profile');
+      // Get extended profile from API with user ID header
+      const userId = userResponse.data.id;
+      const profileResponse = await this.apiClient.get<UserProfile>('/api/user/profile', {
+        headers: {
+          'X-User-Id': userId
+        }
+      });
       
       return {
         data: {
@@ -64,12 +69,29 @@ export class UserServiceImpl extends BaseServiceImpl implements UserService {
     const cacheKey = this.getCacheKey('getProfile');
     
     return this.withCache(cacheKey, async () => {
-      return this.apiClient.get<UserProfile>('/api/user/profile');
+      // Get current user to get their ID for the API request
+      const userResponse = await this.authService.getCurrentUser();
+      const userId = userResponse.data?.id || 'unknown';
+      
+      // Add X-User-Id header for mock authentication
+      return this.apiClient.get<UserProfile>('/api/user/profile', {
+        headers: {
+          'X-User-Id': userId
+        }
+      });
     });
   }
 
   async updateProfile(profile: Partial<UserProfile>): Promise<ApiResponse<UserProfile>> {
-    const response = await this.apiClient.patch<UserProfile>('/api/user/profile', profile);
+    // Get current user to get their ID for the API request
+    const userResponse = await this.authService.getCurrentUser();
+    const userId = userResponse.data?.id || 'unknown';
+    
+    const response = await this.apiClient.patch<UserProfile>('/api/user/profile', profile, {
+      headers: {
+        'X-User-Id': userId
+      }
+    });
     
     if (response.success) {
       // Clear relevant caches
@@ -80,7 +102,15 @@ export class UserServiceImpl extends BaseServiceImpl implements UserService {
   }
 
   async deleteProfile(): Promise<ApiResponse<void>> {
-    const response = await this.apiClient.delete<void>('/api/user/profile');
+    // Get current user to get their ID for the API request
+    const userResponse = await this.authService.getCurrentUser();
+    const userId = userResponse.data?.id || 'unknown';
+    
+    const response = await this.apiClient.delete<void>('/api/user/profile', {
+      headers: {
+        'X-User-Id': userId
+      }
+    });
     
     if (response.success) {
       // Clear all caches
