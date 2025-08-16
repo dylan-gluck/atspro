@@ -42,7 +42,11 @@ vi.mock('@/lib/services', () => ({
 
 // Mock the card components
 vi.mock('@/components/profile-card', () => ({
-  ProfileCard: ({ user, profile, className }: any) => (
+  ProfileCard: ({ user, profile, className }: {
+    user: { name: string };
+    profile: { resume_id?: string } | null;
+    className?: string;
+  }) => (
     <div data-testid="profile-card" className={className}>
       Profile Card - {user.name} - {profile?.resume_id ? 'Has Resume' : 'No Resume'}
     </div>
@@ -50,7 +54,7 @@ vi.mock('@/components/profile-card', () => ({
 }))
 
 vi.mock('@/components/stats-card', () => ({
-  StatsCard: ({ className }: any) => (
+  StatsCard: ({ className }: { className?: string }) => (
     <div data-testid="stats-card" className={className}>
       Stats Card
     </div>
@@ -58,7 +62,7 @@ vi.mock('@/components/stats-card', () => ({
 }))
 
 vi.mock('@/components/notification-card', () => ({
-  NotificationCard: ({ className }: any) => (
+  NotificationCard: ({ className }: { className?: string }) => (
     <div data-testid="notification-card" className={className}>
       Notification Card
     </div>
@@ -151,8 +155,12 @@ describe('Dashboard', () => {
   })
 
   it('handles user service unavailable', () => {
-    // Mock the hook to return null
-    vi.mocked(require('@/lib/services').useUserService).mockReturnValueOnce(null)
+    // Mock the hook to return null for this test only
+    const originalModule = vi.importActual('@/lib/services')
+    vi.doMock('@/lib/services', () => ({
+      ...originalModule,
+      useUserService: vi.fn().mockReturnValueOnce(null)
+    }))
 
     render(<Dashboard user={mockUser} />)
 

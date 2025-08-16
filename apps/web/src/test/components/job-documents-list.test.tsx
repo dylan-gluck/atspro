@@ -24,7 +24,12 @@ vi.mock('date-fns', () => ({
 
 // Mock child components
 vi.mock('@/components/document-viewer', () => ({
-  DocumentViewer: ({ document, open, onClose, onDownload }: any) => (
+  DocumentViewer: ({ document, open, onClose, onDownload }: {
+    document: { filename: string };
+    open: boolean;
+    onClose: () => void;
+    onDownload: () => void;
+  }) => (
     open ? (
       <div data-testid="document-viewer">
         <span>Viewing: {document.filename}</span>
@@ -36,11 +41,15 @@ vi.mock('@/components/document-viewer', () => ({
 }));
 
 vi.mock('@/components/file-upload-dialog', () => ({
-  FileUploadDialog: ({ open, onOpenChange, onUpload }: any) => (
+  FileUploadDialog: ({ open, onOpenChange, onUpload }: {
+    open: boolean;
+    onOpenChange: (open: boolean) => void;
+    onUpload: (file: File) => void;
+  }) => (
     open ? (
       <div data-testid="file-upload-dialog">
         <button onClick={() => onOpenChange(false)}>Close Upload</button>
-        <button onClick={() => onUpload(new File(['test'], 'test.pdf'), 'resume')}>
+        <button onClick={() => onUpload(new File(['test'], 'test.pdf'))}>
           Upload Test File
         </button>
       </div>
@@ -91,9 +100,9 @@ describe('JobDocumentsList', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    (getServicesSync as any).mockReturnValue({
-      jobsService: mockJobsService,
-    });
+    vi.mocked(getServicesSync).mockReturnValue({
+      jobsService: mockJobsService as any,
+    } as any);
     
     // Mock URL.createObjectURL and related DOM methods
     global.URL.createObjectURL = vi.fn(() => 'blob:mock-url');
@@ -308,7 +317,7 @@ describe('JobDocumentsList', () => {
   });
 
   it('shows loading state during deletion', async () => {
-    let resolvePromise: (value: any) => void;
+    let resolvePromise: (value: unknown) => void;
     const promise = new Promise((resolve) => {
       resolvePromise = resolve;
     });

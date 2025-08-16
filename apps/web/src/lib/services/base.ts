@@ -4,7 +4,7 @@ import { ServiceError, ServiceErrorType } from '@/types/services';
 // Base service implementation
 export abstract class BaseServiceImpl implements BaseService {
   protected apiClient: ApiClient;
-  protected cache: Map<string, any>;
+  protected cache: Map<string, { value: unknown; expires: number }>;
   public isInitialized = false;
 
   constructor(apiClient: ApiClient) {
@@ -28,7 +28,7 @@ export abstract class BaseServiceImpl implements BaseService {
   protected abstract onInitialize(): Promise<void>;
   protected abstract onDestroy(): Promise<void>;
 
-  protected getCacheKey(method: string, ...args: any[]): string {
+  protected getCacheKey(method: string, ...args: unknown[]): string {
     return `${method}:${JSON.stringify(args)}`;
   }
 
@@ -45,7 +45,7 @@ export abstract class BaseServiceImpl implements BaseService {
       return null;
     }
     
-    return cached.value;
+    return cached.value as T;
   }
 
   protected async withCache<T>(
@@ -109,7 +109,7 @@ export async function handleServiceCall<T>(
 }
 
 // Utility for handling service operations with proper error handling
-export function createServiceMethod<T extends any[], R>(
+export function createServiceMethod<T extends unknown[], R>(
   operation: (...args: T) => Promise<ApiResponse<R>>
 ) {
   return async (...args: T): Promise<ApiResponse<R>> => {

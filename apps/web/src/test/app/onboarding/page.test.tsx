@@ -14,7 +14,12 @@ vi.mock('@/lib/services', () => ({
 }));
 
 vi.mock('@/components/onboarding/file-upload', () => ({
-  FileUpload: ({ onFileUpload, isLoading, error, disabled }: any) => (
+  FileUpload: ({ onFileUpload, isLoading, error, disabled }: {
+    onFileUpload: (file: File) => void;
+    isLoading: boolean;
+    error: string | null;
+    disabled: boolean;
+  }) => (
     <div data-testid="file-upload">
       <div>FileUpload Component</div>
       {isLoading && <div>Loading...</div>}
@@ -29,7 +34,14 @@ vi.mock('@/components/onboarding/file-upload', () => ({
 
 describe('OnboardingPage', () => {
   const mockPush = vi.fn();
-  const mockRouter = { push: mockPush };
+  const mockRouter = {
+    push: mockPush,
+    replace: vi.fn(),
+    back: vi.fn(),
+    forward: vi.fn(),
+    refresh: vi.fn(),
+    prefetch: vi.fn(),
+  };
 
   const mockServices = {
     resumeService: {
@@ -38,12 +50,15 @@ describe('OnboardingPage', () => {
     userService: {
       updateResumeId: vi.fn(),
     },
-  };
+    jobsService: {},
+    authService: {},
+    notificationService: {},
+  } as const;
 
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(useRouter).mockReturnValue(mockRouter);
-    vi.mocked(useServices).mockReturnValue(mockServices);
+    vi.mocked(useServices).mockReturnValue(mockServices as any);
   });
 
   it('renders onboarding page content', () => {
@@ -212,7 +227,7 @@ describe('OnboardingPage', () => {
 
   it('shows loading state during upload', async () => {
     // Create a promise that we can control
-    let resolveUpload: any;
+    let resolveUpload!: (value: unknown) => void;
     const uploadPromise = new Promise((resolve) => {
       resolveUpload = resolve;
     });
@@ -248,7 +263,7 @@ describe('OnboardingPage', () => {
 
   it('disables upload during loading', async () => {
     // Create a promise that we can control
-    let resolveUpload: any;
+    let resolveUpload!: (value: unknown) => void;
     const uploadPromise = new Promise((resolve) => {
       resolveUpload = resolve;
     });

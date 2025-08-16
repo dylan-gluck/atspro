@@ -82,9 +82,9 @@ describe('ProfileCard', () => {
 
   it('navigates to onboarding when upload button clicked', () => {
     const originalLocation = window.location
-    // @ts-ignore
+    // @ts-expect-error - mocking window.location for test
     delete window.location
-    // @ts-ignore
+    // @ts-expect-error - mocking window.location for test
     window.location = { ...originalLocation, href: '' }
 
     render(<ProfileCard user={mockUser} profile={mockProfileWithoutResume} />)
@@ -94,7 +94,7 @@ describe('ProfileCard', () => {
     
     expect(window.location.href).toBe('/onboarding')
     
-    // @ts-ignore
+    // @ts-expect-error - restoring window.location after test
     window.location = originalLocation
   })
 

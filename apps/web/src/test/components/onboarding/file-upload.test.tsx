@@ -1,6 +1,7 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { FileUpload } from '@/components/onboarding/file-upload';
+import * as ReactDropzone from 'react-dropzone';
 
 // Mock react-dropzone
 vi.mock('react-dropzone', () => ({
@@ -95,7 +96,7 @@ describe('FileUpload Component', () => {
       fileRejections: [],
     });
 
-    vi.mocked(require('react-dropzone').useDropzone).mockImplementation(mockUseDropzone);
+    vi.mocked(ReactDropzone.useDropzone).mockImplementation(mockUseDropzone);
 
     render(<FileUpload onFileUpload={mockOnFileUpload} />);
     
@@ -117,7 +118,7 @@ describe('FileUpload Component', () => {
       fileRejections,
     });
 
-    vi.mocked(require('react-dropzone').useDropzone).mockImplementation(mockUseDropzone);
+    vi.mocked(ReactDropzone.useDropzone).mockImplementation(mockUseDropzone);
 
     render(<FileUpload onFileUpload={mockOnFileUpload} />);
     
@@ -136,7 +137,7 @@ describe('FileUpload File Handling', () => {
   it('handles successful file upload', async () => {
     mockOnFileUpload.mockResolvedValue(undefined);
 
-    const mockUseDropzone = vi.fn().mockImplementation((options) => ({
+    const mockUseDropzone = vi.fn().mockImplementation(() => ({
       getRootProps: () => ({}),
       getInputProps: () => ({}),
       isDragActive: false,
@@ -145,7 +146,7 @@ describe('FileUpload File Handling', () => {
       fileRejections: [],
     }));
 
-    vi.mocked(require('react-dropzone').useDropzone).mockImplementation(mockUseDropzone);
+    vi.mocked(ReactDropzone.useDropzone).mockImplementation(mockUseDropzone);
 
     render(<FileUpload onFileUpload={mockOnFileUpload} />);
 
@@ -164,7 +165,7 @@ describe('FileUpload File Handling', () => {
   it('handles file upload failure', async () => {
     mockOnFileUpload.mockRejectedValue(new Error('Upload failed'));
 
-    const mockUseDropzone = vi.fn().mockImplementation((options) => ({
+    const mockUseDropzone = vi.fn().mockImplementation(() => ({
       getRootProps: () => ({}),
       getInputProps: () => ({}),
       isDragActive: false,
@@ -173,7 +174,7 @@ describe('FileUpload File Handling', () => {
       fileRejections: [],
     }));
 
-    vi.mocked(require('react-dropzone').useDropzone).mockImplementation(mockUseDropzone);
+    vi.mocked(ReactDropzone.useDropzone).mockImplementation(mockUseDropzone);
 
     // Mock console.error to avoid cluttering test output
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
@@ -196,7 +197,7 @@ describe('FileUpload File Handling', () => {
   });
 
   it('ignores empty file arrays', async () => {
-    const mockUseDropzone = vi.fn().mockImplementation((options) => ({
+    const mockUseDropzone = vi.fn().mockImplementation(() => ({
       getRootProps: () => ({}),
       getInputProps: () => ({}),
       isDragActive: false,
@@ -205,7 +206,7 @@ describe('FileUpload File Handling', () => {
       fileRejections: [],
     }));
 
-    vi.mocked(require('react-dropzone').useDropzone).mockImplementation(mockUseDropzone);
+    vi.mocked(ReactDropzone.useDropzone).mockImplementation(mockUseDropzone);
 
     render(<FileUpload onFileUpload={mockOnFileUpload} />);
 
@@ -219,7 +220,7 @@ describe('FileUpload File Handling', () => {
   });
 
   it('does not upload when disabled', async () => {
-    const mockUseDropzone = vi.fn().mockImplementation((options) => ({
+    const mockUseDropzone = vi.fn().mockImplementation(() => ({
       getRootProps: () => ({}),
       getInputProps: () => ({}),
       isDragActive: false,
@@ -228,7 +229,7 @@ describe('FileUpload File Handling', () => {
       fileRejections: [],
     }));
 
-    vi.mocked(require('react-dropzone').useDropzone).mockImplementation(mockUseDropzone);
+    vi.mocked(ReactDropzone.useDropzone).mockImplementation(mockUseDropzone);
 
     render(<FileUpload onFileUpload={mockOnFileUpload} disabled={true} />);
 

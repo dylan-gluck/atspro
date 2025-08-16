@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { AuthServiceImpl } from '@/lib/services/auth'
-import { ApiClientImpl } from '@/lib/services/api-client'
 import { authClient } from '@/lib/auth-client'
+import type { ApiClient } from '@/types/services'
 import { 
   mockBetterAuthUser, 
   mockBetterAuthSession, 
@@ -30,7 +30,7 @@ vi.mock('@/lib/auth-client', () => ({
 
 describe('AuthServiceImpl', () => {
   let authService: AuthServiceImpl
-  let mockApiClient: ApiClientImpl
+  let mockApiClient: ApiClient
 
   beforeEach(() => {
     mockApiClient = {

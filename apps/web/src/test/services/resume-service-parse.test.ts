@@ -182,7 +182,7 @@ describe('ResumeService parseResume Method', () => {
       vi.mocked(mockApiClient.upload).mockResolvedValue({
         success: false,
         message: 'Parse failed',
-        data: null as any,
+        data: null as unknown,
       });
 
       const clearCacheSpy = vi.spyOn(resumeService as any, 'clearCachePattern');
@@ -208,7 +208,7 @@ describe('ResumeService parseResume Method', () => {
       vi.mocked(mockApiClient.upload).mockResolvedValue({
         success: false,
         message: 'Server error',
-        data: null as any,
+        data: null as unknown,
       });
 
       const clearCacheSpy = vi.spyOn(resumeService as any, 'clearCachePattern');

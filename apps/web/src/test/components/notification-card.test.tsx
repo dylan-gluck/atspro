@@ -249,9 +249,9 @@ describe('NotificationCard', () => {
 
   it('navigates to action URL when View Details clicked', async () => {
     const originalLocation = window.location
-    // @ts-ignore
+    // @ts-expect-error - mocking window.location for test
     delete window.location
-    // @ts-ignore
+    // @ts-expect-error - mocking window.location for test
     window.location = { ...originalLocation, href: '' }
 
     mockNotificationService.getNotifications
@@ -285,7 +285,7 @@ describe('NotificationCard', () => {
 
     expect(window.location.href).toBe('/jobs/job-1')
     
-    // @ts-ignore
+    // @ts-expect-error - restoring window.location after test
     window.location = originalLocation
   })
 
@@ -386,7 +386,10 @@ describe('NotificationCard', () => {
 
   it('handles service unavailable gracefully', async () => {
     // Mock the hook to return null
-    vi.mocked(require('@/lib/services').useNotificationService).mockReturnValueOnce(null)
+    // Mock the hook to return null for this specific test
+    vi.doMock('@/lib/services', () => ({
+      useNotificationService: vi.fn().mockReturnValueOnce(null)
+    }))
 
     render(<NotificationCard />)
 

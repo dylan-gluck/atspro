@@ -39,7 +39,7 @@ export class UserServiceImpl extends BaseServiceImpl implements UserService {
       const userResponse = await this.authService.getCurrentUser();
       if (!userResponse.success || !userResponse.data) {
         return {
-          data: { user: null } as any,
+          data: { user: null } as unknown as FullUserProfile,
           success: false,
           message: 'User not authenticated',
           errors: ['User not authenticated']
@@ -146,7 +146,7 @@ export class UserServiceImpl extends BaseServiceImpl implements UserService {
     return this.authService.getCurrentUser();
   }
 
-  async updateUserName(name: string): Promise<ApiResponse<BetterAuthUser>> {
+  async updateUserName(name: string): Promise<ApiResponse<BetterAuthUser | null>> {
     const response = await this.authService.updateUser({ name });
     
     if (response.success) {
@@ -157,7 +157,7 @@ export class UserServiceImpl extends BaseServiceImpl implements UserService {
     return response;
   }
 
-  async updateUserEmail(email: string): Promise<ApiResponse<BetterAuthUser>> {
+  async updateUserEmail(email: string): Promise<ApiResponse<BetterAuthUser | null>> {
     const response = await this.authService.updateUser({ email });
     
     if (response.success) {

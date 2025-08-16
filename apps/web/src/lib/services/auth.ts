@@ -24,7 +24,7 @@ export class AuthServiceImpl extends BaseServiceImpl implements AuthService {
   }
 
   // Authentication (delegates to better-auth)
-  async signIn(email: string, password: string): Promise<ApiResponse<BetterAuthSession>> {
+  async signIn(email: string, password: string): Promise<ApiResponse<BetterAuthSession | null>> {
     try {
       const result = await authClient.signIn.email({
         email,
@@ -33,7 +33,7 @@ export class AuthServiceImpl extends BaseServiceImpl implements AuthService {
 
       if (result.error) {
         return {
-          data: null as any,
+          data: null,
           success: false,
           message: result.error.message || 'Sign in failed',
           errors: [result.error.message || 'Sign in failed']
@@ -43,7 +43,7 @@ export class AuthServiceImpl extends BaseServiceImpl implements AuthService {
       const data = result.data;
       if (!data || !data.user) {
         return {
-          data: null as any,
+          data: null,
           success: false,
           message: 'No session returned',
           errors: ['No session returned']
@@ -70,7 +70,7 @@ export class AuthServiceImpl extends BaseServiceImpl implements AuthService {
       };
     } catch (error) {
       return {
-        data: null as any,
+        data: null,
         success: false,
         message: error instanceof Error ? error.message : 'Sign in failed',
         errors: [error instanceof Error ? error.message : 'Sign in failed']
@@ -78,7 +78,7 @@ export class AuthServiceImpl extends BaseServiceImpl implements AuthService {
     }
   }
 
-  async signUp(email: string, password: string, name: string): Promise<ApiResponse<BetterAuthUser>> {
+  async signUp(email: string, password: string, name: string): Promise<ApiResponse<BetterAuthUser | null>> {
     try {
       const result = await authClient.signUp.email({
         email,
@@ -88,7 +88,7 @@ export class AuthServiceImpl extends BaseServiceImpl implements AuthService {
 
       if (result.error) {
         return {
-          data: null as any,
+          data: null,
           success: false,
           message: result.error.message || 'Sign up failed',
           errors: [result.error.message || 'Sign up failed']
@@ -98,7 +98,7 @@ export class AuthServiceImpl extends BaseServiceImpl implements AuthService {
       const user = result.data?.user as BetterAuthUser;
       if (!user) {
         return {
-          data: null as any,
+          data: null,
           success: false,
           message: 'No user returned',
           errors: ['No user returned']
@@ -112,7 +112,7 @@ export class AuthServiceImpl extends BaseServiceImpl implements AuthService {
       };
     } catch (error) {
       return {
-        data: null as any,
+        data: null,
         success: false,
         message: error instanceof Error ? error.message : 'Sign up failed',
         errors: [error instanceof Error ? error.message : 'Sign up failed']
@@ -211,7 +211,7 @@ export class AuthServiceImpl extends BaseServiceImpl implements AuthService {
     }
   }
 
-  async updateUser(data: { name?: string; email?: string }): Promise<ApiResponse<BetterAuthUser>> {
+  async updateUser(data: { name?: string; email?: string }): Promise<ApiResponse<BetterAuthUser | null>> {
     try {
       // Better-auth update methods - handle name and email separately
       let result;
@@ -225,7 +225,7 @@ export class AuthServiceImpl extends BaseServiceImpl implements AuthService {
       // Email updates are not supported through updateUser, would need separate endpoint
       if (data.email) {
         return {
-          data: null as any,
+          data: null,
           success: false,
           message: 'Email updates require separate verification flow',
           errors: ['Email updates require separate verification flow']
@@ -234,7 +234,7 @@ export class AuthServiceImpl extends BaseServiceImpl implements AuthService {
 
       if (result?.error) {
         return {
-          data: null as any,
+          data: null,
           success: false,
           message: result.error.message || 'Update failed',
           errors: [result.error.message || 'Update failed']
@@ -246,7 +246,7 @@ export class AuthServiceImpl extends BaseServiceImpl implements AuthService {
       const userResponse = await this.getCurrentUser();
       if (!userResponse.success || !userResponse.data) {
         return {
-          data: null as any,
+          data: null,
           success: false,
           message: 'Failed to get updated user data',
           errors: ['Failed to get updated user data']
@@ -263,7 +263,7 @@ export class AuthServiceImpl extends BaseServiceImpl implements AuthService {
       };
     } catch (error) {
       return {
-        data: null as any,
+        data: null,
         success: false,
         message: error instanceof Error ? error.message : 'Update failed',
         errors: [error instanceof Error ? error.message : 'Update failed']

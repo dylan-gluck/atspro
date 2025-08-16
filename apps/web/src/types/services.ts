@@ -71,9 +71,9 @@ export interface RequestConfig {
 // API Client interface
 export interface ApiClient {
   get<T>(url: string, config?: RequestConfig): Promise<ApiResponse<T>>;
-  post<T>(url: string, data?: any, config?: RequestConfig): Promise<ApiResponse<T>>;
-  put<T>(url: string, data?: any, config?: RequestConfig): Promise<ApiResponse<T>>;
-  patch<T>(url: string, data?: any, config?: RequestConfig): Promise<ApiResponse<T>>;
+  post<T>(url: string, data?: unknown, config?: RequestConfig): Promise<ApiResponse<T>>;
+  put<T>(url: string, data?: unknown, config?: RequestConfig): Promise<ApiResponse<T>>;
+  patch<T>(url: string, data?: unknown, config?: RequestConfig): Promise<ApiResponse<T>>;
   delete<T>(url: string, config?: RequestConfig): Promise<ApiResponse<T>>;
   upload<T>(url: string, file: File, config?: RequestConfig): Promise<ApiResponse<T>>;
 }
@@ -97,8 +97,8 @@ export interface UserService extends BaseService {
 
   // Better-Auth Integration (delegated to AuthService)
   getCurrentUser(): Promise<ApiResponse<BetterAuthUser | null>>;
-  updateUserName(name: string): Promise<ApiResponse<BetterAuthUser>>;
-  updateUserEmail(email: string): Promise<ApiResponse<BetterAuthUser>>;
+  updateUserName(name: string): Promise<ApiResponse<BetterAuthUser | null>>;
+  updateUserEmail(email: string): Promise<ApiResponse<BetterAuthUser | null>>;
 
   // Onboarding Methods
   updateResumeId(resumeId: string): Promise<ApiResponse<UserProfile>>;
@@ -143,6 +143,7 @@ export interface JobsService extends BaseService {
   listJobs(params?: {
     status?: string;
     company?: string;
+    archived?: boolean;
     page?: number;
     page_size?: number;
   }): Promise<ApiResponse<PaginatedResponse<JobEntity>>>;
@@ -192,8 +193,8 @@ export interface JobsService extends BaseService {
 // AuthService Interface
 export interface AuthService extends BaseService {
   // Authentication (delegates to better-auth)
-  signIn(email: string, password: string): Promise<ApiResponse<BetterAuthSession>>;
-  signUp(email: string, password: string, name: string): Promise<ApiResponse<BetterAuthUser>>;
+  signIn(email: string, password: string): Promise<ApiResponse<BetterAuthSession | null>>;
+  signUp(email: string, password: string, name: string): Promise<ApiResponse<BetterAuthUser | null>>;
   signOut(): Promise<ApiResponse<void>>;
 
   // Session Management (delegates to better-auth)
@@ -202,7 +203,7 @@ export interface AuthService extends BaseService {
 
   // User Management (delegates to better-auth)
   getCurrentUser(): Promise<ApiResponse<BetterAuthUser | null>>;
-  updateUser(data: { name?: string; email?: string }): Promise<ApiResponse<BetterAuthUser>>;
+  updateUser(data: { name?: string; email?: string }): Promise<ApiResponse<BetterAuthUser | null>>;
   deleteAccount(): Promise<ApiResponse<void>>;
 
   // Email Verification (delegates to better-auth)
@@ -215,7 +216,7 @@ export interface AuthService extends BaseService {
   confirmPasswordReset(token: string, newPassword: string): Promise<ApiResponse<void>>;
 
   // Better-Auth Client Access
-  getBetterAuthClient(): any; // Type will be properly typed in implementation
+  getBetterAuthClient(): unknown; // Type will be properly typed in implementation
 }
 
 // NotificationService Interface
@@ -270,9 +271,9 @@ export enum ServiceErrorType {
 export class ServiceError extends Error {
   public type: ServiceErrorType;
   public code: string;
-  public details?: any;
+  public details?: unknown;
 
-  constructor(type: ServiceErrorType, message: string, code: string, details?: any) {
+  constructor(type: ServiceErrorType, message: string, code: string, details?: unknown) {
     super(message);
     this.type = type;
     this.code = code;

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Bell, Check, X, AlertCircle, Info, CheckCircle, XCircle } from "lucide-react"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback } from "react"
 import { useNotificationService } from "@/lib/services"
 import type { Notification } from "@/types/database"
 import { formatDistanceToNow } from "date-fns"
@@ -117,7 +117,7 @@ export function NotificationCard({ className }: NotificationCardProps) {
   const [unreadCount, setUnreadCount] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
 
-  const loadNotifications = async () => {
+  const loadNotifications = useCallback(async () => {
     if (!notificationService) return
 
     try {
@@ -148,7 +148,7 @@ export function NotificationCard({ className }: NotificationCardProps) {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [notificationService])
 
   useEffect(() => {
     loadNotifications()

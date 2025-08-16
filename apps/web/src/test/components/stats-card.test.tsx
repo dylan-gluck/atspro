@@ -235,11 +235,11 @@ describe('StatsCard', () => {
       return <StatsCard />
     }
 
-    // Temporarily override the mock
-    const originalMock = mockJobsService
-    
     // Mock the hook to return null
-    vi.mocked(require('@/lib/services').useJobsService).mockReturnValueOnce(null)
+    // Mock the hook to return null for this specific test
+    vi.doMock('@/lib/services', () => ({
+      useJobsService: vi.fn().mockReturnValueOnce(null)
+    }))
 
     render(<NullServiceStatsCard />)
 

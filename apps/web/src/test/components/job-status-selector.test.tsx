@@ -133,11 +133,6 @@ describe('JobStatusSelector', () => {
       />
     );
 
-    // Look for the loading spinner (Loader2 component)
-    const spinner = screen.getByTestId('loading-spinner') || 
-                   document.querySelector('[data-testid="loading-spinner"]') ||
-                   document.querySelector('.animate-spin');
-    
     // Since Loader2 might not have a testid, we'll check if the component is disabled instead
     const trigger = screen.getByRole('combobox');
     expect(trigger).toBeDisabled();

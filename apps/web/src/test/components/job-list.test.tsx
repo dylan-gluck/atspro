@@ -68,7 +68,7 @@ const mockJobsService = {
 describe('JobList', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    (useJobsService as any).mockReturnValue(mockJobsService);
+    vi.mocked(useJobsService).mockReturnValue(mockJobsService as any);
   });
 
   describe('Loading State', () => {
@@ -352,7 +352,7 @@ describe('JobList', () => {
     });
 
     it('handles missing jobs service', () => {
-      (useJobsService as any).mockReturnValue(null);
+      vi.mocked(useJobsService).mockReturnValue(null);
       
       render(<JobList />);
       

@@ -1,5 +1,4 @@
-import type { ApiClient, RequestConfig, ApiResponse, ServiceErrorType } from '@/types/services';
-import { ServiceError } from '@/types/services';
+import type { ApiClient, RequestConfig, ApiResponse } from '@/types/services';
 
 export class ApiClientImpl implements ApiClient {
   private baseURL: string;
@@ -16,15 +15,15 @@ export class ApiClientImpl implements ApiClient {
     return this.request<T>('GET', url, null, config);
   }
 
-  async post<T>(url: string, data?: any, config?: RequestConfig): Promise<ApiResponse<T>> {
+  async post<T>(url: string, data?: unknown, config?: RequestConfig): Promise<ApiResponse<T>> {
     return this.request<T>('POST', url, data, config);
   }
 
-  async put<T>(url: string, data?: any, config?: RequestConfig): Promise<ApiResponse<T>> {
+  async put<T>(url: string, data?: unknown, config?: RequestConfig): Promise<ApiResponse<T>> {
     return this.request<T>('PUT', url, data, config);
   }
 
-  async patch<T>(url: string, data?: any, config?: RequestConfig): Promise<ApiResponse<T>> {
+  async patch<T>(url: string, data?: unknown, config?: RequestConfig): Promise<ApiResponse<T>> {
     return this.request<T>('PATCH', url, data, config);
   }
 
@@ -48,7 +47,7 @@ export class ApiClientImpl implements ApiClient {
   private async request<T>(
     method: string,
     url: string,
-    data?: any,
+    data?: unknown,
     config?: RequestConfig
   ): Promise<ApiResponse<T>> {
     const fullUrl = `${this.baseURL}${url}`;
@@ -87,7 +86,7 @@ export class ApiClientImpl implements ApiClient {
         }
 
         // Parse response
-        let result: any;
+        let result: unknown;
         const contentType = response.headers.get('content-type');
         
         if (contentType?.includes('application/json')) {
@@ -99,11 +98,12 @@ export class ApiClientImpl implements ApiClient {
           result = { data: await response.blob() };
         }
 
+        const parsedResult = result as { data?: T; message?: string; errors?: string[] };
         const apiResponse: ApiResponse<T> = {
-          data: result.data || result,
+          data: (parsedResult.data || parsedResult) as T,
           success: response.ok,
-          message: result.message,
-          errors: result.errors
+          message: parsedResult.message,
+          errors: parsedResult.errors
         };
 
         // If response is not ok and we have retries left, retry for certain status codes
@@ -148,16 +148,16 @@ export class ApiClientImpl implements ApiClient {
     return status >= 500 || status === 429 || status === 408;
   }
 
-  private isRetryableError(error: any): boolean {
-    if (error.name === 'AbortError') return false; // Don't retry timeouts
-    if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+  private isRetryableError(error: unknown): boolean {
+    if (error && typeof error === 'object' && 'name' in error && error.name === 'AbortError') return false; // Don't retry timeouts
+    if (error && typeof error === 'object' && 'name' in error && error.name === 'TypeError' && 'message' in error && typeof error.message === 'string' && error.message.includes('Failed to fetch')) {
       return true; // Network errors
     }
     return false;
   }
 
-  private getErrorMessage(error: any): string {
-    if (error.name === 'AbortError') {
+  private getErrorMessage(error: unknown): string {
+    if (error && typeof error === 'object' && 'name' in error && error.name === 'AbortError') {
       return 'Request timeout';
     }
     if (error instanceof Error) {

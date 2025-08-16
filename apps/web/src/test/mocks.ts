@@ -236,7 +236,7 @@ export const createMockPaginatedResponse = <T>(
 })
 
 // Mock fetch responses
-export const createMockFetchResponse = (data: any, status = 200, ok = true) => ({
+export const createMockFetchResponse = (data: unknown, status = 200, ok = true) => ({
   ok,
   status,
   json: () => Promise.resolve(data),

@@ -34,6 +34,7 @@ export class JobsServiceImpl extends BaseServiceImpl implements JobsService {
   async listJobs(params?: {
     status?: string;
     company?: string;
+    archived?: boolean;
     page?: number;
     page_size?: number;
   }): Promise<ApiResponse<PaginatedResponse<JobEntity>>> {
@@ -44,6 +45,7 @@ export class JobsServiceImpl extends BaseServiceImpl implements JobsService {
       
       if (params?.status) queryParams.append('status', params.status);
       if (params?.company) queryParams.append('company', params.company);
+      if (params?.archived !== undefined) queryParams.append('archived', params.archived.toString());
       if (params?.page) queryParams.append('page', params.page.toString());
       if (params?.page_size) queryParams.append('page_size', params.page_size.toString());
       
@@ -55,7 +57,7 @@ export class JobsServiceImpl extends BaseServiceImpl implements JobsService {
   async getJob(id: string): Promise<ApiResponse<JobEntity>> {
     if (!id) {
       return {
-        data: null as any,
+        data: null as unknown as JobEntity,
         success: false,
         message: 'Job ID is required',
         errors: ['Job ID is required']
@@ -72,7 +74,7 @@ export class JobsServiceImpl extends BaseServiceImpl implements JobsService {
   async createJob(jobUrl: string): Promise<ApiResponse<JobEntity>> {
     if (!jobUrl) {
       return {
-        data: null as any,
+        data: null as unknown as JobEntity,
         success: false,
         message: 'Job URL is required',
         errors: ['Job URL is required']
@@ -84,7 +86,7 @@ export class JobsServiceImpl extends BaseServiceImpl implements JobsService {
       new URL(jobUrl);
     } catch {
       return {
-        data: null as any,
+        data: null as unknown as JobEntity,
         success: false,
         message: 'Invalid URL format',
         errors: ['Invalid URL format']
@@ -106,7 +108,7 @@ export class JobsServiceImpl extends BaseServiceImpl implements JobsService {
   async parseJobFromDocument(file: File): Promise<ApiResponse<JobEntity>> {
     if (!file) {
       return {
-        data: null as any,
+        data: null as unknown as JobEntity,
         success: false,
         message: 'File is required',
         errors: ['File is required']
@@ -124,7 +126,7 @@ export class JobsServiceImpl extends BaseServiceImpl implements JobsService {
 
     if (!allowedTypes.includes(file.type)) {
       return {
-        data: null as any,
+        data: null as unknown as JobEntity,
         success: false,
         message: 'Invalid file type. Only PDF, DOCX, DOC, TXT, and MD files are supported.',
         errors: ['Invalid file type']
@@ -135,7 +137,7 @@ export class JobsServiceImpl extends BaseServiceImpl implements JobsService {
     const maxSize = 10 * 1024 * 1024; // 10MB
     if (file.size > maxSize) {
       return {
-        data: null as any,
+        data: null as unknown as JobEntity,
         success: false,
         message: 'File size too large. Maximum size is 10MB.',
         errors: ['File size too large']
@@ -157,7 +159,7 @@ export class JobsServiceImpl extends BaseServiceImpl implements JobsService {
   async updateJob(id: string, updates: Partial<JobEntity>): Promise<ApiResponse<JobEntity>> {
     if (!id) {
       return {
-        data: null as any,
+        data: null as unknown as JobEntity,
         success: false,
         message: 'Job ID is required',
         errors: ['Job ID is required']
@@ -205,7 +207,7 @@ export class JobsServiceImpl extends BaseServiceImpl implements JobsService {
   async updateStatus(id: string, status: JobStatus): Promise<ApiResponse<JobEntity>> {
     if (!id) {
       return {
-        data: null as any,
+        data: null as unknown as JobEntity,
         success: false,
         message: 'Job ID is required',
         errors: ['Job ID is required']
@@ -272,7 +274,7 @@ export class JobsServiceImpl extends BaseServiceImpl implements JobsService {
   async uploadDocument(jobId: string, file: File, type: JobDocument['type']): Promise<ApiResponse<JobDocument>> {
     if (!jobId) {
       return {
-        data: null as any,
+        data: null as unknown as JobDocument,
         success: false,
         message: 'Job ID is required',
         errors: ['Job ID is required']
@@ -302,7 +304,7 @@ export class JobsServiceImpl extends BaseServiceImpl implements JobsService {
 
     if (!allowedTypes[type].includes(file.type)) {
       return {
-        data: null as any,
+        data: null as unknown as JobDocument,
         success: false,
         message: `Invalid file type for ${type}`,
         errors: [`Invalid file type for ${type}`]
@@ -313,7 +315,7 @@ export class JobsServiceImpl extends BaseServiceImpl implements JobsService {
     const maxSize = 10 * 1024 * 1024; // 10MB
     if (file.size > maxSize) {
       return {
-        data: null as any,
+        data: null as unknown as JobDocument,
         success: false,
         message: 'File size too large. Maximum size is 10MB.',
         errors: ['File size too large']
@@ -333,7 +335,7 @@ export class JobsServiceImpl extends BaseServiceImpl implements JobsService {
   async createDocument(jobId: string, content: string, type: JobDocument['type']): Promise<ApiResponse<JobDocument>> {
     if (!jobId) {
       return {
-        data: null as any,
+        data: null as unknown as JobDocument,
         success: false,
         message: 'Job ID is required',
         errors: ['Job ID is required']
@@ -342,7 +344,7 @@ export class JobsServiceImpl extends BaseServiceImpl implements JobsService {
 
     if (!content.trim()) {
       return {
-        data: null as any,
+        data: null as unknown as JobDocument,
         success: false,
         message: 'Document content is required',
         errors: ['Document content is required']
@@ -386,7 +388,7 @@ export class JobsServiceImpl extends BaseServiceImpl implements JobsService {
   async analyzeJob(jobUrl: string): Promise<ApiResponse<Job>> {
     if (!jobUrl) {
       return {
-        data: null as any,
+        data: null as unknown as Job,
         success: false,
         message: 'Job URL is required',
         errors: ['Job URL is required']
@@ -398,7 +400,7 @@ export class JobsServiceImpl extends BaseServiceImpl implements JobsService {
       new URL(jobUrl);
     } catch {
       return {
-        data: null as any,
+        data: null as unknown as Job,
         success: false,
         message: 'Invalid URL format',
         errors: ['Invalid URL format']
@@ -417,7 +419,12 @@ export class JobsServiceImpl extends BaseServiceImpl implements JobsService {
   }>> {
     if (!id) {
       return {
-        data: null as any,
+        data: null as unknown as {
+          skill_match: number;
+          experience_match: number;
+          missing_skills: string[];
+          recommendations: string[];
+        },
         success: false,
         message: 'Job ID is required',
         errors: ['Job ID is required']

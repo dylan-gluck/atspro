@@ -60,10 +60,10 @@ const MockEventSource = vi.fn().mockImplementation(() => ({
 }))
 
 // Add static properties to the mock constructor
-const MockEventSourceClass = MockEventSource as any;
-MockEventSourceClass.CONNECTING = 0;
-MockEventSourceClass.OPEN = 1;
-MockEventSourceClass.CLOSED = 2;
+const MockEventSourceClass = MockEventSource as unknown as typeof EventSource;
+Object.defineProperty(MockEventSourceClass, 'CONNECTING', { value: 0, writable: false });
+Object.defineProperty(MockEventSourceClass, 'OPEN', { value: 1, writable: false });
+Object.defineProperty(MockEventSourceClass, 'CLOSED', { value: 2, writable: false });
 
 global.EventSource = MockEventSourceClass;
 

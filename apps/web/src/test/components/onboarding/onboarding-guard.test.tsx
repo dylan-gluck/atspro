@@ -16,7 +16,14 @@ vi.mock('@/lib/services', () => ({
 
 describe('OnboardingGuard Component', () => {
   const mockPush = vi.fn();
-  const mockRouter = { push: mockPush };
+  const mockRouter = {
+    push: mockPush,
+    replace: vi.fn(),
+    back: vi.fn(),
+    forward: vi.fn(),
+    refresh: vi.fn(),
+    prefetch: vi.fn(),
+  };
 
   const mockServices = {
     authService: {
@@ -25,12 +32,15 @@ describe('OnboardingGuard Component', () => {
     userService: {
       hasResumeId: vi.fn(),
     },
-  };
+    resumeService: {},
+    jobsService: {},
+    notificationService: {},
+  } as const;
 
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(useRouter).mockReturnValue(mockRouter);
-    vi.mocked(useServices).mockReturnValue(mockServices);
+    vi.mocked(useServices).mockReturnValue(mockServices as any);
   });
 
   it('renders loading state while services are not available', () => {
@@ -198,7 +208,7 @@ describe('OnboardingGuard Component', () => {
     vi.mocked(usePathname).mockReturnValue('/');
     
     // Create a promise that we can control
-    let resolveAuth: any;
+    let resolveAuth!: (value: unknown) => void;
     const authPromise = new Promise((resolve) => {
       resolveAuth = resolve;
     });

@@ -71,7 +71,7 @@ describe('UserService Onboarding Methods', () => {
       vi.mocked(mockApiClient.patch).mockResolvedValue({
         success: false,
         message: 'Update failed',
-        data: null as any,
+        data: null as unknown,
       });
 
       const result = await userService.updateResumeId(resumeId);
@@ -147,7 +147,7 @@ describe('UserService Onboarding Methods', () => {
       vi.mocked(mockApiClient.get).mockResolvedValue({
         success: false,
         message: 'Profile not found',
-        data: null as any,
+        data: null as unknown,
       });
 
       const result = await userService.hasResumeId();
@@ -208,7 +208,7 @@ describe('UserService Onboarding Methods', () => {
       vi.mocked(mockApiClient.get).mockResolvedValue({
         success: false,
         message: 'Profile not found',
-        data: null as any,
+        data: null as unknown,
       });
 
       const result = await userService.getResumeId();

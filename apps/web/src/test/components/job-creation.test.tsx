@@ -11,7 +11,11 @@ vi.mock('sonner');
 
 // Mock FileUpload component to avoid dropzone complexity
 vi.mock('@/components/onboarding/file-upload', () => ({
-  FileUpload: ({ onFileUpload, isLoading, error }: any) => (
+  FileUpload: ({ onFileUpload, isLoading, error }: {
+    onFileUpload: (file: File) => void;
+    isLoading: boolean;
+    error: string | null;
+  }) => (
     <div data-testid="file-upload">
       <button
         data-testid="file-upload-trigger"
@@ -58,7 +62,7 @@ const mockJobsService = {
 describe('JobCreation', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    (useJobsService as any).mockReturnValue(mockJobsService);
+    vi.mocked(useJobsService).mockReturnValue(mockJobsService as any);
   });
 
   describe('URL Input Tab', () => {
@@ -174,7 +178,7 @@ describe('JobCreation', () => {
     });
 
     it('handles service unavailable error', async () => {
-      (useJobsService as any).mockReturnValue(null);
+      vi.mocked(useJobsService).mockReturnValue(null);
       
       render(<JobCreation />);
       
@@ -258,7 +262,7 @@ describe('JobCreation', () => {
     });
 
     it('handles service unavailable during document upload', async () => {
-      (useJobsService as any).mockReturnValue(null);
+      vi.mocked(useJobsService).mockReturnValue(null);
       
       render(<JobCreation />);
       

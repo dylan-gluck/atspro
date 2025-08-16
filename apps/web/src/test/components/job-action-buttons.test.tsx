@@ -26,9 +26,9 @@ describe('JobActionButtons', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    (getServicesSync as any).mockReturnValue({
-      jobsService: mockJobsService,
-    });
+    vi.mocked(getServicesSync).mockReturnValue({
+      jobsService: mockJobsService as any,
+    } as any);
   });
 
   it('renders all action buttons', () => {
@@ -223,7 +223,7 @@ describe('JobActionButtons', () => {
   });
 
   it('shows loading state during action execution', async () => {
-    let resolvePromise: (value: any) => void;
+    let resolvePromise: (value: unknown) => void;
     const promise = new Promise((resolve) => {
       resolvePromise = resolve;
     });
@@ -285,7 +285,7 @@ describe('JobActionButtons', () => {
   });
 
   it('disables button during loading', async () => {
-    let resolvePromise: (value: any) => void;
+    let resolvePromise: (value: unknown) => void;
     const promise = new Promise((resolve) => {
       resolvePromise = resolve;
     });

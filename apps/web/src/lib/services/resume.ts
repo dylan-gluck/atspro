@@ -110,7 +110,7 @@ export class ResumeServiceImpl extends BaseServiceImpl implements ResumeService 
     
     if (!allowedTypes.includes(file.type)) {
       return {
-        data: null as any,
+        data: null as unknown as Resume,
         success: false,
         message: 'Invalid file type. Please upload a PDF, DOC, DOCX, TXT, or MD file.',
         errors: ['Invalid file type']
@@ -121,7 +121,7 @@ export class ResumeServiceImpl extends BaseServiceImpl implements ResumeService 
     const maxSize = 10 * 1024 * 1024; // 10MB
     if (file.size > maxSize) {
       return {
-        data: null as any,
+        data: null as unknown as Resume,
         success: false,
         message: 'File size too large. Maximum size is 10MB.',
         errors: ['File size too large']
@@ -150,7 +150,7 @@ export class ResumeServiceImpl extends BaseServiceImpl implements ResumeService 
     
     if (!allowedTypes.includes(file.type)) {
       return {
-        data: null as any,
+        data: null as unknown as Resume,
         success: false,
         message: 'Invalid file type. Please upload a PDF, DOC, DOCX, or TXT file.',
         errors: ['Invalid file type']
@@ -161,7 +161,7 @@ export class ResumeServiceImpl extends BaseServiceImpl implements ResumeService 
     const maxSize = 10 * 1024 * 1024; // 10MB
     if (file.size > maxSize) {
       return {
-        data: null as any,
+        data: null as unknown as Resume,
         success: false,
         message: 'File size too large. Maximum size is 10MB.',
         errors: ['File size too large']
@@ -180,8 +180,6 @@ export class ResumeServiceImpl extends BaseServiceImpl implements ResumeService 
   }
 
   async exportResume(format: 'pdf' | 'docx' | 'txt'): Promise<ApiResponse<Blob>> {
-    const cacheKey = this.getCacheKey('exportResume', format);
-    
     // Don't cache file exports as they might contain dynamic data
     return this.apiClient.get<Blob>(`/api/resume/export?format=${format}`);
   }
@@ -190,7 +188,7 @@ export class ResumeServiceImpl extends BaseServiceImpl implements ResumeService 
   async optimizeForJob(jobId: string): Promise<ApiResponse<OptimizationResult>> {
     if (!jobId) {
       return {
-        data: null as any,
+        data: null as unknown as OptimizationResult,
         success: false,
         message: 'Job ID is required',
         errors: ['Job ID is required']
@@ -220,7 +218,7 @@ export class ResumeServiceImpl extends BaseServiceImpl implements ResumeService 
   async getOptimization(id: string): Promise<ApiResponse<OptimizationResult>> {
     if (!id) {
       return {
-        data: null as any,
+        data: null as unknown as OptimizationResult,
         success: false,
         message: 'Optimization ID is required',
         errors: ['Optimization ID is required']

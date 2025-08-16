@@ -25,7 +25,10 @@ vi.mock('@/lib/services', () => ({
 
 // Mock child components
 vi.mock('@/components/job-status-selector', () => ({
-  JobStatusSelector: ({ currentStatus, onStatusChange }: any) => (
+  JobStatusSelector: ({ currentStatus, onStatusChange }: {
+    currentStatus: string;
+    onStatusChange: (status: string) => void;
+  }) => (
     <div data-testid="job-status-selector">
       <span>Status: {currentStatus}</span>
       <button onClick={() => onStatusChange('applied')}>Change Status</button>
@@ -34,7 +37,10 @@ vi.mock('@/components/job-status-selector', () => ({
 }));
 
 vi.mock('@/components/job-action-buttons', () => ({
-  JobActionButtons: ({ jobId, onDocumentsUpdate }: any) => (
+  JobActionButtons: ({ jobId, onDocumentsUpdate }: {
+    jobId: string;
+    onDocumentsUpdate: () => void;
+  }) => (
     <div data-testid="job-action-buttons">
       <span>Job ID: {jobId}</span>
       <button onClick={onDocumentsUpdate}>Update Documents</button>
@@ -43,7 +49,11 @@ vi.mock('@/components/job-action-buttons', () => ({
 }));
 
 vi.mock('@/components/job-documents-list', () => ({
-  JobDocumentsList: ({ jobId, documents, onDocumentsUpdate }: any) => (
+  JobDocumentsList: ({ jobId, documents, onDocumentsUpdate }: {
+    jobId: string;
+    documents: unknown[];
+    onDocumentsUpdate: () => void;
+  }) => (
     <div data-testid="job-documents-list">
       <span>Job ID: {jobId}</span>
       <span>Documents: {documents.length}</span>
@@ -122,10 +132,10 @@ const mockJobsService = {
 describe('JobDetailsPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    (useParams as any).mockReturnValue({ id: 'job-123' });
-    (getServicesSync as any).mockReturnValue({
-      jobsService: mockJobsService,
-    });
+    vi.mocked(useParams).mockReturnValue({ id: 'job-123' });
+    vi.mocked(getServicesSync).mockReturnValue({
+      jobsService: mockJobsService as any,
+    } as any);
   });
 
   it('renders loading skeleton initially', () => {
@@ -205,7 +215,7 @@ describe('JobDetailsPage', () => {
   });
 
   it('handles missing job ID', () => {
-    (useParams as any).mockReturnValue({ id: undefined });
+    vi.mocked(useParams).mockReturnValue({ id: undefined });
 
     render(<JobDetailsPage />);
 

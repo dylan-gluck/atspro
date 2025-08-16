@@ -22,7 +22,7 @@ describe('UserServiceImpl', () => {
       patch: vi.fn(),
       delete: vi.fn(),
       upload: vi.fn(),
-    } as any
+    } as unknown as ApiClient
 
     mockAuthService = {
       isInitialized: true,
@@ -30,7 +30,7 @@ describe('UserServiceImpl', () => {
       destroy: vi.fn(),
       getCurrentUser: vi.fn(),
       updateUser: vi.fn(),
-    } as any
+    } as unknown as AuthService
 
     userService = new UserServiceImpl(mockApiClient, mockAuthService)
   })
