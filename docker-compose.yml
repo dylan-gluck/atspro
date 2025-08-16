@@ -119,6 +119,10 @@ services:
     environment:
       - NODE_ENV=production
       - NEXT_PUBLIC_API_URL=http://api:8000
+      - DATABASE_URL=postgresql://atspro_user:${POSTGRES_PASSWORD:-dev_password_change_in_prod}@postgres:5432/atspro
+      - BETTER_AUTH_URL=http://localhost:3000
+      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET:-BVjFVwJ9lBLRpbEi2bskvjCrTaCoqlIg}
+      - BETTER_AUTH_TELEMETRY=0
     ports:
       - "3000:3000"
     depends_on:

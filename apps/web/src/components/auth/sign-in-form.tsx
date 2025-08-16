@@ -49,8 +49,9 @@ export function SignInForm() {
       });
 
       toast.success("Signed in successfully");
-      router.push("/");
-      router.refresh();
+      
+      // Force a full page reload to ensure session synchronization with RSC
+      window.location.replace("/");
     } catch {
       toast.error("Invalid email or password");
     } finally {

@@ -15,10 +15,6 @@
     "docker:clean": "docker-compose down -v --remove-orphans"
   },
   "devDependencies": {
-    "@types/pg": "^8.15.5",
     "turbo": "^2.3.0"
-  },
-  "dependencies": {
-    "pg": "^8.16.3"
   }
 }
