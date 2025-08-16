@@ -14,7 +14,7 @@ from ..schema.user import (
 )
 from .tasks import task_service
 
-router = APIRouter(prefix="/api/user", tags=["user"])
+router = APIRouter(prefix="/user", tags=["user"])
 
 
 # Mock authentication for now - replace with better-auth integration
@@ -59,8 +59,18 @@ async def get_user_profile(
                 )
 
             # Convert row to UserProfile model
-            profile_data = dict(row)
-            profile = UserProfile(**profile_data)
+            # Row is a tuple, access by index based on SELECT order:
+            # SELECT user_id, phone, location, title, bio, resume_id, created_at, updated_at
+            profile = UserProfile(
+                user_id=row[0],
+                phone=row[1],
+                location=row[2],
+                title=row[3],
+                bio=row[4],
+                resume_id=row[5],
+                created_at=row[6],
+                updated_at=row[7]
+            )
 
             return UserProfileResponse(success=True, data=profile)
 
@@ -94,20 +104,20 @@ async def update_user_profile(
     try:
         async with task_service.postgres_pool.connection() as conn:
             async with conn.transaction():
-                # First, try to insert a new profile (will fail if exists)
-                try:
-                    async with conn.cursor() as cursor:
+                # First, check if profile exists, if not create it
+                async with conn.cursor() as cursor:
+                    await cursor.execute(
+                        "SELECT user_id FROM user_profiles WHERE user_id = %s",
+                        (user_id,),
+                    )
+                    profile_exists = await cursor.fetchone()
+                    
+                    if not profile_exists:
                         await cursor.execute(
-                            """
-                            INSERT INTO user_profiles (user_id) 
-                            VALUES (%s)
-                            """,
+                            "INSERT INTO user_profiles (user_id) VALUES (%s)",
                             (user_id,),
                         )
-                    logger.info(f"Created new profile for user {user_id}")
-                except UniqueViolation:
-                    # Profile already exists, which is fine
-                    pass
+                        logger.info(f"Created new profile for user {user_id}")
 
                 # Build dynamic UPDATE query based on provided fields
                 if update_data:
@@ -122,13 +132,14 @@ async def update_user_profile(
 
                     update_query = f"""
                         UPDATE user_profiles 
-                        SET {", ".join(set_clauses)}
+                        SET {', '.join(set_clauses)}
                         WHERE user_id = %s
                     """
 
                     async with conn.cursor() as cursor:
                         await cursor.execute(update_query, values)
 
+                # Fetch the updated profile
                 # Fetch the updated profile
                 async with conn.cursor() as cursor:
                     await cursor.execute(
@@ -146,10 +157,20 @@ async def update_user_profile(
                     raise HTTPException(
                         status_code=500, detail="Error retrieving updated profile"
                     )
-
+                    
                 # Convert row to UserProfile model
-                profile_data = dict(row)
-                profile = UserProfile(**profile_data)
+                # Row is a tuple, access by index based on SELECT order:
+                # SELECT user_id, phone, location, title, bio, resume_id, created_at, updated_at
+                profile = UserProfile(
+                    user_id=row[0],
+                    phone=row[1],
+                    location=row[2],
+                    title=row[3],
+                    bio=row[4],
+                    resume_id=row[5],
+                    created_at=row[6],
+                    updated_at=row[7]
+                )
 
                 logger.info(f"Updated profile for user {user_id}")
                 return UserProfileResponse(

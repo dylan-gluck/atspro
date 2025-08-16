@@ -12,7 +12,7 @@ from ..websocket.task_updates import broadcast_task_update
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/api/tasks", tags=["tasks"])
+router = APIRouter(tags=["tasks"])
 
 # Global task service instance
 task_service = TaskService()

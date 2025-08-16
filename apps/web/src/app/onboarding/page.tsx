@@ -3,13 +3,14 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { FileUpload } from '@/components/onboarding/file-upload';
+import { FileUpload, ProcessingStage } from '@/components/onboarding/file-upload';
 import { useServices } from '@/lib/services';
 
 export default function OnboardingPage() {
   const router = useRouter();
   const services = useServices();
   const [isLoading, setIsLoading] = useState(false);
+  const [processingStage, setProcessingStage] = useState<ProcessingStage>('idle');
   const [error, setError] = useState<string | null>(null);
 
   const handleFileUpload = async (file: File) => {
@@ -22,31 +23,58 @@ export default function OnboardingPage() {
     setError(null);
 
     try {
-      // Parse the resume using the API
+      // Stage 1: Uploading
+      setProcessingStage('uploading');
+      await new Promise(resolve => setTimeout(resolve, 500)); // Brief delay to show upload stage
+      
+      // Stage 2: Parsing the resume
+      setProcessingStage('parsing');
       const parseResponse = await services.resumeService.parseResume(file);
       
       if (!parseResponse.success) {
-        throw new Error(parseResponse.message || 'Failed to parse resume');
+        throw new Error(parseResponse.message || 'Failed to parse resume. Please check your file and try again.');
       }
 
       const resumeData = parseResponse.data;
       
-      // Assuming the API returns a resume with an ID from ArangoDB
-      // Update user profile with the resume_id
-      if (resumeData && 'id' in resumeData) {
-        const updateResponse = await services.userService.updateResumeId(resumeData.id as string);
+      // Stage 3: Updating profile
+      if (resumeData && 'resume_id' in resumeData) {
+        setProcessingStage('updating');
+        const updateResponse = await services.userService.updateResumeId(resumeData.resume_id as string);
         
         if (!updateResponse.success) {
-          throw new Error(updateResponse.message || 'Failed to update profile');
+          throw new Error(updateResponse.message || 'Failed to update your profile. Please try again.');
         }
       }
 
-      // Redirect to dashboard on success
-      router.push('/');
+      // Stage 4: Success
+      setProcessingStage('success');
+      
+      // Brief success display before redirect
+      setTimeout(() => {
+        router.push('/');
+      }, 1500);
       
     } catch (err) {
       console.error('Resume upload failed:', err);
-      setError(err instanceof Error ? err.message : 'An unexpected error occurred');
+      setProcessingStage('error');
+      
+      // Enhanced error messages based on stage
+      let errorMessage = 'An unexpected error occurred';
+      if (err instanceof Error) {
+        errorMessage = err.message;
+      }
+      
+      // Add context based on current stage
+      if (processingStage === 'uploading') {
+        errorMessage = `Upload failed: ${errorMessage}`;
+      } else if (processingStage === 'parsing') {
+        errorMessage = `Resume analysis failed: ${errorMessage}`;
+      } else if (processingStage === 'updating') {
+        errorMessage = `Profile update failed: ${errorMessage}`;
+      }
+      
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -89,6 +117,7 @@ export default function OnboardingPage() {
               <FileUpload
                 onFileUpload={handleFileUpload}
                 isLoading={isLoading}
+                processingStage={processingStage}
                 error={error}
                 disabled={isLoading}
                 className="mx-auto"

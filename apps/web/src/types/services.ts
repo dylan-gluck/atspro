@@ -119,7 +119,7 @@ export interface ResumeService extends BaseService {
   restoreVersion(version: number): Promise<ApiResponse<ResumeVersion>>;
 
   // File Operations
-  parseResume(file: File): Promise<ApiResponse<Resume>>;
+  parseResume(file: File): Promise<ApiResponse<{ task_id: string; resume_id: string }>>;
   uploadResume(file: File): Promise<ApiResponse<Resume>>;
   exportResume(format: 'pdf' | 'docx' | 'txt'): Promise<ApiResponse<Blob>>;
 

@@ -2,15 +2,19 @@
 
 import React, { useCallback, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { Upload, File, X, CheckCircle, AlertCircle } from 'lucide-react';
+import { Upload, X, CheckCircle, AlertCircle, FileText, User, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
+import { Skeleton } from '@/components/ui/skeleton';
+
+export type ProcessingStage = 'idle' | 'uploading' | 'parsing' | 'updating' | 'success' | 'error';
 
 export interface FileUploadProps {
   onFileUpload: (file: File) => Promise<void>;
   isLoading?: boolean;
+  processingStage?: ProcessingStage;
   error?: string | null;
   className?: string;
   accept?: Record<string, string[]>;
@@ -31,6 +35,7 @@ const DEFAULT_MAX_SIZE = 10 * 1024 * 1024; // 10MB
 export function FileUpload({
   onFileUpload,
   isLoading = false,
+  processingStage = 'idle',
   error = null,
   className,
   accept = DEFAULT_ACCEPT,
@@ -112,6 +117,48 @@ export function FileUpload({
     if (uploadSuccess) return 'bg-emerald-50';
     return 'bg-background';
   };
+  // Get processing stage info
+  const getStageInfo = () => {
+    switch (processingStage) {
+      case 'uploading':
+        return {
+          icon: Upload,
+          message: 'Uploading your resume...',
+          progress: 25,
+          color: 'text-blue-600'
+        };
+      case 'parsing':
+        return {
+          icon: FileText,
+          message: 'Analyzing your resume...',
+          progress: 50,
+          color: 'text-purple-600'
+        };
+      case 'updating':
+        return {
+          icon: User,
+          message: 'Updating your profile...',
+          progress: 75,
+          color: 'text-orange-600'
+        };
+      case 'success':
+        return {
+          icon: Sparkles,
+          message: 'Success! Redirecting to dashboard...',
+          progress: 100,
+          color: 'text-emerald-600'
+        };
+      default:
+        return {
+          icon: FileText,
+          message: 'Processing...',
+          progress: undefined,
+          color: 'text-muted-foreground'
+        };
+    }
+  };
+
+  const stageInfo = getStageInfo();
 
   return (
     <div className={cn('w-full', className)}>
@@ -179,21 +226,30 @@ export function FileUpload({
                 </div>
 
                 <div className="flex items-center space-x-2">
-                  {isLoading && (
+                  {(isLoading || processingStage !== 'idle') && processingStage !== 'success' && (
                     <div className="flex items-center space-x-2">
                       <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-                      <span className="text-sm text-muted-foreground">Processing...</span>
+                      <span className="text-sm text-muted-foreground">{stageInfo.message}</span>
                     </div>
                   )}
                   
-                  {uploadSuccess && !isLoading && (
+                  {processingStage === 'success' && (
+                    <div className="flex items-center space-x-2">
+                      <div className={cn('flex items-center space-x-1', stageInfo.color)}>
+                        <stageInfo.icon className="w-4 h-4" />
+                        <span className="text-sm font-medium">{stageInfo.message}</span>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {uploadSuccess && !isLoading && processingStage === 'idle' && (
                     <div className="flex items-center space-x-1 text-emerald-600">
                       <CheckCircle className="w-4 h-4" />
                       <span className="text-sm">Uploaded</span>
                     </div>
                   )}
 
-                  {!isLoading && !uploadSuccess && (
+                  {!isLoading && processingStage === 'idle' && !uploadSuccess && (
                     <Button
                       variant="ghost"
                       size="sm"
@@ -206,12 +262,31 @@ export function FileUpload({
                 </div>
               </div>
 
-              {isLoading && (
-                <div className="space-y-2">
-                  <Progress value={undefined} className="w-full" />
-                  <p className="text-sm text-muted-foreground text-center">
-                    Parsing your resume...
-                  </p>
+              {(isLoading || processingStage !== 'idle') && (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className={cn('font-medium', stageInfo.color)}>
+                      {stageInfo.message}
+                    </span>
+                    {stageInfo.progress && (
+                      <span className="text-muted-foreground">
+                        {stageInfo.progress}%
+                      </span>
+                    )}
+                  </div>
+                  
+                  <Progress 
+                    value={stageInfo.progress} 
+                    className="w-full h-2" 
+                  />
+                  
+                  {processingStage === 'parsing' && (
+                    <div className="flex items-center justify-center space-x-2 py-2">
+                      <Skeleton className="h-2 w-16" />
+                      <Skeleton className="h-2 w-12" />
+                      <Skeleton className="h-2 w-20" />
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -247,7 +322,7 @@ export function FileUpload({
           )}
 
           {/* Try Again Button */}
-          {uploadedFile && !isLoading && !uploadSuccess && error && (
+          {uploadedFile && !isLoading && processingStage === 'idle' && !uploadSuccess && error && (
             <div className="mt-4 flex justify-center">
               <Button
                 variant="outline"

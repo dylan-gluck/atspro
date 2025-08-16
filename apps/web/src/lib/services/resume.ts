@@ -98,7 +98,7 @@ export class ResumeServiceImpl extends BaseServiceImpl implements ResumeService 
   }
 
   // File Operations
-  async parseResume(file: File): Promise<ApiResponse<Resume>> {
+  async parseResume(file: File): Promise<ApiResponse<{ task_id: string; resume_id: string }>> {
     // Validate file type
     const allowedTypes = [
       'application/pdf',
@@ -110,7 +110,7 @@ export class ResumeServiceImpl extends BaseServiceImpl implements ResumeService 
     
     if (!allowedTypes.includes(file.type)) {
       return {
-        data: null as unknown as Resume,
+        data: null as unknown as { task_id: string; resume_id: string },
         success: false,
         message: 'Invalid file type. Please upload a PDF, DOC, DOCX, TXT, or MD file.',
         errors: ['Invalid file type']
@@ -121,14 +121,30 @@ export class ResumeServiceImpl extends BaseServiceImpl implements ResumeService 
     const maxSize = 10 * 1024 * 1024; // 10MB
     if (file.size > maxSize) {
       return {
-        data: null as unknown as Resume,
+        data: null as unknown as { task_id: string; resume_id: string },
         success: false,
         message: 'File size too large. Maximum size is 10MB.',
         errors: ['File size too large']
       };
     }
 
-    const response = await this.apiClient.upload<Resume>('/api/parse', file);
+    // Get current user for authentication header
+    const userResponse = await this.authService.getCurrentUser();
+    if (!userResponse.success || !userResponse.data) {
+      return {
+        data: null as unknown as { task_id: string; resume_id: string },
+        success: false,
+        message: 'User not authenticated',
+        errors: ['User not authenticated']
+      };
+    }
+
+    const userId = userResponse.data.id;
+    const response = await this.apiClient.upload<{ task_id: string; resume_id: string }>('/api/parse', file, {
+      headers: {
+        'X-User-Id': userId
+      }
+    });
     
     if (response.success) {
       // Clear resume caches since we have new content

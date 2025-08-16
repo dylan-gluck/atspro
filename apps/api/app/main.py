@@ -28,12 +28,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(parse.router)
-app.include_router(linkedin.router)
-app.include_router(job.router)
-app.include_router(optimize.router)
-app.include_router(tasks.router)
-app.include_router(user.router)
+app.include_router(parse.router, prefix="/api")
+app.include_router(linkedin.router, prefix="/api")
+app.include_router(job.router, prefix="/api")
+app.include_router(optimize.router, prefix="/api")
+app.include_router(tasks.router, prefix="/api")
+app.include_router(user.router, prefix="/api")
 
 
 # WebSocket endpoint for real-time task updates

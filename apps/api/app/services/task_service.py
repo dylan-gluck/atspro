@@ -1,5 +1,6 @@
 """Task management service layer for ATSPro API."""
 
+import json
 import logging
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
@@ -402,7 +403,7 @@ class TaskService:
                         task_type,
                         "pending",
                         priority,
-                        payload,
+                        json.dumps(payload),
                         max_retries,
                         estimated_duration_ms,
                         expires_at,
