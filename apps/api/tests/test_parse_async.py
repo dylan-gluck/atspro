@@ -17,6 +17,7 @@ from app.routers.parse import (
     get_parse_task_status,
 )
 from app.queue.redis_queue import TaskPriority
+from app.schema.responses import ApiResponse
 from app.services.task_service import TaskService
 
 
@@ -98,11 +99,13 @@ class TestParseEndpoint:
             result = await parse_resume(mock_file_pdf, mock_user, mock_task_service)
 
             # Verify response format
-            assert result["success"] is True
-            assert "task_id" in result["data"]
-            assert "resume_id" in result["data"]
-            assert result["data"]["task_id"] == "task_123"
-            assert result["data"]["resume_id"] == "resume_123"
+            assert isinstance(result, ApiResponse)
+            assert result.success is True
+            assert "task_id" in result.data
+            assert "resume_id" in result.data
+            assert result.data["task_id"] == "task_123"
+            assert result.data["resume_id"] == "resume_123"
+            assert "submitted for parsing" in result.message
 
             # Verify task creation call
             mock_task_service.create_task.assert_called_once()
@@ -136,8 +139,9 @@ class TestParseEndpoint:
 
             result = await parse_resume(mock_file_docx, mock_user, mock_task_service)
 
-            assert result["success"] is True
-            assert result["data"]["resume_id"] == "resume_456"
+            assert isinstance(result, ApiResponse)
+            assert result.success is True
+            assert result.data["resume_id"] == "resume_456"
 
     @pytest.mark.asyncio
     async def test_parse_resume_no_file(self, mock_user, mock_task_service):

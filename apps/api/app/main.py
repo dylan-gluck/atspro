@@ -6,25 +6,33 @@ from .websocket.task_updates import websocket_endpoint
 from .services.notification_service import notification_service
 from .workers.startup import start_workers, stop_workers, get_worker_status
 from .dependencies import get_task_service, shutdown_services
-from .database.connections import init_databases, close_databases
+from .database.connections import init_databases, close_databases, check_all_databases_health
 
 app = FastAPI()
 
 
 @app.get("/health")
 async def health_check():
-    """Health check endpoint with worker status."""
+    """Health check endpoint with worker status and database health."""
     worker_status = await get_worker_status()
+    database_health = await check_all_databases_health()
+    
+    # Determine overall service health
+    service_healthy = (
+        worker_status["manager_status"] == "running" and
+        database_health["status"] == "up"
+    )
     
     return {
-        "status": "healthy", 
+        "status": "healthy" if service_healthy else "degraded", 
         "service": "atspro-api",
         "workers": {
             "status": worker_status["manager_status"],
             "total": worker_status["total_workers"],
             "running": worker_status["running_workers"],
             "active_tasks": worker_status["total_active_tasks"]
-        }
+        },
+        "databases": database_health["databases"]
     }
 
 

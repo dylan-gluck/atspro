@@ -14,6 +14,7 @@ from ..database.connections import (
 from ..logger.logger import logger
 from ..queue.redis_queue import TaskPriority
 from ..schema.resume import Resume
+from ..schema.responses import ApiResponse, TaskData
 from ..services.task_service import TaskService
 from ..dependencies import get_current_user, get_task_service
 
@@ -27,7 +28,7 @@ router = APIRouter()
 # Task service is now injected via dependencies module
 
 
-@router.post("/parse")
+@router.post("/parse", response_model=ApiResponse[dict])
 async def parse_resume(
     file: UploadFile = File(...),
     current_user: dict = Depends(get_current_user),
@@ -116,13 +117,19 @@ async def parse_resume(
 
         logger.info(f"Created resume parse task {task_id} for user {user_id}")
 
-        return {
-            "success": True,
-            "data": {
+        task_data = TaskData(
+            task_id=task_id,
+            status="pending"
+        )
+        
+        return ApiResponse(
+            success=True,
+            data={
                 "task_id": task_id,
                 "resume_id": resume_id,
             },
-        }
+            message="Resume submitted for parsing"
+        )
 
     except Exception as e:
         logger.error(f"Error creating parse task: {str(e)}")
@@ -131,7 +138,7 @@ async def parse_resume(
         )
 
 
-@router.get("/parse/{task_id}")
+@router.get("/parse/{task_id}", response_model=ApiResponse[dict])
 async def get_parse_task_status(
     task_id: str,
     current_user: dict = Depends(get_current_user),
@@ -163,9 +170,20 @@ async def get_parse_task_status(
         if task.get("status") == "completed":
             result = await task_service.get_task_result(task_id)
 
-        return {
-            "success": True,
-            "data": {
+        task_data = TaskData(
+            task_id=task["id"],
+            status=task["status"],
+            progress=task.get("progress", 0),
+            created_at=task["created_at"],
+            started_at=task.get("started_at"),
+            completed_at=task.get("completed_at"),
+            result=result,
+            error=task.get("error_message")
+        )
+        
+        return ApiResponse(
+            success=True,
+            data={
                 "id": task["id"],
                 "status": task["status"],
                 "progress": task.get("progress", 0),
@@ -175,8 +193,8 @@ async def get_parse_task_status(
                 "task_type": task["task_type"],
                 "result": result,
                 "error": task.get("error_message"),
-            },
-        }
+            }
+        )
 
     except HTTPException:
         raise

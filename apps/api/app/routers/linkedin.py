@@ -5,11 +5,12 @@ from ..lib.agent import resume_agent
 from ..lib.httpx import fetch
 from ..logger.logger import logger
 from ..schema.resume import Resume
+from ..schema.responses import ApiResponse
 
 router = APIRouter()
 
 
-@router.put("/linkedin")
+@router.put("/linkedin", response_model=ApiResponse[dict])
 async def linkedin_resume(url: str = Form(...)):
     """
     Fetch html from url using httpx
@@ -40,4 +41,8 @@ async def linkedin_resume(url: str = Form(...)):
     resume_data = result.final_output
     parsed_data = Resume.model_validate(resume_data)
 
-    return {"status": 200, "data": {"resume": parsed_data}}
+    return ApiResponse(
+        success=True,
+        data={"resume": parsed_data},
+        message="LinkedIn profile parsed successfully"
+    )

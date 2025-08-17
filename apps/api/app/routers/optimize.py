@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, Header, HTTPException
 from pydantic import BaseModel
 
 from ..logger.logger import logger
+from ..schema.responses import ApiResponse, TaskData
 from ..services.optimization_service import OptimizationService
 from ..services.task_service import TaskService
 from ..dependencies import get_current_user, get_task_service
@@ -27,6 +28,7 @@ class ResearchRequest(BaseModel):
     job_id: str
 
 
+# Legacy TaskResponse for backward compatibility - use ApiResponse for new endpoints
 class TaskResponse(BaseModel):
     success: bool
     data: dict
@@ -46,7 +48,7 @@ async def get_optimization_service():
     return OptimizationService(arango_db, task_service)
 
 
-@router.post("/optimize", response_model=TaskResponse)
+@router.post("/optimize", response_model=ApiResponse[dict])
 async def optimize_resume(
     request: OptimizeRequest,
     current_user=Depends(get_current_user),
@@ -74,7 +76,11 @@ async def optimize_resume(
             f"Created optimization task {result['task_id']} for user {current_user['id']}"
         )
 
-        return TaskResponse(success=True, data=result)
+        return ApiResponse(
+            success=True,
+            data=result,
+            message="Optimization task created successfully"
+        )
 
     except ValueError as e:
         # Validation errors (400 Bad Request)
@@ -85,7 +91,7 @@ async def optimize_resume(
         raise HTTPException(status_code=500, detail="Error creating optimization task")
 
 
-@router.post("/score", response_model=TaskResponse)
+@router.post("/score", response_model=ApiResponse[dict])
 async def score_resume(
     request: ScoreRequest,
     current_user=Depends(get_current_user),
@@ -113,7 +119,11 @@ async def score_resume(
             f"Created scoring task {result['task_id']} for user {current_user['id']}"
         )
 
-        return TaskResponse(success=True, data=result)
+        return ApiResponse(
+            success=True,
+            data=result,
+            message="Scoring task created successfully"
+        )
 
     except ValueError as e:
         # Validation errors (400 Bad Request)
@@ -124,7 +134,7 @@ async def score_resume(
         raise HTTPException(status_code=500, detail="Error creating scoring task")
 
 
-@router.post("/research", response_model=TaskResponse)
+@router.post("/research", response_model=ApiResponse[dict])
 async def research_company(
     request: ResearchRequest,
     current_user=Depends(get_current_user),
@@ -152,7 +162,11 @@ async def research_company(
             f"Created research task {result['task_id']} for user {current_user['id']}"
         )
 
-        return TaskResponse(success=True, data=result)
+        return ApiResponse(
+            success=True,
+            data=result,
+            message="Research task created successfully"
+        )
 
     except ValueError as e:
         # Validation errors (400 Bad Request)

@@ -14,7 +14,7 @@ from app.routers.job import (
     BulkArchiveRequest,
     JobFilterRequest,
     JobEntity,
-    PaginatedResponse,
+    PaginatedResponse,  # Legacy model for backward compatibility
     create_job,
     list_jobs,
     get_job,
@@ -32,6 +32,7 @@ from app.routers.job import (
     get_job_service,
 )
 from app.queue.redis_queue import TaskPriority
+from app.schema.responses import ApiResponse
 from app.services.job_service import JobService
 
 
@@ -74,6 +75,7 @@ class TestJobCRUDEndpoints:
         )
 
         # Verify response structure
+        assert isinstance(result, ApiResponse)
         assert result.success is True
         assert result.data["task_id"] == "task_123"
         assert result.data["job_id"] == "job_456"
@@ -125,11 +127,12 @@ class TestJobCRUDEndpoints:
             job_service=mock_job_service,
         )
 
-        assert isinstance(result, PaginatedResponse)
-        assert result.page == 1
-        assert result.page_size == 20
-        assert result.total >= 0
+        assert isinstance(result, ApiResponse)
+        assert result.success is True
         assert isinstance(result.data, list)
+        assert "pagination" in result.meta
+        assert result.meta["pagination"]["page"] == 1
+        assert result.meta["pagination"]["page_size"] == 20
 
     @pytest.mark.asyncio
     async def test_list_jobs_with_filters(self, mock_user, mock_job_service):
@@ -144,9 +147,11 @@ class TestJobCRUDEndpoints:
             job_service=mock_job_service,
         )
 
-        assert isinstance(result, PaginatedResponse)
-        assert result.page == 2
-        assert result.page_size == 10
+        assert isinstance(result, ApiResponse)
+        assert result.success is True
+        assert "pagination" in result.meta
+        assert result.meta["pagination"]["page"] == 2
+        assert result.meta["pagination"]["page_size"] == 10
 
     # Test get_job endpoint (GET /api/jobs/{job_id})
     @pytest.mark.asyncio
@@ -158,10 +163,12 @@ class TestJobCRUDEndpoints:
             job_service=mock_job_service,
         )
 
-        assert isinstance(result, JobEntity)
-        assert result.id == "job_123"
-        assert result.title == "Software Engineer"
-        assert result.company == "Tech Corp"
+        assert isinstance(result, ApiResponse)
+        assert result.success is True
+        assert isinstance(result.data, JobEntity)
+        assert result.data.id == "job_123"
+        assert result.data.title == "Software Engineer"
+        assert result.data.company == "Tech Corp"
 
     # Test update_job endpoint (PATCH /api/jobs/{job_id})
     @pytest.mark.asyncio
@@ -180,11 +187,13 @@ class TestJobCRUDEndpoints:
             job_service=mock_job_service,
         )
 
-        assert isinstance(result, JobEntity)
-        assert result.id == "job_123"
-        assert result.title == "Senior Software Engineer"
-        assert result.company == "Big Tech Corp"
-        assert result.status == "interview"
+        assert isinstance(result, ApiResponse)
+        assert result.success is True
+        assert isinstance(result.data, JobEntity)
+        assert result.data.id == "job_123"
+        assert result.data.title == "Senior Software Engineer"
+        assert result.data.company == "Big Tech Corp"
+        assert result.data.status == "interview"
 
     # Test delete_job endpoint (DELETE /api/jobs/{job_id})
     @pytest.mark.asyncio
@@ -196,8 +205,9 @@ class TestJobCRUDEndpoints:
             job_service=mock_job_service,
         )
 
-        assert result["success"] is True
-        assert "deleted successfully" in result["message"]
+        assert isinstance(result, ApiResponse)
+        assert result.success is True
+        assert "deleted successfully" in result.message
 
     # Test update_job_status endpoint (PATCH /api/jobs/{job_id}/status)
     @pytest.mark.asyncio
@@ -212,8 +222,10 @@ class TestJobCRUDEndpoints:
             job_service=mock_job_service,
         )
 
-        assert isinstance(result, JobEntity)
-        assert result.status == "interview"
+        assert isinstance(result, ApiResponse)
+        assert result.success is True
+        assert isinstance(result.data, JobEntity)
+        assert result.data.status == "interview"
 
     # Test bulk operations
     @pytest.mark.asyncio

@@ -177,6 +177,34 @@ export interface JobsService extends BaseService {
   updateJob(id: string, updates: Partial<JobEntity>): Promise<ApiResponse<JobEntity>>;
   deleteJob(id: string): Promise<ApiResponse<void>>;
 
+  // Async Job Creation Methods
+  createJobAsync(jobUrl: string): Promise<ApiResponse<{ task_id: string; job_id: string }>>;
+  parseJobFromDocumentAsync(file: File): Promise<ApiResponse<{ task_id: string; job_id: string }>>;
+
+  // Task Operations
+  getTaskStatus(taskId: string): Promise<ApiResponse<{
+    id: string;
+    status: string;
+    progress: number;
+    created_at: string;
+    started_at?: string;
+    completed_at?: string;
+    task_type: string;
+    user_id: string;
+    priority: number;
+    error_message?: string;
+    result_id?: string;
+    estimated_duration_ms?: number;
+    max_retries: number;
+    retry_count: number;
+  }>>;
+  getTaskResult(taskId: string): Promise<ApiResponse<JobEntity>>;
+  pollTaskUntilComplete(
+    taskId: string, 
+    onProgress?: (progress: number, status: string) => void,
+    maxWaitTime?: number
+  ): Promise<ApiResponse<JobEntity>>;
+
   // Job Status Management
   updateStatus(id: string, status: JobStatus): Promise<ApiResponse<JobEntity>>;
   bulkUpdateStatus(jobIds: string[], status: JobStatus): Promise<ApiResponse<void>>;

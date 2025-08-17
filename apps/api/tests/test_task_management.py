@@ -11,7 +11,7 @@ from fastapi import status
 
 from app.main import app
 from app.services.task_service import TaskService
-from app.routers.tasks import task_service
+from app.dependencies import get_task_service
 
 
 class TestTaskManagement:

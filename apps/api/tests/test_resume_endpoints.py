@@ -344,9 +344,11 @@ class TestResumeEndpointsAuth:
         """Test get_current_user with valid authorization."""
         result = await get_current_user(authorization="Bearer token123")
         
-        # Currently returns mock user - should be updated when real auth is implemented
-        assert result["id"] == "user_123"
-        assert result["email"] == "user@example.com"
+        # Test token generates user based on token value 
+        assert result["id"] == "user_token123"
+        assert result["email"] == "user_token123@example.com"
+        assert result["name"] == "User token123"
+        assert "session_id" in result
 
     @pytest.mark.asyncio
     async def test_get_current_user_missing_auth(self):

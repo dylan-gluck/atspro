@@ -17,6 +17,7 @@ from pydantic import BaseModel
 from ..logger.logger import logger
 from ..queue.redis_queue import TaskPriority
 from ..schema.job import Job
+from ..schema.responses import ApiResponse, PaginationMeta, TaskData
 from ..services.job_service import JobService
 from ..dependencies import get_current_user, get_job_service
 
@@ -62,6 +63,7 @@ class JobFilterRequest(BaseModel):
     date_range: Optional[List[str]] = None
 
 
+# Legacy TaskResponse for backward compatibility - use ApiResponse for new endpoints
 class TaskResponse(BaseModel):
     success: bool
     data: dict
@@ -90,7 +92,7 @@ class PaginatedResponse(BaseModel):
 # Dependencies are now imported from dependencies module
 
 
-@router.post("/job", response_model=TaskResponse)
+@router.post("/job", response_model=ApiResponse[dict])
 async def parse_job_async(
     request: JobParseRequest,
     current_user=Depends(get_current_user),
@@ -124,13 +126,14 @@ async def parse_job_async(
 
         logger.info(f"Created job parse task {task_id} for user {current_user['id']}")
 
-        return TaskResponse(
+        return ApiResponse(
             success=True,
             data={
                 "task_id": task_id,
                 "job_id": job_id,
                 "url": request.url,
             },
+            message="Job parsing task created successfully"
         )
 
     except HTTPException:
@@ -141,7 +144,7 @@ async def parse_job_async(
 
 
 # Legacy endpoint for backward compatibility
-@router.put("/job")
+@router.put("/job", response_model=ApiResponse[dict])
 async def job_info_legacy(url: str = Form(...)):
     """
     Legacy synchronous job parsing endpoint.
@@ -174,13 +177,17 @@ async def job_info_legacy(url: str = Form(...)):
     job_data = result.final_output
     parsed_data = Job.model_validate(job_data)
 
-    return {"status": 200, "data": {"job": parsed_data}}
+    return ApiResponse(
+        success=True,
+        data={"job": parsed_data},
+        message="Job parsed successfully"
+    )
 
 
 # New RESTful endpoints that match frontend expectations
 
 
-@router.get("/jobs", response_model=PaginatedResponse)
+@router.get("/jobs", response_model=ApiResponse[List[JobEntity]])
 async def list_jobs(
     status: Optional[str] = Query(None),
     company: Optional[str] = Query(None),
@@ -234,19 +241,25 @@ async def list_jobs(
         total = len(job_entities)
         total_pages = (total + page_size - 1) // page_size if total > 0 else 1
 
-        return PaginatedResponse(
+        return ApiResponse(
+            success=True,
             data=job_entities,
-            total=total,
-            page=page,
-            page_size=page_size,
-            total_pages=total_pages,
+            meta={
+                "pagination": PaginationMeta(
+                    page=page,
+                    page_size=page_size,
+                    total=total,
+                    total_pages=total_pages,
+                    has_more=page < total_pages
+                ).dict()
+            }
         )
     except Exception as e:
         logger.error(f"Error listing jobs: {str(e)}")
         raise HTTPException(status_code=500, detail="Error listing jobs")
 
 
-@router.post("/jobs", response_model=TaskResponse)
+@router.post("/jobs", response_model=ApiResponse[dict])
 async def create_job(
     request: JobCreateRequest,
     current_user=Depends(get_current_user),
@@ -273,13 +286,14 @@ async def create_job(
 
         logger.info(f"Created job parse task {task_id} for user {current_user['id']}")
 
-        return TaskResponse(
+        return ApiResponse(
             success=True,
             data={
                 "task_id": task_id,
                 "job_id": job_id,
                 "url": request.job_url,
             },
+            message="Job parsing task created successfully"
         )
 
     except HTTPException:
@@ -289,7 +303,7 @@ async def create_job(
         raise HTTPException(status_code=500, detail=f"Error creating job: {str(e)}")
 
 
-@router.post("/job/parse-document", response_model=TaskResponse)
+@router.post("/job/parse-document", response_model=ApiResponse[dict])
 async def parse_job_from_document(
     file: UploadFile = File(...),
     current_user=Depends(get_current_user),
@@ -366,7 +380,7 @@ async def parse_job_from_document(
             f"Created job document parse task {task_id} for user {current_user['id']}"
         )
 
-        return TaskResponse(
+        return ApiResponse(
             success=True,
             data={
                 "task_id": task_id,
@@ -375,6 +389,7 @@ async def parse_job_from_document(
                 "content_type": file.content_type,
                 "size": len(content),
             },
+            message="Job document parsing task created successfully"
         )
 
     except ValueError as e:
@@ -389,7 +404,7 @@ async def parse_job_from_document(
         )
 
 
-@router.get("/jobs/{job_id}", response_model=JobEntity)
+@router.get("/jobs/{job_id}", response_model=ApiResponse[JobEntity])
 async def get_job(
     job_id: str,
     current_user=Depends(get_current_user),
@@ -405,8 +420,8 @@ async def get_job(
 
         # Convert database job to JobEntity format
         parsed_data = job.get("parsed_data", {})
-
-        return JobEntity(
+        
+        job_entity = JobEntity(
             id=job.get("_key", job.get("id", "")),
             title=parsed_data.get("title", "Unknown Title"),
             company=parsed_data.get("company", "Unknown Company"),
@@ -417,6 +432,11 @@ async def get_job(
             created_at=job.get("created_at", ""),
             updated_at=job.get("updated_at", ""),
         )
+        
+        return ApiResponse(
+            success=True,
+            data=job_entity
+        )
     except HTTPException:
         raise
     except Exception as e:
@@ -424,7 +444,7 @@ async def get_job(
         raise HTTPException(status_code=500, detail="Error getting job")
 
 
-@router.patch("/jobs/{job_id}", response_model=JobEntity)
+@router.patch("/jobs/{job_id}", response_model=ApiResponse[JobEntity])
 async def update_job(
     job_id: str,
     request: JobUpdateRequest,
@@ -457,8 +477,8 @@ async def update_job(
         # Return updated job
         job = await job_service.get_job(job_id, current_user["id"])
         parsed_data = job.get("parsed_data", {})
-
-        return JobEntity(
+        
+        job_entity = JobEntity(
             id=job.get("_key", job.get("id", "")),
             title=parsed_data.get("title", "Unknown Title"),
             company=parsed_data.get("company", "Unknown Company"),
@@ -469,6 +489,12 @@ async def update_job(
             created_at=job.get("created_at", ""),
             updated_at=job.get("updated_at", ""),
         )
+        
+        return ApiResponse(
+            success=True,
+            data=job_entity,
+            message="Job updated successfully"
+        )
     except HTTPException:
         raise
     except Exception as e:
@@ -476,7 +502,7 @@ async def update_job(
         raise HTTPException(status_code=500, detail="Error updating job")
 
 
-@router.delete("/jobs/{job_id}")
+@router.delete("/jobs/{job_id}", response_model=ApiResponse[None])
 async def delete_job(
     job_id: str,
     current_user=Depends(get_current_user),
@@ -492,7 +518,10 @@ async def delete_job(
         await job_service.delete_job(job_id)
 
         logger.info(f"Deleted job {job_id} for user {current_user['id']}")
-        return {"success": True, "message": "Job deleted successfully"}
+        return ApiResponse(
+            success=True,
+            message="Job deleted successfully"
+        )
     except HTTPException:
         raise
     except Exception as e:
@@ -500,7 +529,7 @@ async def delete_job(
         raise HTTPException(status_code=500, detail="Error deleting job")
 
 
-@router.patch("/jobs/{job_id}/status", response_model=JobEntity)
+@router.patch("/jobs/{job_id}/status", response_model=ApiResponse[JobEntity])
 async def update_job_status(
     job_id: str,
     request: JobStatusRequest,
@@ -510,7 +539,7 @@ async def update_job_status(
     """Update job status"""
     try:
         # TODO: Implement actual database update
-        return JobEntity(
+        job_entity = JobEntity(
             id=job_id,
             title="Software Engineer",
             company="Tech Corp",
@@ -521,12 +550,18 @@ async def update_job_status(
             created_at="2024-01-01T00:00:00Z",
             updated_at="2024-01-01T00:00:00Z",
         )
+        
+        return ApiResponse(
+            success=True,
+            data=job_entity,
+            message="Job status updated successfully"
+        )
     except Exception as e:
         logger.error(f"Error updating job status {job_id}: {str(e)}")
         raise HTTPException(status_code=500, detail="Error updating job status")
 
 
-@router.patch("/jobs/bulk-status")
+@router.patch("/jobs/bulk-status", response_model=ApiResponse[None])
 async def bulk_update_status(
     request: BulkStatusRequest,
     current_user=Depends(get_current_user),
@@ -536,13 +571,16 @@ async def bulk_update_status(
     try:
         # TODO: Implement actual bulk database update
         logger.info(f"Bulk updating status for {len(request.job_ids)} jobs")
-        return {"success": True, "message": f"Updated {len(request.job_ids)} jobs"}
+        return ApiResponse(
+            success=True,
+            message=f"Updated {len(request.job_ids)} jobs"
+        )
     except Exception as e:
         logger.error(f"Error bulk updating job status: {str(e)}")
         raise HTTPException(status_code=500, detail="Error bulk updating job status")
 
 
-@router.patch("/jobs/bulk-archive")
+@router.patch("/jobs/bulk-archive", response_model=ApiResponse[None])
 async def bulk_archive_jobs(
     request: BulkArchiveRequest,
     current_user=Depends(get_current_user),
@@ -553,10 +591,10 @@ async def bulk_archive_jobs(
         # TODO: Implement actual bulk database update
         action = "archived" if request.archived else "unarchived"
         logger.info(f"Bulk {action} {len(request.job_ids)} jobs")
-        return {
-            "success": True,
-            "message": f"{action.capitalize()} {len(request.job_ids)} jobs",
-        }
+        return ApiResponse(
+            success=True,
+            message=f"{action.capitalize()} {len(request.job_ids)} jobs"
+        )
     except Exception as e:
         logger.error(f"Error bulk archiving jobs: {str(e)}")
         raise HTTPException(status_code=500, detail="Error bulk archiving jobs")
@@ -617,7 +655,7 @@ async def analyze_job(
         raise HTTPException(status_code=500, detail="Error analyzing job")
 
 
-@router.get("/jobs/{job_id}/insights")
+@router.get("/jobs/{job_id}/insights", response_model=ApiResponse[dict])
 async def get_job_insights(
     job_id: str,
     current_user=Depends(get_current_user),
@@ -626,7 +664,7 @@ async def get_job_insights(
     """Get job insights and recommendations"""
     try:
         # TODO: Implement actual insights generation
-        return {
+        insights_data = {
             "skill_match": 85,
             "experience_match": 90,
             "missing_skills": ["Docker", "Kubernetes"],
@@ -635,13 +673,19 @@ async def get_job_insights(
                 "Add more details about your team leadership skills",
             ],
         }
+        
+        return ApiResponse(
+            success=True,
+            data=insights_data,
+            message="Job insights generated successfully"
+        )
     except Exception as e:
         logger.error(f"Error getting job insights {job_id}: {str(e)}")
         raise HTTPException(status_code=500, detail="Error getting job insights")
 
 
 # Document endpoints
-@router.get("/jobs/{job_id}/documents")
+@router.get("/jobs/{job_id}/documents", response_model=ApiResponse[list])
 async def get_job_documents(
     job_id: str,
     current_user=Depends(get_current_user),
@@ -650,13 +694,17 @@ async def get_job_documents(
     """Get documents associated with a job"""
     try:
         # TODO: Implement actual document retrieval
-        return []
+        return ApiResponse(
+            success=True,
+            data=[],
+            message="Job documents retrieved successfully"
+        )
     except Exception as e:
         logger.error(f"Error getting job documents {job_id}: {str(e)}")
         raise HTTPException(status_code=500, detail="Error getting job documents")
 
 
-@router.post("/jobs/{job_id}/documents")
+@router.post("/jobs/{job_id}/documents", response_model=ApiResponse[dict])
 async def create_job_document(
     job_id: str,
     content: str = Form(...),
@@ -667,13 +715,19 @@ async def create_job_document(
     """Create a document for a job"""
     try:
         # TODO: Implement actual document creation
-        return {
+        document_data = {
             "id": str(uuid4()),
             "job_id": job_id,
             "type": type,
             "content": content,
             "created_at": "2024-01-01T00:00:00Z",
         }
+        
+        return ApiResponse(
+            success=True,
+            data=document_data,
+            message="Job document created successfully"
+        )
     except Exception as e:
         logger.error(f"Error creating job document {job_id}: {str(e)}")
         raise HTTPException(status_code=500, detail="Error creating job document")
@@ -719,17 +773,17 @@ async def get_current_user_resume(
         if not resume:
             raise HTTPException(status_code=404, detail="Resume not found")
 
-        return {
-            "success": True,
-            "data": {
+        return ApiResponse(
+            success=True,
+            data={
                 "id": resume["_key"],
                 "user_id": resume["user_id"],
                 "content": resume.get("content"),
                 "parsed_data": resume.get("parsed_data"),
                 "created_at": resume["created_at"],
                 "updated_at": resume["updated_at"],
-            },
-        }
+            }
+        )
 
     except HTTPException:
         raise
@@ -759,17 +813,17 @@ async def get_resume(
         if not resume:
             raise HTTPException(status_code=404, detail="Resume not found")
 
-        return {
-            "success": True,
-            "data": {
+        return ApiResponse(
+            success=True,
+            data={
                 "id": resume["_key"],
                 "user_id": resume["user_id"],
                 "content": resume.get("content"),
                 "parsed_data": resume.get("parsed_data"),
                 "created_at": resume["created_at"],
                 "updated_at": resume["updated_at"],
-            },
-        }
+            }
+        )
 
     except HTTPException:
         raise
@@ -809,9 +863,9 @@ async def update_resume(
         # Return updated resume
         resume = await job_service.get_resume(resume_id, current_user["id"])
 
-        return {
-            "success": True,
-            "data": {
+        return ApiResponse(
+            success=True,
+            data={
                 "id": resume["_key"],
                 "user_id": resume["user_id"],
                 "content": resume.get("content"),
@@ -819,7 +873,8 @@ async def update_resume(
                 "created_at": resume["created_at"],
                 "updated_at": resume["updated_at"],
             },
-        }
+            message="Resume updated successfully"
+        )
 
     except HTTPException:
         raise

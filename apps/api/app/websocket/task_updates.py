@@ -8,21 +8,21 @@ from typing import Optional
 from fastapi import HTTPException, Query, WebSocket, WebSocketDisconnect
 
 from .manager import connection_manager
+from ..auth import validate_bearer_token, User, AuthenticationError
 
 logger = logging.getLogger(__name__)
 
 
-async def get_user_from_token(token: Optional[str] = Query(None)) -> dict:
+async def get_user_from_token(token: Optional[str] = Query(None)) -> User:
     """Extract user information from WebSocket token parameter.
 
-    This is a placeholder implementation that should be replaced with
-    actual better-auth integration once the auth system is available.
+    Validates the session token against the better-auth database.
 
     Args:
         token: Authentication token from query parameter
 
     Returns:
-        User dictionary with id and other info
+        User: Authenticated user object
 
     Raises:
         HTTPException: If token is invalid or missing
@@ -30,22 +30,18 @@ async def get_user_from_token(token: Optional[str] = Query(None)) -> dict:
     if not token:
         raise HTTPException(status_code=401, detail="Authentication token required")
 
-    # TODO: Replace with actual better-auth token validation
-    # For now, we'll use a mock implementation
     try:
-        # This would normally validate the token with better-auth
-        # and return the actual user information
-        if token == "test_token":
-            return {"id": "test_user", "email": "test@example.com"}
-        else:
-            # Parse token and validate (placeholder)
-            return {"id": f"user_{token[:8]}", "email": f"user_{token[:8]}@example.com"}
+        # For WebSocket, we pass the token as Bearer authorization
+        return await validate_bearer_token(f"Bearer {token}")
+    except AuthenticationError as e:
+        # Convert auth errors to WebSocket-compatible HTTPException
+        raise HTTPException(status_code=401, detail=str(e.detail))
     except Exception as e:
         logger.error(f"Token validation error: {e}")
-        raise HTTPException(status_code=401, detail="Invalid authentication token")
+        raise HTTPException(status_code=401, detail="Authentication service unavailable")
 
 
-async def websocket_endpoint(websocket: WebSocket, user: dict = None):
+async def websocket_endpoint(websocket: WebSocket, user: User = None):
     """WebSocket endpoint for real-time task updates.
 
     This endpoint allows authenticated users to receive real-time updates
@@ -70,7 +66,7 @@ async def websocket_endpoint(websocket: WebSocket, user: dict = None):
     connection_id = None
     try:
         # Connect the WebSocket
-        connection_id = await connection_manager.connect(websocket, user["id"])
+        connection_id = await connection_manager.connect(websocket, user.id)
 
         # Send connection confirmation
         await connection_manager.send_personal_message(
@@ -78,7 +74,7 @@ async def websocket_endpoint(websocket: WebSocket, user: dict = None):
                 "type": "connection_established",
                 "data": {
                     "connection_id": connection_id,
-                    "user_id": user["id"],
+                    "user_id": user.id,
                     "timestamp": datetime.utcnow().isoformat(),
                 },
             },
@@ -102,14 +98,14 @@ async def websocket_endpoint(websocket: WebSocket, user: dict = None):
                     # Client wants to subscribe to updates for a specific task
                     task_id = message.get("task_id")
                     if task_id:
-                        logger.info(f"User {user['id']} subscribed to task {task_id}")
+                        logger.info(f"User {user.id} subscribed to task {task_id}")
                         # TODO: Store subscription mapping when task service is available
                 elif message.get("type") == "unsubscribe_task":
                     # Client wants to unsubscribe from a specific task
                     task_id = message.get("task_id")
                     if task_id:
                         logger.info(
-                            f"User {user['id']} unsubscribed from task {task_id}"
+                            f"User {user.id} unsubscribed from task {task_id}"
                         )
                         # TODO: Remove subscription mapping when task service is available
                 else:
@@ -125,7 +121,7 @@ async def websocket_endpoint(websocket: WebSocket, user: dict = None):
                 break
 
     except WebSocketDisconnect:
-        logger.info(f"WebSocket disconnected for user {user['id']}")
+        logger.info(f"WebSocket disconnected for user {user.id}")
     except Exception as e:
         logger.error(f"WebSocket error: {e}")
     finally:
