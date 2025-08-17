@@ -133,7 +133,7 @@ async def parse_job_async(
                 "job_id": job_id,
                 "url": request.url,
             },
-            message="Job parsing task created successfully"
+            message="Job parsing task created successfully",
         )
 
     except HTTPException:
@@ -178,9 +178,7 @@ async def job_info_legacy(url: str = Form(...)):
     parsed_data = Job.model_validate(job_data)
 
     return ApiResponse(
-        success=True,
-        data={"job": parsed_data},
-        message="Job parsed successfully"
+        success=True, data={"job": parsed_data}, message="Job parsed successfully"
     )
 
 
@@ -250,9 +248,9 @@ async def list_jobs(
                     page_size=page_size,
                     total=total,
                     total_pages=total_pages,
-                    has_more=page < total_pages
+                    has_more=page < total_pages,
                 ).dict()
-            }
+            },
         )
     except Exception as e:
         logger.error(f"Error listing jobs: {str(e)}")
@@ -293,7 +291,7 @@ async def create_job(
                 "job_id": job_id,
                 "url": request.job_url,
             },
-            message="Job parsing task created successfully"
+            message="Job parsing task created successfully",
         )
 
     except HTTPException:
@@ -389,7 +387,7 @@ async def parse_job_from_document(
                 "content_type": file.content_type,
                 "size": len(content),
             },
-            message="Job document parsing task created successfully"
+            message="Job document parsing task created successfully",
         )
 
     except ValueError as e:
@@ -420,7 +418,7 @@ async def get_job(
 
         # Convert database job to JobEntity format
         parsed_data = job.get("parsed_data", {})
-        
+
         job_entity = JobEntity(
             id=job.get("_key", job.get("id", "")),
             title=parsed_data.get("title", "Unknown Title"),
@@ -432,11 +430,8 @@ async def get_job(
             created_at=job.get("created_at", ""),
             updated_at=job.get("updated_at", ""),
         )
-        
-        return ApiResponse(
-            success=True,
-            data=job_entity
-        )
+
+        return ApiResponse(success=True, data=job_entity)
     except HTTPException:
         raise
     except Exception as e:
@@ -477,7 +472,7 @@ async def update_job(
         # Return updated job
         job = await job_service.get_job(job_id, current_user["id"])
         parsed_data = job.get("parsed_data", {})
-        
+
         job_entity = JobEntity(
             id=job.get("_key", job.get("id", "")),
             title=parsed_data.get("title", "Unknown Title"),
@@ -489,11 +484,9 @@ async def update_job(
             created_at=job.get("created_at", ""),
             updated_at=job.get("updated_at", ""),
         )
-        
+
         return ApiResponse(
-            success=True,
-            data=job_entity,
-            message="Job updated successfully"
+            success=True, data=job_entity, message="Job updated successfully"
         )
     except HTTPException:
         raise
@@ -518,10 +511,7 @@ async def delete_job(
         await job_service.delete_job(job_id)
 
         logger.info(f"Deleted job {job_id} for user {current_user['id']}")
-        return ApiResponse(
-            success=True,
-            message="Job deleted successfully"
-        )
+        return ApiResponse(success=True, message="Job deleted successfully")
     except HTTPException:
         raise
     except Exception as e:
@@ -550,11 +540,9 @@ async def update_job_status(
             created_at="2024-01-01T00:00:00Z",
             updated_at="2024-01-01T00:00:00Z",
         )
-        
+
         return ApiResponse(
-            success=True,
-            data=job_entity,
-            message="Job status updated successfully"
+            success=True, data=job_entity, message="Job status updated successfully"
         )
     except Exception as e:
         logger.error(f"Error updating job status {job_id}: {str(e)}")
@@ -571,10 +559,7 @@ async def bulk_update_status(
     try:
         # TODO: Implement actual bulk database update
         logger.info(f"Bulk updating status for {len(request.job_ids)} jobs")
-        return ApiResponse(
-            success=True,
-            message=f"Updated {len(request.job_ids)} jobs"
-        )
+        return ApiResponse(success=True, message=f"Updated {len(request.job_ids)} jobs")
     except Exception as e:
         logger.error(f"Error bulk updating job status: {str(e)}")
         raise HTTPException(status_code=500, detail="Error bulk updating job status")
@@ -592,8 +577,7 @@ async def bulk_archive_jobs(
         action = "archived" if request.archived else "unarchived"
         logger.info(f"Bulk {action} {len(request.job_ids)} jobs")
         return ApiResponse(
-            success=True,
-            message=f"{action.capitalize()} {len(request.job_ids)} jobs"
+            success=True, message=f"{action.capitalize()} {len(request.job_ids)} jobs"
         )
     except Exception as e:
         logger.error(f"Error bulk archiving jobs: {str(e)}")
@@ -673,11 +657,11 @@ async def get_job_insights(
                 "Add more details about your team leadership skills",
             ],
         }
-        
+
         return ApiResponse(
             success=True,
             data=insights_data,
-            message="Job insights generated successfully"
+            message="Job insights generated successfully",
         )
     except Exception as e:
         logger.error(f"Error getting job insights {job_id}: {str(e)}")
@@ -695,9 +679,7 @@ async def get_job_documents(
     try:
         # TODO: Implement actual document retrieval
         return ApiResponse(
-            success=True,
-            data=[],
-            message="Job documents retrieved successfully"
+            success=True, data=[], message="Job documents retrieved successfully"
         )
     except Exception as e:
         logger.error(f"Error getting job documents {job_id}: {str(e)}")
@@ -722,11 +704,11 @@ async def create_job_document(
             "content": content,
             "created_at": "2024-01-01T00:00:00Z",
         }
-        
+
         return ApiResponse(
             success=True,
             data=document_data,
-            message="Job document created successfully"
+            message="Job document created successfully",
         )
     except Exception as e:
         logger.error(f"Error creating job document {job_id}: {str(e)}")
@@ -749,6 +731,7 @@ async def get_current_user_resume(
     """
     try:
         user_id = current_user["id"]
+        logger.info(f"Getting resume for user: {user_id}")
 
         # Get user's profile to extract resume_id
         async with job_service.task_service.postgres_pool.connection() as conn:
@@ -766,6 +749,7 @@ async def get_current_user_resume(
             raise HTTPException(status_code=404, detail="No resume found")
 
         resume_id = row[0]
+        logger.info(f"Found resume_id: {resume_id}")
 
         # Get resume from ArangoDB
         resume = await job_service.get_resume(resume_id, user_id)
@@ -773,16 +757,22 @@ async def get_current_user_resume(
         if not resume:
             raise HTTPException(status_code=404, detail="Resume not found")
 
+        # Debug logging
+        logger.info(f"Resume document keys: {list(resume.keys())}")
+        logger.info(f"Resume _key: {resume.get('_key')}")
+        logger.info(f"Resume created_at: {resume.get('created_at')}")
+        logger.info(f"Resume updated_at: {resume.get('updated_at')}")
+
         return ApiResponse(
             success=True,
             data={
                 "id": resume["_key"],
                 "user_id": resume["user_id"],
                 "content": resume.get("content"),
-                "parsed_data": resume.get("parsed_data"),
-                "created_at": resume["created_at"],
-                "updated_at": resume["updated_at"],
-            }
+                "parsed_data": resume.get("resume_data"),  # Fixed: use resume_data from ArangoDB
+                "created_at": resume.get("created_at"),
+                "updated_at": resume.get("updated_at"),
+            },
         )
 
     except HTTPException:
@@ -819,10 +809,10 @@ async def get_resume(
                 "id": resume["_key"],
                 "user_id": resume["user_id"],
                 "content": resume.get("content"),
-                "parsed_data": resume.get("parsed_data"),
-                "created_at": resume["created_at"],
-                "updated_at": resume["updated_at"],
-            }
+                "parsed_data": resume.get("resume_data"),  # Fixed: use resume_data from ArangoDB
+                "created_at": resume.get("created_at"),
+                "updated_at": resume.get("updated_at"),
+            },
         )
 
     except HTTPException:
@@ -830,6 +820,7 @@ async def get_resume(
     except Exception as e:
         logger.error(f"Error retrieving resume {resume_id}: {str(e)}")
         raise HTTPException(status_code=500, detail="Error retrieving resume")
+
 
 
 @router.patch("/resume/{resume_id}")
@@ -869,11 +860,11 @@ async def update_resume(
                 "id": resume["_key"],
                 "user_id": resume["user_id"],
                 "content": resume.get("content"),
-                "parsed_data": resume.get("parsed_data"),
-                "created_at": resume["created_at"],
-                "updated_at": resume["updated_at"],
+                "parsed_data": resume.get("resume_data"),  # Fixed: use resume_data from ArangoDB
+                "created_at": resume.get("created_at"),
+                "updated_at": resume.get("updated_at"),
             },
-            message="Resume updated successfully"
+            message="Resume updated successfully",
         )
 
     except HTTPException:

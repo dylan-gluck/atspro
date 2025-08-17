@@ -80,6 +80,16 @@ export interface ResumeVersion extends BaseEntity {
   resume_data: Resume; // Import from existing resume.ts
 }
 
+// Actual backend response structure for resume API
+export interface BackendResumeResponse {
+  id: string;
+  user_id: string;
+  content?: string;
+  parsed_data?: Resume; // Contains the actual resume data
+  created_at: string;
+  updated_at: string;
+}
+
 // Resume optimization results
 export interface OptimizationResult extends BaseEntity {
   resume_id: string;

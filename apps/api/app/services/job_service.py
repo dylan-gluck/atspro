@@ -192,7 +192,7 @@ class JobService:
             except Exception as e:
                 logger.warning(f"Could not create/verify jobs collection: {e}")
                 collection = self.task_service.arango_db.collection("jobs")
-            
+
             collection.replace(job_doc, overwrite=True)
 
             # Also store the result in the task_results collection for consistency
@@ -458,6 +458,20 @@ class JobService:
 
             if not resume_doc:
                 return None
+
+            # Fix missing timestamps for older documents
+            if resume_doc.get("created_at") is None:
+                from datetime import datetime
+                timestamp = datetime.utcnow().isoformat()
+                resume_doc["created_at"] = timestamp
+                resume_doc["updated_at"] = timestamp
+                
+                # Update document in ArangoDB with timestamps
+                try:
+                    collection.update({"_key": resume_id}, {"created_at": timestamp, "updated_at": timestamp})
+                    logger.info(f"Added missing timestamps to resume {resume_id}")
+                except Exception as e:
+                    logger.warning(f"Could not update timestamps for resume {resume_id}: {e}")
 
             # Validate ownership if user_id provided
             if user_id and resume_doc.get("user_id") != user_id:

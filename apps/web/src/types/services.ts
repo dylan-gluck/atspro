@@ -6,6 +6,7 @@ import type {
   UserSettings,
   Subscription,
   ResumeVersion,
+  BackendResumeResponse,
   OptimizationResult,
   JobEntity,
   JobStatus,
@@ -25,6 +26,7 @@ export type {
   UserSettings,
   Subscription,
   ResumeVersion,
+  BackendResumeResponse,
   OptimizationResult,
   JobEntity,
   JobStatus,
@@ -109,7 +111,7 @@ export interface UserService extends BaseService {
 // ResumeService Interface
 export interface ResumeService extends BaseService {
   // Resume Management
-  getResume(): Promise<ApiResponse<ResumeVersion>>;
+  getResume(): Promise<ApiResponse<BackendResumeResponse>>;
   updateResume(resumeData: Resume): Promise<ApiResponse<ResumeVersion>>;
   createResume(resumeData: Resume): Promise<ApiResponse<ResumeVersion>>;
   deleteResume(): Promise<ApiResponse<void>>;

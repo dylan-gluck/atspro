@@ -53,10 +53,15 @@ export function ResumeEditor({ className, onSave }: ResumeEditorProps) {
 
     try {
       const response = await resumeService.getResume()
-      if (response.success && response.data?.resume_data) {
-        const resumeData = response.data.resume_data
-        setResume(resumeData)
-        setOriginalResume(JSON.parse(JSON.stringify(resumeData)))
+      if (response.success && response.data) {
+        // Handle backend response structure: parsed_data contains the resume data
+        const resumeData = response.data.parsed_data
+        if (resumeData) {
+          setResume(resumeData)
+          setOriginalResume(JSON.parse(JSON.stringify(resumeData)))
+        } else {
+          setError("Resume data not found in response. Please upload a resume first.")
+        }
       } else {
         setError("No resume found. Please upload a resume first.")
       }

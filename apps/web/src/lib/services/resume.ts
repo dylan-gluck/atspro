@@ -4,6 +4,7 @@ import type {
   AuthService,
   ApiResponse, 
   ResumeVersion,
+  BackendResumeResponse,
   OptimizationResult,
   Resume
 } from '@/types/services';
@@ -29,11 +30,11 @@ export class ResumeServiceImpl extends BaseServiceImpl implements ResumeService 
   }
 
   // Resume Management
-  async getResume(): Promise<ApiResponse<ResumeVersion>> {
+  async getResume(): Promise<ApiResponse<BackendResumeResponse>> {
     const cacheKey = this.getCacheKey('getResume');
     
     return this.withCache(cacheKey, async () => {
-      return this.apiClient.get<ResumeVersion>('/api/resume');
+      return this.apiClient.get<BackendResumeResponse>('/api/resume');
     });
   }
 
@@ -383,8 +384,8 @@ export class ResumeServiceImpl extends BaseServiceImpl implements ResumeService 
   async getResumeSkills(): Promise<string[]> {
     try {
       const response = await this.getResume();
-      if (response.success && response.data?.resume_data?.skills) {
-        return response.data.resume_data.skills;
+      if (response.success && response.data?.parsed_data?.skills) {
+        return response.data.parsed_data.skills;
       }
       return [];
     } catch {
