@@ -111,26 +111,53 @@ async def get_current_resume(
     """
     try:
         user_id = current_user["id"]
+        logger.info(f"=== RESUME GET REQUEST ===")
+        logger.info(f"User ID: {user_id}")
+        
         resume_service = ResumeService()
 
         # Get user's resumes (most recent first)
+        logger.info(f"Fetching resumes for user {user_id}...")
         resumes = await resume_service.get_user_resumes(user_id, limit=1)
 
         if not resumes:
+            logger.warning(f"No resumes found for user {user_id}")
             raise HTTPException(status_code=404, detail="No resume found")
 
         resume = resumes[0]
+        resume_id = resume["_key"]
+        logger.info(f"Found resume: {resume_id}")
+        logger.info(f"Resume status: {resume.get('status')}")
+        logger.info(f"Resume source: {resume.get('source', 'unknown')}")
+        logger.info(f"Created at: {resume.get('created_at')}")
+        logger.info(f"Updated at: {resume.get('updated_at', 'N/A')}")
+        
+        # Log details about the resume data
+        resume_data = resume.get("resume_data")
+        if resume_data:
+            logger.info(f"Resume data exists: True")
+            contact_info = resume_data.get('contact_info', {})
+            logger.info(f"Retrieved contact name: {contact_info.get('full_name', 'N/A')}")
+            logger.info(f"Retrieved summary length: {len(resume_data.get('summary', ''))}")
+            logger.info(f"Retrieved work experience count: {len(resume_data.get('work_experience', []))}")
+        else:
+            logger.warning(f"No resume_data found in document!")
+
+        response_data = {
+            "id": resume["_key"],
+            "status": resume.get("status"),
+            "source": resume.get("source", "unknown"),
+            "created_at": resume.get("created_at"),
+            "parsed_data": resume.get("resume_data"),
+            "file_metadata": resume.get("file_metadata"),
+        }
+        
+        logger.info(f"Returning resume data for {resume_id}")
+        logger.info(f"=== RESUME GET REQUEST COMPLETED ===")
 
         return ApiResponse(
             success=True,
-            data={
-                "id": resume["_key"],
-                "status": resume.get("status"),
-                "source": resume.get("source", "unknown"),
-                "created_at": resume.get("created_at"),
-                "parsed_data": resume.get("resume_data"),
-                "file_metadata": resume.get("file_metadata"),
-            },
+            data=response_data,
             message="Resume retrieved successfully",
         )
 
@@ -138,6 +165,8 @@ async def get_current_resume(
         raise
     except Exception as e:
         logger.error(f"Error retrieving resume for user {user_id}: {str(e)}")
+        logger.error(f"Exception type: {type(e).__name__}")
+        logger.error(f"=== RESUME GET REQUEST FAILED ===")
         raise HTTPException(status_code=500, detail="Error retrieving resume")
 
 
@@ -158,43 +187,82 @@ async def update_resume(
     """
     try:
         user_id = current_user["id"]
+        logger.info(f"=== RESUME UPDATE REQUEST ===")
+        logger.info(f"User ID: {user_id}")
+        logger.info(f"Request data size: {len(str(resume_data.model_dump()))} characters")
+        
+        # Log some key fields from the incoming data
+        data_dict = resume_data.model_dump()
+        contact_info = data_dict.get('contact_info', {})
+        logger.info(f"Incoming contact name: {contact_info.get('full_name', 'N/A')}")
+        logger.info(f"Incoming summary length: {len(data_dict.get('summary', ''))}")
+        logger.info(f"Incoming work experience count: {len(data_dict.get('work_experience', []))}")
+        
         resume_service = ResumeService()
 
         # Get user's current resume
+        logger.info(f"Fetching current resume for user {user_id}...")
         resumes = await resume_service.get_user_resumes(user_id, limit=1)
 
         if not resumes:
+            logger.error(f"No resume found for user {user_id}")
             raise HTTPException(status_code=404, detail="No resume found to update")
 
         resume = resumes[0]
         resume_id = resume["_key"]
+        logger.info(f"Found resume to update: {resume_id}")
 
         # Validate resume data
+        logger.info(f"Validating resume data...")
         is_valid, error_message = await resume_service.validate_resume_data(
             resume_data.model_dump()
         )
         if not is_valid:
+            logger.error(f"Resume validation failed: {error_message}")
             raise HTTPException(status_code=422, detail=error_message)
+        
+        logger.info(f"Resume data validation passed")
 
         # Update resume data
+        logger.info(f"Calling update_resume_data service...")
         success = await resume_service.update_resume_data(
             resume_id, resume_data.model_dump()
         )
 
         if not success:
+            logger.error(f"Resume service update failed for {resume_id}")
             raise HTTPException(status_code=500, detail="Failed to update resume")
+
+        logger.info(f"Resume service update successful for {resume_id}")
+
+        # Verify data persistence by re-fetching
+        logger.info(f"Verifying persistence by re-fetching resume...")
+        verification_resumes = await resume_service.get_user_resumes(user_id, limit=1)
+        if verification_resumes:
+            verified_resume = verification_resumes[0]
+            verified_data = verified_resume.get('resume_data', {})
+            verified_contact = verified_data.get('contact_info', {})
+            logger.info(f"Verification: Persisted contact name: {verified_contact.get('full_name', 'N/A')}")
+            logger.info(f"Verification: Persisted summary length: {len(verified_data.get('summary', ''))}")
+            logger.info(f"Verification: Persisted work experience count: {len(verified_data.get('work_experience', []))}")
+        else:
+            logger.error(f"Verification FAILED: Could not re-fetch resume after update")
 
         logger.info(f"Updated resume {resume_id} for user {user_id}")
 
         # Return the updated resume data to match frontend expectations
+        response_data = {
+            "id": resume_id,
+            "resume_data": resume_data.model_dump(),
+            "status": "updated",
+            "updated_at": datetime.utcnow().isoformat(),
+        }
+        logger.info(f"Returning response with resume_id: {resume_id}")
+        logger.info(f"=== RESUME UPDATE REQUEST COMPLETED ===")
+        
         return ApiResponse(
             success=True,
-            data={
-                "id": resume_id,
-                "resume_data": resume_data.model_dump(),
-                "status": "updated",
-                "updated_at": datetime.utcnow().isoformat(),
-            },
+            data=response_data,
             message="Resume updated successfully",
         )
 
@@ -202,6 +270,8 @@ async def update_resume(
         raise
     except Exception as e:
         logger.error(f"Error updating resume: {str(e)}")
+        logger.error(f"Exception type: {type(e).__name__}")
+        logger.error(f"=== RESUME UPDATE REQUEST FAILED ===")
         raise HTTPException(status_code=500, detail="Error updating resume")
 
 

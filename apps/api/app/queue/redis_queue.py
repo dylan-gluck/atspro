@@ -38,6 +38,10 @@ class RedisQueue:
         self._max_retry_attempts = 3
         self._base_retry_delay = 0.1  # 100ms base delay
         self._max_retry_delay = 5.0  # 5 second max delay
+        
+        # Connection health monitoring
+        self._connection_failures = 0
+        self._last_health_check = None
 
     async def _validate_connection(self) -> bool:
         """Validate Redis connection health.

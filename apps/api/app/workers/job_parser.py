@@ -18,15 +18,27 @@ logger = logging.getLogger(__name__)
 class JobParseWorker(BaseWorker):
     """Worker for parsing job postings from URLs using OpenAI agents."""
 
-    def __init__(self, redis_queue, concurrency: int = 1, timeout_seconds: int = 300):
+    def __init__(
+        self,
+        redis_queue,
+        task_service=None,
+        concurrency: int = 1,
+        timeout_seconds: int = 300,
+        graceful_shutdown_timeout: int = 30,
+    ):
         """Initialize job parsing worker.
 
         Args:
             redis_queue: Redis queue instance
+            task_service: Task service instance (optional)
             concurrency: Number of concurrent tasks to process
             timeout_seconds: Task timeout in seconds
+            graceful_shutdown_timeout: Time to wait for graceful shutdown
         """
-        super().__init__(redis_queue, concurrency, timeout_seconds)
+        super().__init__(
+            redis_queue, concurrency, timeout_seconds, graceful_shutdown_timeout
+        )
+        self.task_service = task_service
         self.job_service: Optional[JobService] = None
 
     def get_queue_names(self) -> List[str]:

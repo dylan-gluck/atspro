@@ -103,32 +103,45 @@ class ResumeService:
             True if update successful, False otherwise
         """
         try:
+            logger.info(f"=== RESUME UPDATE: {resume_id} ===")
+            
             arango_db = get_arango_client()
             resume_collection = arango_db.collection("resumes")
 
-            # First check if the document exists
+            # Check if document exists
+            logger.info(f"Getting document...")
             existing_doc = resume_collection.get(resume_id)
+            logger.info(f"Document retrieved")
+            
             if not existing_doc:
-                logger.error(f"Resume {resume_id} not found for update")
+                logger.error(f"Resume {resume_id} not found")
                 return False
 
-            # Prepare update data
+            # Prepare minimal update data
+            logger.info(f"Preparing update data...")
             update_data = {
                 "resume_data": resume_data,
-                "status": "manual",  # Changed from "parsed" to "manual" for manually entered/edited data
+                "status": "manual",
                 "updated_at": datetime.utcnow().isoformat(),
             }
 
             if file_metadata:
                 update_data["file_metadata"] = file_metadata
 
-            # Update the document using the document key directly
-            result = resume_collection.update(existing_doc, update_data)
-            logger.info(f"Updated resume data for {resume_id}")
-            return True
+            # Execute the update
+            logger.info(f"Executing update...")
+            result = resume_collection.update(resume_id, update_data)
+            logger.info(f"Update completed")
+            
+            if result:
+                logger.info(f"✅ Success")
+                return True
+            else:
+                logger.error(f"❌ No result")
+                return False
 
         except Exception as e:
-            logger.error(f"Error updating resume {resume_id}: {str(e)}")
+            logger.error(f"❌ Update error: {str(e)}")
             return False
 
     async def update_resume_status(

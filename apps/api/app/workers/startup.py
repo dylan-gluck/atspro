@@ -9,6 +9,7 @@ from ..queue.redis_queue import RedisQueue
 from ..services.task_service import TaskService
 from .manager import WorkerManager
 from .resume_parser import ResumeParseWorker
+from .job_parser import JobParseWorker
 
 logger = logging.getLogger(__name__)
 
@@ -44,6 +45,14 @@ async def start_workers(task_service: Optional[TaskService] = None) -> WorkerMan
             count=2,  # Start with 2 resume parsing workers
             concurrency=1,  # Each worker handles 1 task at a time
             timeout_seconds=300,  # 5 minute timeout for resume parsing
+        )
+
+        # Add job parsing workers
+        _worker_manager.add_worker(
+            worker_class=JobParseWorker,
+            count=1,  # Start with 1 job parsing worker
+            concurrency=1,  # Each worker handles 1 task at a time
+            timeout_seconds=300,  # 5 minute timeout for job parsing
         )
 
         # Start all workers in background
@@ -123,3 +132,22 @@ async def scale_resume_workers(target_count: int) -> None:
     )
 
     logger.info(f"Scaled resume workers to {target_count}")
+
+
+async def scale_job_workers(target_count: int) -> None:
+    """Scale job parsing workers to target count.
+
+    Args:
+        target_count: Target number of job parsing workers
+    """
+    if _worker_manager is None:
+        raise RuntimeError("Workers not started")
+
+    await _worker_manager.scale_workers(
+        worker_class=JobParseWorker,
+        target_count=target_count,
+        concurrency=1,
+        timeout_seconds=300,
+    )
+
+    logger.info(f"Scaled job workers to {target_count}")

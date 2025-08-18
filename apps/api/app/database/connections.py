@@ -74,7 +74,8 @@ async def init_redis() -> redis.Redis:
             retry_on_timeout=True,
             retry_on_error=[ConnectionError, TimeoutError],
             health_check_interval=30,
-            max_connections=20,  # Pool size
+            max_connections=200,  # Increased pool size for workers and concurrent operations
+            connection_class=redis.Connection,  # Use default connection class
         )
 
         _redis_client = redis.Redis(connection_pool=connection_pool)
