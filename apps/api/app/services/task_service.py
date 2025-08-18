@@ -87,7 +87,9 @@ class TaskService:
 
             # Test connection and log database info
             collections = self.arango_db.collections()
-            logger.info(f"ArangoDB client initialized for database '{settings.arango_database}' with user '{settings.arango_username}'")
+            logger.info(
+                f"ArangoDB client initialized for database '{settings.arango_database}' with user '{settings.arango_username}'"
+            )
             logger.info(f"Available collections: {[c['name'] for c in collections]}")
         except Exception as e:
             logger.error(f"Failed to initialize ArangoDB client: {e}")
@@ -172,14 +174,18 @@ class TaskService:
         logger.debug(f"Looking for task {task_id} in Redis queue")
         task_data = await self.task_queue.get_task_status(task_id)
         if task_data:
-            logger.debug(f"Found task {task_id} in Redis with status {task_data.get('status')}")
+            logger.debug(
+                f"Found task {task_id} in Redis with status {task_data.get('status')}"
+            )
             return task_data
 
         # Fallback to PostgreSQL
         logger.debug(f"Task {task_id} not found in Redis, checking PostgreSQL")
         pg_task_data = await self._get_task_from_postgres(task_id)
         if pg_task_data:
-            logger.debug(f"Found task {task_id} in PostgreSQL with status {pg_task_data.get('status')}")
+            logger.debug(
+                f"Found task {task_id} in PostgreSQL with status {pg_task_data.get('status')}"
+            )
         else:
             logger.debug(f"Task {task_id} not found in PostgreSQL either")
         return pg_task_data

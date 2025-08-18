@@ -232,8 +232,7 @@ class TestJobCRUDEndpoints:
     async def test_bulk_update_status_success(self, mock_user, mock_job_service):
         """Test successful bulk status update."""
         request = BulkStatusRequest(
-            job_ids=["job_1", "job_2", "job_3"],
-            status="interview"
+            job_ids=["job_1", "job_2", "job_3"], status="interview"
         )
 
         result = await bulk_update_status(
@@ -248,10 +247,7 @@ class TestJobCRUDEndpoints:
     @pytest.mark.asyncio
     async def test_bulk_archive_jobs_success(self, mock_user, mock_job_service):
         """Test successful bulk archive."""
-        request = BulkArchiveRequest(
-            job_ids=["job_1", "job_2"],
-            archived=True
-        )
+        request = BulkArchiveRequest(job_ids=["job_1", "job_2"], archived=True)
 
         result = await bulk_archive_jobs(
             request=request,
@@ -280,7 +276,7 @@ class TestJobCRUDEndpoints:
         request = JobFilterRequest(
             status=["applied", "interview"],
             company=["Tech Corp"],
-            location=["San Francisco"]
+            location=["San Francisco"],
         )
 
         result = await filter_jobs(
@@ -362,19 +358,13 @@ class TestJobRequestModels:
 
     def test_bulk_status_request_valid(self):
         """Test valid BulkStatusRequest creation."""
-        request = BulkStatusRequest(
-            job_ids=["job_1", "job_2"],
-            status="rejected"
-        )
+        request = BulkStatusRequest(job_ids=["job_1", "job_2"], status="rejected")
         assert request.job_ids == ["job_1", "job_2"]
         assert request.status == "rejected"
 
     def test_bulk_archive_request_valid(self):
         """Test valid BulkArchiveRequest creation."""
-        request = BulkArchiveRequest(
-            job_ids=["job_1", "job_2", "job_3"],
-            archived=True
-        )
+        request = BulkArchiveRequest(job_ids=["job_1", "job_2", "job_3"], archived=True)
         assert request.job_ids == ["job_1", "job_2", "job_3"]
         assert request.archived is True
 
@@ -416,11 +406,7 @@ class TestJobResponseModels:
         ]
 
         response = PaginatedResponse(
-            data=jobs,
-            total=50,
-            page=2,
-            page_size=20,
-            total_pages=3
+            data=jobs, total=50, page=2, page_size=20, total_pages=3
         )
 
         assert len(response.data) == 1

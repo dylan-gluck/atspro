@@ -769,7 +769,9 @@ async def get_current_user_resume(
                 "id": resume["_key"],
                 "user_id": resume["user_id"],
                 "content": resume.get("content"),
-                "parsed_data": resume.get("resume_data"),  # Fixed: use resume_data from ArangoDB
+                "parsed_data": resume.get(
+                    "resume_data"
+                ),  # Fixed: use resume_data from ArangoDB
                 "created_at": resume.get("created_at"),
                 "updated_at": resume.get("updated_at"),
             },
@@ -809,7 +811,9 @@ async def get_resume(
                 "id": resume["_key"],
                 "user_id": resume["user_id"],
                 "content": resume.get("content"),
-                "parsed_data": resume.get("resume_data"),  # Fixed: use resume_data from ArangoDB
+                "parsed_data": resume.get(
+                    "resume_data"
+                ),  # Fixed: use resume_data from ArangoDB
                 "created_at": resume.get("created_at"),
                 "updated_at": resume.get("updated_at"),
             },
@@ -820,7 +824,6 @@ async def get_resume(
     except Exception as e:
         logger.error(f"Error retrieving resume {resume_id}: {str(e)}")
         raise HTTPException(status_code=500, detail="Error retrieving resume")
-
 
 
 @router.patch("/resume/{resume_id}")
@@ -860,7 +863,9 @@ async def update_resume(
                 "id": resume["_key"],
                 "user_id": resume["user_id"],
                 "content": resume.get("content"),
-                "parsed_data": resume.get("resume_data"),  # Fixed: use resume_data from ArangoDB
+                "parsed_data": resume.get(
+                    "resume_data"
+                ),  # Fixed: use resume_data from ArangoDB
                 "created_at": resume.get("created_at"),
                 "updated_at": resume.get("updated_at"),
             },

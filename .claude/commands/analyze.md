@@ -9,7 +9,7 @@ Analyze the codebase with focus on: $ARGUMENTS
 
 ## Analysis Workflow
 
-Launch the orchestrator to execute the `codebase-analysis` workflow:
+As the orchestrator, I will execute the `codebase-analysis` workflow:
 
 ```json
 {
@@ -23,7 +23,7 @@ Launch the orchestrator to execute the `codebase-analysis` workflow:
 
 ## Parallel Analysis Tasks
 
-The orchestrator will launch multiple agents in parallel:
+I will launch multiple agents in parallel:
 
 1. **Documentation Analysis** (doc-expert)
    - API documentation completeness

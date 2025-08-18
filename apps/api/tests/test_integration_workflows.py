@@ -55,7 +55,7 @@ class TestEndToEndWorkflows:
     @pytest.mark.asyncio
     async def test_complete_job_workflow(self, mock_user, mock_job_service):
         """Test complete job creation -> update -> deletion workflow."""
-        
+
         # Step 1: Create a job from URL
         job_url = "https://example.com/software-engineer-job"
         create_request = JobCreateRequest(job_url=job_url)
@@ -99,7 +99,7 @@ class TestEndToEndWorkflows:
             "created_at": "2024-01-01T00:00:00Z",
             "updated_at": "2024-01-01T00:00:00Z",
         }
-        
+
         get_result = await get_job(
             job_id=job_id,
             current_user=mock_user,
@@ -110,11 +110,9 @@ class TestEndToEndWorkflows:
 
         # Step 4: Update job information
         update_request = JobUpdateRequest(
-            title="Senior Software Engineer",
-            company="Tech Corp",
-            status="interview"
+            title="Senior Software Engineer", company="Tech Corp", status="interview"
         )
-        
+
         # Mock the update response
         mock_job_service.update_job.return_value = {
             "id": job_id,
@@ -150,7 +148,7 @@ class TestEndToEndWorkflows:
     @pytest.mark.asyncio
     async def test_resume_management_workflow(self, mock_user, mock_job_service):
         """Test complete resume creation -> editing -> saving workflow."""
-        
+
         # Step 1: Mock existing resume data
         resume_id = "workflow_resume_123"
         initial_resume_data = {
@@ -163,9 +161,9 @@ class TestEndToEndWorkflows:
                     {
                         "company": "StartupCo",
                         "position": "Software Developer",
-                        "duration": "2020-2024"
+                        "duration": "2020-2024",
                     }
-                ]
+                ],
             },
             "created_at": "2024-01-01T00:00:00Z",
             "updated_at": "2024-01-01T00:00:00Z",
@@ -185,7 +183,9 @@ class TestEndToEndWorkflows:
         assert "John Doe" in get_resume_result["data"]["content"]
 
         # Step 3: Update resume content
-        updated_content = "# John Doe\n\n## Experience\n\nSenior Software Developer at TechCorp"
+        updated_content = (
+            "# John Doe\n\n## Experience\n\nSenior Software Developer at TechCorp"
+        )
         update_request = {
             "content": updated_content,
             "parsed_data": {
@@ -194,17 +194,17 @@ class TestEndToEndWorkflows:
                     {
                         "company": "TechCorp",
                         "position": "Senior Software Developer",
-                        "duration": "2024-Present"
+                        "duration": "2024-Present",
                     }
-                ]
-            }
+                ],
+            },
         }
 
         # Mock updated resume data
         updated_resume_data = {
             **initial_resume_data,
             "content": updated_content,
-            "updated_at": "2024-01-02T00:00:00Z"
+            "updated_at": "2024-01-02T00:00:00Z",
         }
         mock_job_service.get_resume.return_value = updated_resume_data
 
@@ -219,16 +219,18 @@ class TestEndToEndWorkflows:
         assert "TechCorp" in update_resume_result["data"]["content"]
 
         # Verify service calls
-        mock_job_service.validate_resume_access.assert_called_with(resume_id, "integration_user")
+        mock_job_service.validate_resume_access.assert_called_with(
+            resume_id, "integration_user"
+        )
         mock_job_service.update_resume.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_job_application_workflow(self, mock_user, mock_job_service):
         """Test complete job application workflow: URL → Job → Resume optimization."""
-        
+
         # Step 1: Create job from job posting URL
         job_url = "https://example.com/python-developer-position"
-        
+
         with patch("app.routers.job.uuid4") as mock_uuid:
             mock_uuid.return_value.__str__ = lambda x: "application_job_456"
 
@@ -239,7 +241,7 @@ class TestEndToEndWorkflows:
             )
 
         job_id = create_result.data["job_id"]
-        
+
         # Step 2: Update job status to "applied"
         update_status_result = await update_job(
             job_id=job_id,
@@ -255,9 +257,7 @@ class TestEndToEndWorkflows:
             "_key": "resume_for_optimization",
             "user_id": "integration_user",
             "content": "# Developer Resume\n\n## Skills\n\nJavaScript, React",
-            "parsed_data": {
-                "skills": ["JavaScript", "React"]
-            },
+            "parsed_data": {"skills": ["JavaScript", "React"]},
             "created_at": "2024-01-01T00:00:00Z",
             "updated_at": "2024-01-01T00:00:00Z",
         }
@@ -272,19 +272,19 @@ class TestEndToEndWorkflows:
         assert resume_result["success"] is True
 
         # Step 4: Optimize resume for the job (simulated)
-        optimized_content = "# Developer Resume\n\n## Skills\n\nPython, JavaScript, React, Django"
+        optimized_content = (
+            "# Developer Resume\n\n## Skills\n\nPython, JavaScript, React, Django"
+        )
         optimized_request = {
             "content": optimized_content,
-            "parsed_data": {
-                "skills": ["Python", "JavaScript", "React", "Django"]
-            }
+            "parsed_data": {"skills": ["Python", "JavaScript", "React", "Django"]},
         }
 
         # Mock optimized resume
         optimized_resume_data = {
             **resume_data,
             "content": optimized_content,
-            "updated_at": "2024-01-02T00:00:00Z"
+            "updated_at": "2024-01-02T00:00:00Z",
         }
         mock_job_service.get_resume.return_value = optimized_resume_data
 
@@ -301,26 +301,26 @@ class TestEndToEndWorkflows:
     @pytest.mark.asyncio
     async def test_bulk_job_management_workflow(self, mock_user, mock_job_service):
         """Test bulk operations workflow for multiple jobs."""
-        
+
         # Step 1: Create multiple jobs
         job_urls = [
             "https://example.com/job1",
-            "https://example.com/job2", 
-            "https://example.com/job3"
+            "https://example.com/job2",
+            "https://example.com/job3",
         ]
-        
+
         created_job_ids = []
-        
+
         for i, url in enumerate(job_urls):
             with patch("app.routers.job.uuid4") as mock_uuid:
-                mock_uuid.return_value.__str__ = lambda x: f"bulk_job_{i+1}"
+                mock_uuid.return_value.__str__ = lambda x: f"bulk_job_{i + 1}"
 
                 create_result = await create_job(
                     request=JobCreateRequest(job_url=url),
                     current_user=mock_user,
                     job_service=mock_job_service,
                 )
-                
+
                 created_job_ids.append(create_result.data["job_id"])
 
         assert len(created_job_ids) == 3
@@ -335,15 +335,14 @@ class TestEndToEndWorkflows:
             current_user=mock_user,
             job_service=mock_job_service,
         )
-        
+
         assert isinstance(list_result.data, list)
 
         # Step 3: Bulk update status for multiple jobs
         from app.routers.job import bulk_update_status, BulkStatusRequest
-        
+
         bulk_status_request = BulkStatusRequest(
-            job_ids=created_job_ids,
-            status="interview"
+            job_ids=created_job_ids, status="interview"
         )
 
         bulk_status_result = await bulk_update_status(
@@ -357,10 +356,9 @@ class TestEndToEndWorkflows:
 
         # Step 4: Bulk archive jobs
         from app.routers.job import bulk_archive_jobs, BulkArchiveRequest
-        
+
         bulk_archive_request = BulkArchiveRequest(
-            job_ids=created_job_ids,
-            archived=True
+            job_ids=created_job_ids, archived=True
         )
 
         bulk_archive_result = await bulk_archive_jobs(
@@ -375,7 +373,7 @@ class TestEndToEndWorkflows:
     @pytest.mark.asyncio
     async def test_error_recovery_workflow(self, mock_user, mock_job_service):
         """Test error handling and recovery in workflows."""
-        
+
         # Step 1: Attempt job creation with invalid URL
         invalid_request = JobCreateRequest(job_url="not-a-valid-url")
 
@@ -385,12 +383,12 @@ class TestEndToEndWorkflows:
                 current_user=mock_user,
                 job_service=mock_job_service,
             )
-        
+
         assert exc_info.value.status_code == 422
 
         # Step 2: Successful job creation after fixing URL
         valid_request = JobCreateRequest(job_url="https://example.com/valid-job")
-        
+
         with patch("app.routers.job.uuid4") as mock_uuid:
             mock_uuid.return_value.__str__ = lambda x: "recovery_job"
 
@@ -435,7 +433,7 @@ class TestEndToEndWorkflows:
     @pytest.mark.asyncio
     async def test_authorization_workflow(self, mock_job_service):
         """Test authorization checks across different users."""
-        
+
         # User 1 creates a job
         user1 = {"id": "user_1", "email": "user1@example.com"}
         user2 = {"id": "user_2", "email": "user2@example.com"}
@@ -490,7 +488,7 @@ class TestEndToEndWorkflows:
             "created_at": "2024-01-01T00:00:00Z",
             "updated_at": "2024-01-01T00:00:00Z",
         }
-        
+
         user1_resume_result = await get_resume(
             resume_id="user1_resume",
             current_user=user1,
@@ -515,13 +513,15 @@ class TestEndToEndWorkflows:
     @pytest.mark.asyncio
     async def test_data_consistency_workflow(self, mock_user, mock_job_service):
         """Test data consistency across operations."""
-        
+
         # Create job
         with patch("app.routers.job.uuid4") as mock_uuid:
             mock_uuid.return_value.__str__ = lambda x: "consistency_job"
 
             create_result = await create_job(
-                request=JobCreateRequest(job_url="https://example.com/consistency-test"),
+                request=JobCreateRequest(
+                    job_url="https://example.com/consistency-test"
+                ),
                 current_user=mock_user,
                 job_service=mock_job_service,
             )
@@ -534,14 +534,14 @@ class TestEndToEndWorkflows:
             JobUpdateRequest(company="Tech Corp"),
             JobUpdateRequest(status="applied"),
             JobUpdateRequest(status="interview"),
-            JobUpdateRequest(status="offer")
+            JobUpdateRequest(status="offer"),
         ]
-        
+
         # Track cumulative state
         current_state = {
             "id": job_id,
             "title": "Initial Title",
-            "company": "Initial Company", 
+            "company": "Initial Company",
             "status": "initial",
             "updated_at": "2024-01-02T00:00:00Z",
         }
@@ -554,18 +554,18 @@ class TestEndToEndWorkflows:
                 current_state["company"] = update.company
             if update.status:
                 current_state["status"] = update.status
-                
+
                 # Mock the service to return current state
             mock_job_service.update_job.return_value = current_state.copy()
             mock_job_service.get_job.return_value = current_state.copy()
-            
+
             update_result = await update_job(
                 job_id=job_id,
                 request=update,
                 current_user=mock_user,
                 job_service=mock_job_service,
             )
-            
+
             # Verify each update is reflected
             if update.title:
                 assert update_result.title == update.title
@@ -589,16 +589,18 @@ class TestEndToEndWorkflows:
     @pytest.mark.asyncio
     async def test_concurrent_operations_workflow(self, mock_user, mock_job_service):
         """Test handling of concurrent operations."""
-        
+
         # Simulate concurrent job creation
         concurrent_tasks = []
-        
+
         async def create_concurrent_job(index):
             with patch("app.routers.job.uuid4") as mock_uuid:
                 mock_uuid.return_value.__str__ = lambda x: f"concurrent_job_{index}"
 
                 return await create_job(
-                    request=JobCreateRequest(job_url=f"https://example.com/concurrent-job-{index}"),
+                    request=JobCreateRequest(
+                        job_url=f"https://example.com/concurrent-job-{index}"
+                    ),
                     current_user=mock_user,
                     job_service=mock_job_service,
                 )
@@ -622,42 +624,44 @@ class TestEndToEndWorkflows:
     @pytest.mark.asyncio
     async def test_performance_workflow(self, mock_user, mock_job_service):
         """Test performance characteristics of workflows."""
-        
+
         import time
-        
+
         # Test job creation performance
         start_time = time.time()
-        
+
         with patch("app.routers.job.uuid4") as mock_uuid:
             mock_uuid.return_value.__str__ = lambda x: "perf_job"
 
             perf_result = await create_job(
-                request=JobCreateRequest(job_url="https://example.com/performance-test"),
+                request=JobCreateRequest(
+                    job_url="https://example.com/performance-test"
+                ),
                 current_user=mock_user,
                 job_service=mock_job_service,
             )
 
         creation_time = time.time() - start_time
-        
+
         # Job creation should be fast (under 1 second in tests)
         assert creation_time < 1.0
         assert perf_result.success is True
 
         # Test bulk operations performance
         job_ids = [f"perf_job_{i}" for i in range(100)]
-        
+
         start_time = time.time()
-        
+
         from app.routers.job import bulk_update_status, BulkStatusRequest
-        
+
         bulk_result = await bulk_update_status(
             request=BulkStatusRequest(job_ids=job_ids, status="applied"),
             current_user=mock_user,
             job_service=mock_job_service,
         )
-        
+
         bulk_time = time.time() - start_time
-        
+
         # Bulk operations should also be fast
         assert bulk_time < 1.0
         assert bulk_result["success"] is True
@@ -670,7 +674,7 @@ class TestWorkflowIntegration:
     def mock_user(self):
         return {"id": "integration_test_user", "email": "integration@test.com"}
 
-    @pytest.fixture 
+    @pytest.fixture
     def mock_job_service(self):
         service = AsyncMock(spec=JobService)
         service.create_parse_task = AsyncMock(return_value="integration_task")
@@ -682,17 +686,17 @@ class TestWorkflowIntegration:
     @pytest.mark.asyncio
     async def test_service_integration(self, mock_user, mock_job_service):
         """Test integration between different service layers."""
-        
+
         # Test job service integration
         task_id = await mock_job_service.create_parse_task(
             user_id=mock_user["id"],
             url="https://example.com/integration-test",
             job_id="integration_job",
-            priority=TaskPriority.NORMAL
+            priority=TaskPriority.NORMAL,
         )
-        
+
         assert task_id == "integration_task"
-        
+
         # Test resume service integration
         mock_job_service.get_resume.return_value = {
             "_key": "integration_resume",
@@ -701,20 +705,24 @@ class TestWorkflowIntegration:
             "created_at": "2024-01-01T00:00:00Z",
             "updated_at": "2024-01-01T00:00:00Z",
         }
-        
-        resume_data = await mock_job_service.get_resume("integration_resume", mock_user["id"])
+
+        resume_data = await mock_job_service.get_resume(
+            "integration_resume", mock_user["id"]
+        )
         assert resume_data["_key"] == "integration_resume"
 
     @pytest.mark.asyncio
     async def test_endpoint_integration(self, mock_user, mock_job_service):
         """Test integration between different API endpoints."""
-        
+
         # Create job through endpoint
         with patch("app.routers.job.uuid4") as mock_uuid:
             mock_uuid.return_value.__str__ = lambda x: "endpoint_integration_job"
 
             job_result = await create_job(
-                request=JobCreateRequest(job_url="https://example.com/endpoint-integration"),
+                request=JobCreateRequest(
+                    job_url="https://example.com/endpoint-integration"
+                ),
                 current_user=mock_user,
                 job_service=mock_job_service,
             )
@@ -743,13 +751,15 @@ class TestWorkflowIntegration:
     @pytest.mark.asyncio
     async def test_cross_component_integration(self, mock_user, mock_job_service):
         """Test integration across job and resume components."""
-        
+
         # Create job
         with patch("app.routers.job.uuid4") as mock_uuid:
             mock_uuid.return_value.__str__ = lambda x: "cross_component_job"
 
             job_result = await create_job(
-                request=JobCreateRequest(job_url="https://example.com/cross-component-test"),
+                request=JobCreateRequest(
+                    job_url="https://example.com/cross-component-test"
+                ),
                 current_user=mock_user,
                 job_service=mock_job_service,
             )
@@ -778,7 +788,7 @@ class TestWorkflowIntegration:
         # Update resume in context of job
         update_request = {
             "content": "Updated resume for specific job application",
-            "optimized_for_job": job_result.data["job_id"]
+            "optimized_for_job": job_result.data["job_id"],
         }
 
         # Mock the updated resume data after get_resume call in update_resume endpoint
@@ -788,9 +798,9 @@ class TestWorkflowIntegration:
             "content": update_request["content"],
             "job_ids": [job_result.data["job_id"]],
             "created_at": "2024-01-01T00:00:00Z",
-            "updated_at": "2024-01-02T00:00:00Z"
+            "updated_at": "2024-01-02T00:00:00Z",
         }
-        
+
         # Reset the mock to return updated data
         mock_job_service.get_resume.return_value = updated_resume_data
 

@@ -1,13 +1,14 @@
 {
   "mcpServers": {
     "memory": {
-      "command": "uvx",
-      "args": ["mcp-memory-service"],
-      "env": {
-        "MCP_MEMORY_STORAGE_BACKEND": "sqlite_vec",
-        "MCP_MEMORY_SQLITE_PATH": "/Users/dylan/Workspace/projects/atspro/.claude/memory/team_memory.db",
-        "MCP_MEMORY_BACKUPS_PATH": "/Users/dylan/Workspace/projects/atspro/.claude/memory-backup/"
-      }
+      "command": "npx",
+      "args": [
+        "@movibe/memory-bank-mcp",
+        "--mode",
+        "code",
+        "--memory-path",
+        "/Users/dylan/Workspace/projects/atspro/.claude/memory"
+      ]
     },
     "sequential-thinking": {
       "type": "stdio",
@@ -15,9 +16,9 @@
       "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"],
       "env": {}
     },
-    "puppeteer": {
+    "playwright": {
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-puppeteer"]
+      "args": ["@playwright/mcp@latest"]
     },
     "postgres": {
       "command": "npx",

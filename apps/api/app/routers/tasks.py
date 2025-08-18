@@ -81,9 +81,9 @@ def _convert_task_to_response(task_data: dict) -> TaskResponse:
 
 @router.get("/{task_id}", response_model=TaskResponse)
 async def get_task_status(
-    task_id: str, 
+    task_id: str,
     user: dict = Depends(get_current_user),
-    task_service: TaskService = Depends(get_task_service)
+    task_service: TaskService = Depends(get_task_service),
 ) -> TaskResponse:
     """Get detailed status and information for a specific task.
 
@@ -105,15 +105,21 @@ async def get_task_status(
         task_data = await task_service.get_task(task_id)
 
         if not task_data:
-            logger.warning(f"Task {task_id} not found in Redis or PostgreSQL for user {user['id']}")
+            logger.warning(
+                f"Task {task_id} not found in Redis or PostgreSQL for user {user['id']}"
+            )
             raise HTTPException(status_code=404, detail=f"Task {task_id} not found")
 
         # Verify task ownership
         if task_data.get("user_id") != user["id"]:
-            logger.warning(f"Access denied for task {task_id}: user {user['id']} tried to access task owned by {task_data.get('user_id')}")
+            logger.warning(
+                f"Access denied for task {task_id}: user {user['id']} tried to access task owned by {task_data.get('user_id')}"
+            )
             raise HTTPException(status_code=403, detail="Access denied")
 
-        logger.info(f"Retrieved task {task_id} with status {task_data.get('status')} for user {user['id']}")
+        logger.info(
+            f"Retrieved task {task_id} with status {task_data.get('status')} for user {user['id']}"
+        )
         return _convert_task_to_response(task_data)
 
     except HTTPException:
@@ -215,9 +221,9 @@ async def list_user_tasks(
 
 @router.delete("/{task_id}")
 async def cancel_task(
-    task_id: str, 
+    task_id: str,
     user: dict = Depends(get_current_user),
-    task_service: TaskService = Depends(get_task_service)
+    task_service: TaskService = Depends(get_task_service),
 ) -> dict:
     """Cancel a pending or running task.
 
@@ -290,9 +296,9 @@ async def cancel_task(
 
 @router.get("/{task_id}/result", response_model=TaskResultResponse)
 async def get_task_result(
-    task_id: str, 
+    task_id: str,
     user: dict = Depends(get_current_user),
-    task_service: TaskService = Depends(get_task_service)
+    task_service: TaskService = Depends(get_task_service),
 ) -> TaskResultResponse:
     """Get the result of a completed task.
 

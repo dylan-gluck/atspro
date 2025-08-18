@@ -3,8 +3,12 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Upload, Edit } from 'lucide-react';
 import { FileUpload, ProcessingStage } from '@/components/onboarding/file-upload';
+import { ManualEntry } from '@/components/onboarding/manual-entry';
 import { useServices } from '@/lib/services';
+import type { Resume } from '@/types/resume';
 
 export default function OnboardingPage() {
   const router = useRouter();
@@ -13,6 +17,7 @@ export default function OnboardingPage() {
   const [processingStage, setProcessingStage] = useState<ProcessingStage>('idle');
   const [error, setError] = useState<string | null>(null);
   const [progress, setProgress] = useState<number>(0);
+  const [activeTab, setActiveTab] = useState('upload');
 
   const handleFileUpload = async (file: File) => {
     if (!services) {
@@ -106,6 +111,69 @@ export default function OnboardingPage() {
     }
   };
 
+  const handleManualResume = async (resumeData: Resume) => {
+    if (!services) {
+      setError('Services not available. Please refresh the page.');
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+    setProgress(0);
+
+    try {
+      // Stage 1: Creating resume
+      setProcessingStage('uploading'); // Reuse existing stage for consistency
+      setProgress(25);
+
+      // Create manual resume
+      const createResponse = await services.resumeService.createManualResume(resumeData);
+      
+      if (!createResponse.success) {
+        throw new Error(createResponse.message || 'Failed to create resume. Please check your information and try again.');
+      }
+
+      const { resume_id } = createResponse.data;
+      
+      // Stage 2: Updating profile
+      setProcessingStage('updating');
+      setProgress(75);
+      
+      const updateResponse = await services.userService.updateResumeId(resume_id);
+      
+      if (!updateResponse.success) {
+        throw new Error(updateResponse.message || 'Failed to update your profile. Please try again.');
+      }
+
+      // Stage 3: Success
+      setProcessingStage('success');
+      setProgress(100);
+      
+      // Brief success display before redirect
+      setTimeout(() => {
+        router.push('/');
+      }, 1500);
+      
+    } catch (err) {
+      console.error('Manual resume creation failed:', err);
+      setProcessingStage('error');
+      
+      // Enhanced error messages
+      let errorMessage = 'An unexpected error occurred';
+      if (err instanceof Error) {
+        errorMessage = err.message;
+      }
+      
+      setError(`Manual entry failed: ${errorMessage}`);
+    } finally {
+      setIsLoading(false);
+      // Reset progress on error
+      if (processingStage === 'error') {
+        setProgress(0);
+      }
+    }
+  };
+
   // Show loading state if services are not ready
   if (!services) {
     return (
@@ -120,81 +188,111 @@ export default function OnboardingPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted/20 flex items-center justify-center p-4">
-      <div className="w-full max-w-2xl">
+      <div className="w-full max-w-4xl">
         <Card className="shadow-lg">
-          <CardHeader className="text-center pb-8">
+          <CardHeader className="text-center pb-6">
             <CardTitle className="text-3xl font-bold mb-2">
               Welcome to ATSPro
             </CardTitle>
             <CardDescription className="text-lg">
-              Let&apos;s start by uploading your resume to unlock the power of AI-driven optimization
+              Create your professional resume by uploading a document or entering your information manually
             </CardDescription>
           </CardHeader>
           
           <CardContent className="px-8 pb-8">
-            <div className="space-y-6">
-              <div className="text-center space-y-2">
-                <h3 className="text-lg font-semibold">Upload Your Resume</h3>
-                <p className="text-sm text-muted-foreground">
-                  We&apos;ll analyze your resume and help you optimize it for any job application
-                </p>
-              </div>
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <TabsList className="grid w-full grid-cols-2 mb-8">
+                <TabsTrigger value="upload" className="flex items-center gap-2">
+                  <Upload className="w-4 h-4" />
+                  Upload Document
+                </TabsTrigger>
+                <TabsTrigger value="manual" className="flex items-center gap-2">
+                  <Edit className="w-4 h-4" />
+                  Enter Manually
+                </TabsTrigger>
+              </TabsList>
 
-              <FileUpload
-                onFileUpload={handleFileUpload}
-                isLoading={isLoading}
-                processingStage={processingStage}
-                error={error}
-                disabled={isLoading}
-                progress={progress}
-                className="mx-auto"
-              />
-
-              <div className="text-center space-y-4">
-                <div className="flex items-center justify-center space-x-4 text-sm text-muted-foreground">
-                  <div className="flex items-center space-x-1">
-                    <div className="w-2 h-2 bg-emerald-500 rounded-full" />
-                    <span>Secure upload</span>
-                  </div>
-                  <div className="flex items-center space-x-1">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full" />
-                    <span>AI-powered analysis</span>
-                  </div>
-                  <div className="flex items-center space-x-1">
-                    <div className="w-2 h-2 bg-purple-500 rounded-full" />
-                    <span>ATS optimization</span>
-                  </div>
+              <TabsContent value="upload" className="space-y-6">
+                <div className="text-center space-y-2">
+                  <h3 className="text-lg font-semibold">Upload Your Resume</h3>
+                  <p className="text-sm text-muted-foreground">
+                    We&apos;ll analyze your resume and help you optimize it for any job application
+                  </p>
                 </div>
 
-                <p className="text-xs text-muted-foreground">
-                  Your resume will be securely processed and stored. We use industry-standard encryption to protect your data.
-                </p>
-              </div>
-            </div>
+                <FileUpload
+                  onFileUpload={handleFileUpload}
+                  isLoading={isLoading}
+                  processingStage={processingStage}
+                  error={error}
+                  disabled={isLoading}
+                  progress={progress}
+                  className="mx-auto"
+                />
+
+                <div className="text-center space-y-4">
+                  <div className="flex items-center justify-center space-x-4 text-sm text-muted-foreground">
+                    <div className="flex items-center space-x-1">
+                      <div className="w-2 h-2 bg-emerald-500 rounded-full" />
+                      <span>Secure upload</span>
+                    </div>
+                    <div className="flex items-center space-x-1">
+                      <div className="w-2 h-2 bg-blue-500 rounded-full" />
+                      <span>AI-powered analysis</span>
+                    </div>
+                    <div className="flex items-center space-x-1">
+                      <div className="w-2 h-2 bg-purple-500 rounded-full" />
+                      <span>ATS optimization</span>
+                    </div>
+                  </div>
+
+                  <p className="text-xs text-muted-foreground">
+                    Your resume will be securely processed and stored. We use industry-standard encryption to protect your data.
+                  </p>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="manual" className="space-y-6">
+                <div className="text-center space-y-2 mb-6">
+                  <h3 className="text-lg font-semibold">Create Your Resume</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Fill out your information step by step to build your professional resume
+                  </p>
+                </div>
+
+                <ManualEntry
+                  onComplete={handleManualResume}
+                  isLoading={isLoading}
+                  error={error}
+                />
+              </TabsContent>
+            </Tabs>
           </CardContent>
         </Card>
 
-        {/* Additional information */}
-        <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
-          <div className="space-y-2">
-            <h4 className="font-medium">Smart Parsing</h4>
-            <p className="text-xs text-muted-foreground">
-              Our AI extracts and structures your resume data accurately
-            </p>
+        {/* Additional information - only show when not in manual mode or loading */}
+        {(activeTab === 'upload' || !isLoading) && (
+          <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+            <div className="space-y-2">
+              <h4 className="font-medium">Smart Parsing</h4>
+              <p className="text-xs text-muted-foreground">
+                Our AI extracts and structures your resume data accurately
+              </p>
+            </div>
+            <div className="space-y-2">
+              <h4 className="font-medium">ATS Optimization</h4>
+              <p className="text-xs text-muted-foreground">
+                Optimize your resume for Applicant Tracking Systems
+              </p>
+            </div>
+            <div className="space-y-2">
+              <h4 className="font-medium">Job Matching</h4>
+              <p className="text-xs text-muted-foreground">
+                Get tailored recommendations for each job application
+              </p>
+            </div>
           </div>
-          <div className="space-y-2">
-            <h4 className="font-medium">ATS Optimization</h4>
-            <p className="text-xs text-muted-foreground">
-              Optimize your resume for Applicant Tracking Systems
-            </p>
-          </div>
-          <div className="space-y-2">
-            <h4 className="font-medium">Job Matching</h4>
-            <p className="text-xs text-muted-foreground">
-              Get tailored recommendations for each job application
-            </p>
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );

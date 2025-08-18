@@ -175,6 +175,70 @@ pnpm build       # Build all apps
 - API Docs: http://localhost:8000/docs
 - ArangoDB UI: http://localhost:8529
 
+## Multi-Agent Orchestration
+
+This project uses Claude Code's multi-agent orchestration framework for complex development tasks. **The main Claude Code session acts as the orchestrator**, coordinating specialized agents and workflows.
+
+### Orchestration Commands
+
+```bash
+# Plan development tasks
+/plan implement user authentication system
+
+# Execute feature workflows  
+/implement profile picture upload
+
+# Analyze codebase
+/analyze backend architecture patterns
+
+# Debug issues
+/debug PDF upload failures
+
+# Review code quality
+/review recent authentication changes
+
+# Run comprehensive tests
+/test user onboarding workflow
+
+# Manage workflows
+/workflow list
+/workflow execute feature-implementation
+```
+
+### Memory Integration
+
+All agents use memory MCP tools for persistent context:
+- `mcp__memory__store` - Store workflow data and context
+- `mcp__memory__get` - Retrieve stored information
+- `mcp__memory__list` - List available memory keys
+- `mcp__memory__track_progress` - Track workflow progress
+- `mcp__memory__log_decision` - Log important decisions
+
+### Agent Coordination
+
+As the orchestrator, the main Claude Code session:
+1. **Launches specialized agents** using the Task tool
+2. **Manages workflows** from `.claude/workflows/`
+3. **Stores context** in memory for agent communication
+4. **Aggregates results** from parallel agent execution
+5. **Tracks progress** across multi-step operations
+
+### Available Specialized Agents
+
+- **fullstack-eng** - Full stack implementation across frontend/backend
+- **doc-expert** - Documentation research and compilation
+- **code-review** - Code quality analysis and security review
+- **e2e-tester** - End-to-end testing with Puppeteer
+- **frontend-eng/ux-eng** - UI/UX implementation with React/shadcn
+- **log-monitor** - Docker log monitoring and analysis
+
+### Workflow Templates
+
+Predefined workflows in `.claude/workflows/`:
+- **feature-implementation.json** - Complete feature development cycle
+- **bug-fix.json** - Bug investigation and resolution
+- **codebase-analysis.json** - Comprehensive parallel code analysis
+
 ## Important Notes
 
 - Use Docker for development environment (databases, services)
@@ -182,3 +246,5 @@ pnpm build       # Build all apps
 - Python code must maintain 100% test coverage
 - All commits must pass linting and type checking
 - Use appropriate package managers: `uv` for Python, `pnpm` for Node.js
+- Memory MCP server stores persistent context in `.claude/memory/`
+- Always use orchestration commands for complex multi-step tasks

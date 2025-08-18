@@ -9,7 +9,7 @@ T = TypeVar("T")
 class ApiResponse(BaseModel, Generic[T]):
     """
     Standardized API response format for all ATSPro endpoints.
-    
+
     This ensures consistent response structure across the entire API:
     - success: Boolean indicating if the operation succeeded
     - data: The actual response data (typed with Generic[T])
@@ -17,6 +17,7 @@ class ApiResponse(BaseModel, Generic[T]):
     - errors: Optional list of error messages
     - meta: Optional metadata (pagination, etc.)
     """
+
     success: bool
     data: Optional[T] = None
     message: Optional[str] = None
@@ -30,6 +31,7 @@ class ApiResponse(BaseModel, Generic[T]):
 
 class PaginationMeta(BaseModel):
     """Pagination metadata for list responses"""
+
     page: int
     page_size: int
     total: int
@@ -39,6 +41,7 @@ class PaginationMeta(BaseModel):
 
 class TaskData(BaseModel):
     """Standard data structure for async task responses"""
+
     task_id: str
     status: Optional[str] = None
     progress: Optional[int] = None

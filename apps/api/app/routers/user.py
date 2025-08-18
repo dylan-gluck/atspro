@@ -23,7 +23,7 @@ router = APIRouter(prefix="/user", tags=["user"])
 @router.get("/profile", response_model=UserProfileResponse)
 async def get_user_profile(
     current_user: dict = Depends(get_current_user),
-    task_service = Depends(get_task_service),
+    task_service=Depends(get_task_service),
 ):
     """
     Get the current user's profile.
@@ -79,7 +79,7 @@ async def get_user_profile(
 async def update_user_profile(
     profile_update: UserProfileUpdate,
     current_user: dict = Depends(get_current_user),
-    task_service = Depends(get_task_service),
+    task_service=Depends(get_task_service),
 ):
     """
     Update the current user's profile (creates profile if it doesn't exist).
@@ -184,7 +184,7 @@ async def update_user_profile(
 @router.delete("/profile", response_model=UserProfileDeleteResponse)
 async def delete_user_profile(
     current_user: dict = Depends(get_current_user),
-    task_service = Depends(get_task_service),
+    task_service=Depends(get_task_service),
 ):
     """
     Delete the current user's profile.

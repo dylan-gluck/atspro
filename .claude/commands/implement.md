@@ -9,7 +9,7 @@ Implement the following feature: $ARGUMENTS
 
 ## Workflow Execution
 
-Launch the orchestrator agent to execute the `feature-implementation` workflow:
+As the orchestrator, I will execute the `feature-implementation` workflow:
 
 ```json
 {
@@ -43,4 +43,4 @@ Launch the orchestrator agent to execute the `feature-implementation` workflow:
    - Check for security issues
    - Validate best practices
 
-The orchestrator will coordinate all agents and track progress.
+I will coordinate all agents, track progress in memory, and ensure successful feature delivery.

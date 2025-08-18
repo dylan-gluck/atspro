@@ -54,19 +54,17 @@ class TestJobParseDocumentEndpoint:
     def test_parse_document_success(self, client, auth_headers, test_file_content):
         """Test successful document parsing."""
         # Create file-like object
-        file_content = io.BytesIO(test_file_content.encode('utf-8'))
+        file_content = io.BytesIO(test_file_content.encode("utf-8"))
         files = {"file": ("job_description.txt", file_content, "text/plain")}
-        
+
         response = client.post(
-            "/api/job/parse-document",
-            files=files,
-            headers=auth_headers
+            "/api/job/parse-document", files=files, headers=auth_headers
         )
-        
+
         # Should return 200 or 500 (500 is expected without database)
         # The endpoint exists and accepts the request format
         assert response.status_code in [200, 500]
-        
+
         if response.status_code == 200:
             data = response.json()
             assert data["success"] is True
@@ -77,31 +75,29 @@ class TestJobParseDocumentEndpoint:
 
     def test_parse_document_no_auth(self, client, test_file_content):
         """Test endpoint requires authentication."""
-        file_content = io.BytesIO(test_file_content.encode('utf-8'))
+        file_content = io.BytesIO(test_file_content.encode("utf-8"))
         files = {"file": ("job_description.txt", file_content, "text/plain")}
-        
+
         response = client.post("/api/job/parse-document", files=files)
-        
+
         assert response.status_code == 401
         assert "Authorization header required" in response.json()["detail"]
 
     def test_parse_document_no_file(self, client, auth_headers):
         """Test endpoint requires file."""
         response = client.post("/api/job/parse-document", headers=auth_headers)
-        
+
         assert response.status_code == 422
 
     def test_parse_document_empty_file(self, client, auth_headers):
         """Test endpoint rejects empty files."""
         file_content = io.BytesIO(b"")
         files = {"file": ("empty.txt", file_content, "text/plain")}
-        
+
         response = client.post(
-            "/api/job/parse-document",
-            files=files,
-            headers=auth_headers
+            "/api/job/parse-document", files=files, headers=auth_headers
         )
-        
+
         assert response.status_code == 422
         assert "Empty file provided" in response.json()["detail"]
 
@@ -109,13 +105,11 @@ class TestJobParseDocumentEndpoint:
         """Test endpoint rejects unsupported file types."""
         file_content = io.BytesIO(b"fake image content")
         files = {"file": ("image.jpg", file_content, "image/jpeg")}
-        
+
         response = client.post(
-            "/api/job/parse-document",
-            files=files,
-            headers=auth_headers
+            "/api/job/parse-document", files=files, headers=auth_headers
         )
-        
+
         assert response.status_code == 422
         assert "Unsupported file type" in response.json()["detail"]
 
@@ -123,15 +117,13 @@ class TestJobParseDocumentEndpoint:
         """Test endpoint rejects files that are too large."""
         # Create a file larger than 10MB
         large_content = "x" * (11 * 1024 * 1024)  # 11MB
-        file_content = io.BytesIO(large_content.encode('utf-8'))
+        file_content = io.BytesIO(large_content.encode("utf-8"))
         files = {"file": ("large.txt", file_content, "text/plain")}
-        
+
         response = client.post(
-            "/api/job/parse-document",
-            files=files,
-            headers=auth_headers
+            "/api/job/parse-document", files=files, headers=auth_headers
         )
-        
+
         assert response.status_code == 422
         assert "File too large" in response.json()["detail"]
 
@@ -141,43 +133,43 @@ class TestJobParseDocumentEndpoint:
         pdf_content = b"%PDF-1.4\nfake pdf content"
         file_content = io.BytesIO(pdf_content)
         files = {"file": ("resume.pdf", file_content, "application/pdf")}
-        
+
         response = client.post(
-            "/api/job/parse-document",
-            files=files,
-            headers=auth_headers
+            "/api/job/parse-document", files=files, headers=auth_headers
         )
-        
+
         # Should accept the file format (may fail on processing due to missing DB)
         assert response.status_code in [200, 500]
 
     def test_parse_document_docx_support(self, client, auth_headers):
         """Test endpoint accepts DOCX files."""
-        # Mock DOCX content 
+        # Mock DOCX content
         docx_content = b"fake docx content"
         file_content = io.BytesIO(docx_content)
-        files = {"file": ("job.docx", file_content, "application/vnd.openxmlformats-officedocument.wordprocessingml.document")}
-        
+        files = {
+            "file": (
+                "job.docx",
+                file_content,
+                "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            )
+        }
+
         response = client.post(
-            "/api/job/parse-document",
-            files=files,
-            headers=auth_headers
+            "/api/job/parse-document", files=files, headers=auth_headers
         )
-        
+
         # Should accept the file format
         assert response.status_code in [200, 500]
 
     def test_endpoint_response_format(self, client, auth_headers, test_file_content):
         """Test the response format matches TaskResponse schema."""
-        file_content = io.BytesIO(test_file_content.encode('utf-8'))
+        file_content = io.BytesIO(test_file_content.encode("utf-8"))
         files = {"file": ("job.txt", file_content, "text/plain")}
-        
+
         response = client.post(
-            "/api/job/parse-document",
-            files=files,
-            headers=auth_headers
+            "/api/job/parse-document", files=files, headers=auth_headers
         )
-        
+
         if response.status_code == 200:
             data = response.json()
             # Verify TaskResponse structure

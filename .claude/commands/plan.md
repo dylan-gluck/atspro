@@ -9,21 +9,21 @@ Create a comprehensive development plan for: $ARGUMENTS
 
 ## Planning Process
 
-Use the orchestrator agent to:
+As the orchestrator, I will coordinate the planning process:
 
 1. **Analyze Requirements**
-   - Launch doc-expert to research documentation
+   - Launch doc-expert research documentation and gather context
    - Launch fullstack-eng to analyze technical feasibility
    - Launch code-review to assess current code quality
 
 2. **Create Implementation Plan**
-   - Break down into manageable tasks
-   - Identify dependencies and blockers
-   - Estimate time and complexity
+   - Break down requirements into manageable tasks
+   - Identify dependencies and potential blockers
+   - Estimate complexity and development effort
 
 3. **Document Plan**
-   - Store plan in memory for future reference
-   - Create TODO list for tracking
+   - Store comprehensive plan in memory using mcp__memory__store
+   - Create TODO list for progress tracking
    - Generate workflow definition if applicable
 
 ## Expected Output
@@ -33,4 +33,4 @@ Use the orchestrator agent to:
 - Risk assessment and mitigation strategies
 - Timeline and milestone estimates
 
-Launch the orchestrator to coordinate this planning process.
+I will coordinate multiple agents in parallel to gather all necessary information for comprehensive planning.

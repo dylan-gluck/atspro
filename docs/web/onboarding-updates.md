@@ -9,6 +9,12 @@ Currently users are required to upload a document with no option to enter resume
 - API should be updated to accept two optional props either document or string. (fullstack-eng)
 
 ### Update 2: Resume Editor
-- On the resume-edit page `/resume` allow a user to enter their resume data manually even if they do not have existing data. There should be a form that reflects the `Resume` interface including all sections. (ux-eng)
-- Currently, not able to edit an existing resume. Contenteditable not working or its not clear how to enable editability. (ux-eng)
-- Download as PDF not working (fullstack-eng)
+- On the resume-edit page `/resume` we need to add the functionality to edit the resume & add/remove/reorder entires. There should be a form with fields that match the Resume interface.
+- Keep the existing resume view as-is for previewing current resume, and add tabs to swap between "Preview Resume" / "Edit Resume"
+- Download as PDF not working, lets remove this button for now.
+
+## Steps:
+1. Deploy parallel fullstack-eng agents to analyze current implementation of Onboarding flor and Resume editor across both web and api apps.
+2. Use their findings to create a implementation plan for the two updates that can be split across multiple sub agents in parallel.
+3. Spawn parallel agents with specific assignments and access to integration plan as a whole.
+4. Once all changes have been completed, use the e2e-tester to confirm working as expected.

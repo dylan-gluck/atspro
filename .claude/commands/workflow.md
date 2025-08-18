@@ -49,9 +49,9 @@ Define a new workflow template:
 
 ## Workflow Execution
 
-Launch the orchestrator agent to:
+As the orchestrator, I will:
 1. Load the specified workflow
-2. Validate inputs
+2. Validate inputs and parameters
 3. Execute steps in sequence or parallel
-4. Track progress in memory
-5. Report results
+4. Track progress in memory using mcp__memory__store
+5. Coordinate agents and aggregate results

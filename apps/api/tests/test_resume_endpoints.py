@@ -43,9 +43,9 @@ class TestResumeEndpoints:
                     {
                         "company": "Tech Corp",
                         "position": "Software Engineer",
-                        "duration": "2020-2024"
+                        "duration": "2020-2024",
                     }
-                ]
+                ],
             },
             "created_at": "2024-01-01T00:00:00Z",
             "updated_at": "2024-01-01T00:00:00Z",
@@ -53,7 +53,9 @@ class TestResumeEndpoints:
 
     # Test get_resume endpoint (GET /api/resume/{resume_id})
     @pytest.mark.asyncio
-    async def test_get_resume_success(self, mock_user, mock_job_service, sample_resume_data):
+    async def test_get_resume_success(
+        self, mock_user, mock_job_service, sample_resume_data
+    ):
         """Test successful resume retrieval."""
         mock_job_service.get_resume.return_value = sample_resume_data
 
@@ -64,13 +66,15 @@ class TestResumeEndpoints:
         )
 
         # Verify service was called correctly
-        mock_job_service.get_resume.assert_called_once_with("resume_123", "test_user_123")
+        mock_job_service.get_resume.assert_called_once_with(
+            "resume_123", "test_user_123"
+        )
 
         # Verify response structure
         assert result["success"] is True
         assert "data" in result
         data = result["data"]
-        
+
         assert data["id"] == "resume_123"
         assert data["user_id"] == "test_user_123"
         assert "John Doe" in data["content"]
@@ -126,15 +130,19 @@ class TestResumeEndpoints:
 
     # Test update_resume endpoint (PATCH /api/resume/{resume_id})
     @pytest.mark.asyncio
-    async def test_update_resume_success(self, mock_user, mock_job_service, sample_resume_data):
+    async def test_update_resume_success(
+        self, mock_user, mock_job_service, sample_resume_data
+    ):
         """Test successful resume update."""
         # Mock access validation and update
         mock_job_service.validate_resume_access.return_value = True
         mock_job_service.update_resume = AsyncMock()
-        
+
         # Updated resume data
         updated_resume_data = sample_resume_data.copy()
-        updated_resume_data["content"] = "# John Doe - Updated\n\n## Experience\n\nSenior Software Engineer at Tech Corp"
+        updated_resume_data["content"] = (
+            "# John Doe - Updated\n\n## Experience\n\nSenior Software Engineer at Tech Corp"
+        )
         updated_resume_data["updated_at"] = "2024-01-02T00:00:00Z"
         mock_job_service.get_resume.return_value = updated_resume_data
 
@@ -150,7 +158,9 @@ class TestResumeEndpoints:
         )
 
         # Verify access validation
-        mock_job_service.validate_resume_access.assert_called_once_with("resume_123", "test_user_123")
+        mock_job_service.validate_resume_access.assert_called_once_with(
+            "resume_123", "test_user_123"
+        )
 
         # Verify update was called
         mock_job_service.update_resume.assert_called_once_with(
@@ -222,7 +232,9 @@ class TestResumeEndpoints:
         assert "Error updating resume" in str(exc_info.value.detail)
 
     @pytest.mark.asyncio
-    async def test_update_resume_partial_update(self, mock_user, mock_job_service, sample_resume_data):
+    async def test_update_resume_partial_update(
+        self, mock_user, mock_job_service, sample_resume_data
+    ):
         """Test partial resume update (only some fields)."""
         mock_job_service.validate_resume_access.return_value = True
         mock_job_service.update_resume = AsyncMock()
@@ -247,7 +259,9 @@ class TestResumeEndpoints:
         assert result["success"] is True
 
     @pytest.mark.asyncio
-    async def test_update_resume_empty_update(self, mock_user, mock_job_service, sample_resume_data):
+    async def test_update_resume_empty_update(
+        self, mock_user, mock_job_service, sample_resume_data
+    ):
         """Test resume update with empty request."""
         mock_job_service.validate_resume_access.return_value = True
         mock_job_service.update_resume = AsyncMock()
@@ -271,11 +285,13 @@ class TestResumeEndpoints:
         assert result["success"] is True
 
     @pytest.mark.asyncio
-    async def test_update_resume_complex_data(self, mock_user, mock_job_service, sample_resume_data):
+    async def test_update_resume_complex_data(
+        self, mock_user, mock_job_service, sample_resume_data
+    ):
         """Test resume update with complex data structure."""
         mock_job_service.validate_resume_access.return_value = True
         mock_job_service.update_resume = AsyncMock()
-        
+
         # Updated resume with new parsed data
         updated_resume = sample_resume_data.copy()
         updated_resume["parsed_data"] = {
@@ -286,30 +302,37 @@ class TestResumeEndpoints:
                     "company": "Tech Corp",
                     "position": "Senior Software Engineer",
                     "duration": "2020-2024",
-                    "skills": ["Python", "FastAPI", "React"]
+                    "skills": ["Python", "FastAPI", "React"],
                 },
                 {
                     "company": "Startup Inc",
                     "position": "Full Stack Developer",
                     "duration": "2018-2020",
-                    "skills": ["JavaScript", "Node.js", "PostgreSQL"]
-                }
+                    "skills": ["JavaScript", "Node.js", "PostgreSQL"],
+                },
             ],
-            "skills": ["Python", "FastAPI", "React", "JavaScript", "Node.js", "PostgreSQL"],
+            "skills": [
+                "Python",
+                "FastAPI",
+                "React",
+                "JavaScript",
+                "Node.js",
+                "PostgreSQL",
+            ],
             "education": [
                 {
                     "degree": "Bachelor of Science",
                     "major": "Computer Science",
                     "university": "Tech University",
-                    "year": "2018"
+                    "year": "2018",
                 }
-            ]
+            ],
         }
         mock_job_service.get_resume.return_value = updated_resume
 
         complex_update = {
             "content": "# John Doe - Senior Software Engineer",
-            "parsed_data": updated_resume["parsed_data"]
+            "parsed_data": updated_resume["parsed_data"],
         }
 
         result = await update_resume(
@@ -343,8 +366,8 @@ class TestResumeEndpointsAuth:
     async def test_get_current_user_valid_auth(self):
         """Test get_current_user with valid authorization."""
         result = await get_current_user(authorization="Bearer token123")
-        
-        # Test token generates user based on token value 
+
+        # Test token generates user based on token value
         assert result["id"] == "user_token123"
         assert result["email"] == "user_token123@example.com"
         assert result["name"] == "User token123"
@@ -404,7 +427,9 @@ class TestResumeEndpointsIntegration:
         }
 
     @pytest.mark.asyncio
-    async def test_resume_get_update_workflow(self, mock_user, mock_job_service, sample_resume_data):
+    async def test_resume_get_update_workflow(
+        self, mock_user, mock_job_service, sample_resume_data
+    ):
         """Test complete resume get -> update workflow."""
         resume_id = "integration_resume"
 
@@ -432,7 +457,7 @@ class TestResumeEndpointsIntegration:
         updated_resume_data = sample_resume_data.copy()
         updated_resume_data["content"] = updated_content
         updated_resume_data["updated_at"] = "2024-01-02T00:00:00Z"
-        
+
         # Reset the mock to return updated data
         mock_job_service.get_resume.return_value = updated_resume_data
 
@@ -449,7 +474,9 @@ class TestResumeEndpointsIntegration:
         assert update_result["data"]["updated_at"] == "2024-01-02T00:00:00Z"
 
         # Verify service calls
-        assert mock_job_service.get_resume.call_count == 2  # Initial get + post-update get
+        assert (
+            mock_job_service.get_resume.call_count == 2
+        )  # Initial get + post-update get
         mock_job_service.validate_resume_access.assert_called_once()
         mock_job_service.update_resume.assert_called_once()
 
@@ -457,7 +484,7 @@ class TestResumeEndpointsIntegration:
     async def test_resume_access_control(self, mock_job_service):
         """Test resume access control across different users."""
         resume_id = "shared_resume"
-        
+
         # User 1 - has access
         user1 = {"id": "user_1", "email": "user1@example.com"}
         mock_job_service.validate_resume_access.return_value = True
@@ -498,7 +525,7 @@ class TestResumeEndpointsIntegration:
 
         # Test transient error recovery scenario
         error_count = 0
-        
+
         def mock_get_resume_with_retry(*args, **kwargs):
             nonlocal error_count
             error_count += 1

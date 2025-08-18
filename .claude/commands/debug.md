@@ -9,7 +9,7 @@ Debug the following issue: $ARGUMENTS
 
 ## Debug Workflow
 
-Launch the orchestrator to coordinate debugging:
+As the orchestrator, I will coordinate debugging:
 
 ```json
 {
@@ -33,7 +33,7 @@ Launch the orchestrator to coordinate debugging:
    - Identify problematic code
    - Check recent changes
 
-3. **Root Cause Analysis** (orchestrator)
+3. **Root Cause Analysis** (main session)
    - Correlate findings
    - Identify root cause
    - Propose solutions

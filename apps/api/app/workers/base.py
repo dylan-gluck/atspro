@@ -78,13 +78,13 @@ class BaseWorker(ABC):
         self.running = False
         self.tasks: List[asyncio.Task] = []
         self._shutdown_event = asyncio.Event()
-        
+
         # Connection health and backoff tracking
         self._redis_connection_healthy = True
         self._last_redis_error = None
         self._consecutive_failures = 0
         self._max_backoff_delay = 30.0  # 30 seconds max
-        self._base_backoff_delay = 1.0   # 1 second base
+        self._base_backoff_delay = 1.0  # 1 second base
 
     async def _complete_task_synchronized(
         self,
@@ -93,7 +93,7 @@ class BaseWorker(ABC):
         result_ttl_hours: int = 24,
     ) -> None:
         """Complete task with synchronization between Redis and PostgreSQL.
-        
+
         Args:
             task_id: Task ID
             result: Task result data
@@ -104,9 +104,9 @@ class BaseWorker(ABC):
             task_id=task_id,
             worker_id=self.worker_id,
             result=result,
-            result_ttl_hours=result_ttl_hours
+            result_ttl_hours=result_ttl_hours,
         )
-        
+
         # Update PostgreSQL if task service is available
         if self.task_service:
             try:
@@ -114,25 +114,24 @@ class BaseWorker(ABC):
                     task_id=task_id,
                     status="completed",
                     completed_at=datetime.utcnow(),
-                    progress=100
+                    progress=100,
                 )
                 logger.info(f"Task {task_id} status synchronized to PostgreSQL")
             except Exception as e:
-                logger.error(f"Failed to sync completed task {task_id} to PostgreSQL: {e}")
+                logger.error(
+                    f"Failed to sync completed task {task_id} to PostgreSQL: {e}"
+                )
 
     async def _fail_task_synchronized(
-        self,
-        task_id: str,
-        error_message: str,
-        retry: bool = True
+        self, task_id: str, error_message: str, retry: bool = True
     ) -> bool:
         """Fail task with synchronization between Redis and PostgreSQL.
-        
+
         Args:
             task_id: Task ID
             error_message: Error description
             retry: Whether to retry the task
-            
+
         Returns:
             True if task was retried, False if failed permanently
         """
@@ -141,9 +140,9 @@ class BaseWorker(ABC):
             task_id=task_id,
             worker_id=self.worker_id,
             error_message=error_message,
-            retry=retry
+            retry=retry,
         )
-        
+
         # Update PostgreSQL if task service is available
         if self.task_service:
             try:
@@ -152,12 +151,12 @@ class BaseWorker(ABC):
                     task_id=task_id,
                     status=status,
                     completed_at=None if retried else datetime.utcnow(),
-                    error_message=error_message
+                    error_message=error_message,
                 )
                 logger.info(f"Task {task_id} failure status synchronized to PostgreSQL")
             except Exception as e:
                 logger.error(f"Failed to sync failed task {task_id} to PostgreSQL: {e}")
-        
+
         return retried
 
     @abstractmethod
@@ -178,7 +177,7 @@ class BaseWorker(ABC):
 
     async def _check_redis_connection(self) -> bool:
         """Check if Redis connection is healthy.
-        
+
         Returns:
             True if connection is healthy, False otherwise
         """
@@ -189,54 +188,63 @@ class BaseWorker(ABC):
                 self._redis_connection_healthy = True
                 self._consecutive_failures = 0
             return True
-        except (redis_exc.ConnectionError, redis_exc.TimeoutError, redis_exc.RedisError) as e:
+        except (
+            redis_exc.ConnectionError,
+            redis_exc.TimeoutError,
+            redis_exc.RedisError,
+        ) as e:
             self._redis_connection_healthy = False
             self._last_redis_error = str(e)
-            logger.warning(f"Worker {self.worker_id} Redis connection check failed: {e}")
+            logger.warning(
+                f"Worker {self.worker_id} Redis connection check failed: {e}"
+            )
             return False
 
     def _calculate_backoff_delay(self) -> float:
         """Calculate exponential backoff delay.
-        
+
         Returns:
             Delay in seconds (1 to 30 seconds)
         """
         if self._consecutive_failures == 0:
             return 0
-        
+
         # Exponential backoff: 1s, 2s, 4s, 8s, 16s, 30s (capped)
         delay = min(
             self._base_backoff_delay * (2 ** (self._consecutive_failures - 1)),
-            self._max_backoff_delay
+            self._max_backoff_delay,
         )
         return delay
 
     async def _handle_redis_error(self, error: Exception, operation: str) -> None:
         """Handle Redis errors with logging and backoff tracking.
-        
+
         Args:
             error: The Redis exception that occurred
             operation: Description of the operation that failed
         """
         self._consecutive_failures += 1
         self._last_redis_error = str(error)
-        
+
         delay = self._calculate_backoff_delay()
-        
+
         logger.error(
             f"Worker {self.worker_id} Redis {operation} failed (attempt {self._consecutive_failures}): {error}. "
             f"Queues: {self.get_queue_names()}. Backing off for {delay:.1f}s"
         )
-        
+
         if delay > 0:
             await asyncio.sleep(delay)
 
     def _reset_backoff(self) -> None:
         """Reset backoff state after successful operation."""
         if self._consecutive_failures > 0:
-            logger.info(f"Worker {self.worker_id} Redis operations recovered after {self._consecutive_failures} failures")
+            logger.info(
+                f"Worker {self.worker_id} Redis operations recovered after {self._consecutive_failures} failures"
+            )
             self._consecutive_failures = 0
             self._last_redis_error = None
+
     @abstractmethod
     def get_queue_names(self) -> List[str]:
         """Return list of queue names this worker processes.
@@ -327,7 +335,7 @@ class BaseWorker(ABC):
                 if not await self._check_redis_connection():
                     await self._handle_redis_error(
                         Exception("Redis connection health check failed"),
-                        "connection health check"
+                        "connection health check",
                     )
                     continue
 
@@ -338,15 +346,17 @@ class BaseWorker(ABC):
                         timeout=5,  # Short timeout to check running status
                         queues=self.get_queue_names(),
                     )
-                    
+
                     # Reset backoff on successful operation
                     self._reset_backoff()
-                    
+
                 except redis_exc.TimeoutError as e:
                     # Redis timeout - not necessarily an error, just no tasks available
-                    logger.debug(f"Worker {self.worker_id} Redis dequeue timeout (no tasks available): {e}")
+                    logger.debug(
+                        f"Worker {self.worker_id} Redis dequeue timeout (no tasks available): {e}"
+                    )
                     continue
-                    
+
                 except (redis_exc.ConnectionError, redis_exc.RedisError) as e:
                     # Redis connection or other Redis errors - use backoff
                     await self._handle_redis_error(e, "dequeue operation")
@@ -363,7 +373,9 @@ class BaseWorker(ABC):
                     await self._handle_invalid_task_type(task_id, task_type)
                     continue
 
-                logger.info(f"Worker {self.worker_id} processing task {task_id} of type {task_type} from queues {self.get_queue_names()}")
+                logger.info(
+                    f"Worker {self.worker_id} processing task {task_id} of type {task_type} from queues {self.get_queue_names()}"
+                )
 
                 # Process task with timeout
                 try:
@@ -377,9 +389,15 @@ class BaseWorker(ABC):
                             task_id=task_id, result=result
                         )
                         logger.info(f"Worker {self.worker_id} completed task {task_id}")
-                        
-                    except (redis_exc.TimeoutError, redis_exc.ConnectionError, redis_exc.RedisError) as e:
-                        logger.error(f"Worker {self.worker_id} failed to mark task {task_id} as completed: {e}")
+
+                    except (
+                        redis_exc.TimeoutError,
+                        redis_exc.ConnectionError,
+                        redis_exc.RedisError,
+                    ) as e:
+                        logger.error(
+                            f"Worker {self.worker_id} failed to mark task {task_id} as completed: {e}"
+                        )
                         # Task was processed successfully but we couldn't update Redis
                         # This could lead to task reprocessing, but that's better than losing the result
                         await self._handle_redis_error(e, f"complete_task({task_id})")
@@ -396,12 +414,20 @@ class BaseWorker(ABC):
                             error_message=error_msg,
                             retry=False,  # Don't retry timeout errors
                         )
-                    except (redis_exc.TimeoutError, redis_exc.ConnectionError, redis_exc.RedisError) as e:
-                        logger.error(f"Worker {self.worker_id} failed to mark task {task_id} as failed: {e}")
+                    except (
+                        redis_exc.TimeoutError,
+                        redis_exc.ConnectionError,
+                        redis_exc.RedisError,
+                    ) as e:
+                        logger.error(
+                            f"Worker {self.worker_id} failed to mark task {task_id} as failed: {e}"
+                        )
                         await self._handle_redis_error(e, f"fail_task({task_id})")
 
                 except TaskError as e:
-                    logger.warning(f"Worker {self.worker_id} task {task_id} failed: {e}")
+                    logger.warning(
+                        f"Worker {self.worker_id} task {task_id} failed: {e}"
+                    )
 
                     try:
                         await self._fail_task_synchronized(
@@ -409,13 +435,23 @@ class BaseWorker(ABC):
                             error_message=str(e),
                             retry=e.retryable,
                         )
-                    except (redis_exc.TimeoutError, redis_exc.ConnectionError, redis_exc.RedisError) as redis_err:
-                        logger.error(f"Worker {self.worker_id} failed to mark task {task_id} as failed: {redis_err}")
-                        await self._handle_redis_error(redis_err, f"fail_task({task_id})")
+                    except (
+                        redis_exc.TimeoutError,
+                        redis_exc.ConnectionError,
+                        redis_exc.RedisError,
+                    ) as redis_err:
+                        logger.error(
+                            f"Worker {self.worker_id} failed to mark task {task_id} as failed: {redis_err}"
+                        )
+                        await self._handle_redis_error(
+                            redis_err, f"fail_task({task_id})"
+                        )
 
                 except Exception as e:
                     error_msg = f"Unexpected error in task {task_id}: {e}"
-                    logger.error(f"Worker {self.worker_id} unexpected error: {error_msg}")
+                    logger.error(
+                        f"Worker {self.worker_id} unexpected error: {error_msg}"
+                    )
                     logger.error(traceback.format_exc())
 
                     # Retry unexpected errors
@@ -425,9 +461,17 @@ class BaseWorker(ABC):
                             error_message=error_msg,
                             retry=True,
                         )
-                    except (redis_exc.TimeoutError, redis_exc.ConnectionError, redis_exc.RedisError) as redis_err:
-                        logger.error(f"Worker {self.worker_id} failed to mark task {task_id} as failed: {redis_err}")
-                        await self._handle_redis_error(redis_err, f"fail_task({task_id})")
+                    except (
+                        redis_exc.TimeoutError,
+                        redis_exc.ConnectionError,
+                        redis_exc.RedisError,
+                    ) as redis_err:
+                        logger.error(
+                            f"Worker {self.worker_id} failed to mark task {task_id} as failed: {redis_err}"
+                        )
+                        await self._handle_redis_error(
+                            redis_err, f"fail_task({task_id})"
+                        )
 
             except Exception as e:
                 logger.error(f"Error in worker loop {task_name}: {e}")

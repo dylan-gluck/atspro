@@ -106,18 +106,24 @@ class ResumeService:
             arango_db = get_arango_client()
             resume_collection = arango_db.collection("resumes")
 
+            # First check if the document exists
+            existing_doc = resume_collection.get(resume_id)
+            if not existing_doc:
+                logger.error(f"Resume {resume_id} not found for update")
+                return False
+
             # Prepare update data
             update_data = {
                 "resume_data": resume_data,
-                "status": "parsed",
-                "parsed_at": datetime.utcnow().isoformat(),
+                "status": "manual",  # Changed from "parsed" to "manual" for manually entered/edited data
+                "updated_at": datetime.utcnow().isoformat(),
             }
 
             if file_metadata:
                 update_data["file_metadata"] = file_metadata
 
-            # Update the document
-            resume_collection.update(resume_id, update_data)
+            # Update the document using the document key directly
+            result = resume_collection.update(existing_doc, update_data)
             logger.info(f"Updated resume data for {resume_id}")
             return True
 
@@ -377,3 +383,43 @@ class ResumeService:
             error_msg = f"Resume validation failed: {str(e)}"
             logger.warning(error_msg)
             return False, error_msg
+
+    async def create_manual_resume(
+        self, resume_id: str, user_id: str, resume_data: Dict[str, Any]
+    ) -> str:
+        """Create a resume document from manual entry.
+
+        Args:
+            resume_id: Unique resume identifier
+            user_id: User who owns the resume
+            resume_data: Structured resume data from manual entry
+
+        Returns:
+            Resume document ID
+        """
+        try:
+            arango_db = get_arango_client()
+            resume_collection = arango_db.collection("resumes")
+
+            # Create manual resume document
+            manual_doc = {
+                "_key": resume_id,
+                "user_id": user_id,
+                "status": "manual",
+                "source": "manual",
+                "created_at": datetime.utcnow().isoformat(),
+                "resume_data": resume_data,
+                "file_metadata": {
+                    "source": "manual_entry",
+                    "created_by": user_id,
+                    "entry_method": "manual_form",
+                },
+            }
+
+            result = resume_collection.insert(manual_doc)
+            logger.info(f"Created manual resume {resume_id} for user {user_id}")
+            return result["_key"]
+
+        except Exception as e:
+            logger.error(f"Error creating manual resume: {str(e)}")
+            raise

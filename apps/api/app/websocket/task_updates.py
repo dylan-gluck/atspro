@@ -38,7 +38,9 @@ async def get_user_from_token(token: Optional[str] = Query(None)) -> User:
         raise HTTPException(status_code=401, detail=str(e.detail))
     except Exception as e:
         logger.error(f"Token validation error: {e}")
-        raise HTTPException(status_code=401, detail="Authentication service unavailable")
+        raise HTTPException(
+            status_code=401, detail="Authentication service unavailable"
+        )
 
 
 async def websocket_endpoint(websocket: WebSocket, user: User = None):
@@ -104,9 +106,7 @@ async def websocket_endpoint(websocket: WebSocket, user: User = None):
                     # Client wants to unsubscribe from a specific task
                     task_id = message.get("task_id")
                     if task_id:
-                        logger.info(
-                            f"User {user.id} unsubscribed from task {task_id}"
-                        )
+                        logger.info(f"User {user.id} unsubscribed from task {task_id}")
                         # TODO: Remove subscription mapping when task service is available
                 else:
                     logger.warning(f"Unknown message type: {message.get('type')}")

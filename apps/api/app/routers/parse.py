@@ -117,18 +117,15 @@ async def parse_resume(
 
         logger.info(f"Created resume parse task {task_id} for user {user_id}")
 
-        task_data = TaskData(
-            task_id=task_id,
-            status="pending"
-        )
-        
+        task_data = TaskData(task_id=task_id, status="pending")
+
         return ApiResponse(
             success=True,
             data={
                 "task_id": task_id,
                 "resume_id": resume_id,
             },
-            message="Resume submitted for parsing"
+            message="Resume submitted for parsing",
         )
 
     except Exception as e:
@@ -178,9 +175,9 @@ async def get_parse_task_status(
             started_at=task.get("started_at"),
             completed_at=task.get("completed_at"),
             result=result,
-            error=task.get("error_message")
+            error=task.get("error_message"),
         )
-        
+
         return ApiResponse(
             success=True,
             data={
@@ -193,7 +190,7 @@ async def get_parse_task_status(
                 "task_type": task["task_type"],
                 "result": result,
                 "error": task.get("error_message"),
-            }
+            },
         )
 
     except HTTPException:

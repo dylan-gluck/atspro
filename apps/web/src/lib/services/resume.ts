@@ -407,6 +407,39 @@ export class ResumeServiceImpl extends BaseServiceImpl implements ResumeService 
     }
   }
 
+  // Manual Resume Creation
+  async createManualResume(resumeData: Resume): Promise<ApiResponse<{ resume_id: string; status: string }>> {
+    if (!resumeData) {
+      return {
+        data: null as unknown as { resume_id: string; status: string },
+        success: false,
+        message: 'Resume data is required',
+        errors: ['Resume data is required']
+      };
+    }
+
+    // Get current user for authentication
+    const userResponse = await this.authService.getCurrentUser();
+    if (!userResponse.success || !userResponse.data) {
+      return {
+        data: null as unknown as { resume_id: string; status: string },
+        success: false,
+        message: 'User not authenticated',
+        errors: ['User not authenticated']
+      };
+    }
+
+    const response = await this.apiClient.post<{ resume_id: string; status: string }>('/api/resume/manual', resumeData);
+    
+    if (response.success) {
+      // Clear resume caches since we have new content
+      this.clearCachePattern('resume');
+      this.clearCachePattern('Resume');
+    }
+    
+    return response;
+  }
+
   // Method to check if optimization is available for current plan
   async canOptimize(): Promise<{ allowed: boolean; reason?: string }> {
     try {

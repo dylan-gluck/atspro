@@ -87,7 +87,7 @@
   },
   "error_handling": {
     "retry_count": 2,
-    "fallback_agent": "orchestrator",
+    "fallback_agent": "fullstack-eng",
     "notification": true
   }
 }

@@ -44,5 +44,5 @@ async def linkedin_resume(url: str = Form(...)):
     return ApiResponse(
         success=True,
         data={"resume": parsed_data},
-        message="LinkedIn profile parsed successfully"
+        message="LinkedIn profile parsed successfully",
     )

@@ -79,7 +79,7 @@
     }
   ],
   "aggregation": {
-    "agent": "orchestrator",
+    "agent": "doc-expert",
     "action": "summarize",
     "inputs": [
       "@memory:doc_analysis",

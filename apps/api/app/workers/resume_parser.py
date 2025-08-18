@@ -38,7 +38,11 @@ class ResumeParseWorker(BaseWorker):
             graceful_shutdown_timeout: Shutdown timeout in seconds
         """
         super().__init__(
-            redis_queue, task_service, concurrency, timeout_seconds, graceful_shutdown_timeout
+            redis_queue,
+            task_service,
+            concurrency,
+            timeout_seconds,
+            graceful_shutdown_timeout,
         )
 
     def get_queue_names(self) -> List[str]:
@@ -213,18 +217,24 @@ class ResumeParseWorker(BaseWorker):
                                     "INSERT INTO user_profiles (user_id, resume_id) VALUES (%s, %s)",
                                     (user_id, resume_id),
                                 )
-                                logger.info(f"Created user profile for user {user_id} with resume {resume_id}")
+                                logger.info(
+                                    f"Created user profile for user {user_id} with resume {resume_id}"
+                                )
                             else:
                                 await cursor.execute(
                                     "UPDATE user_profiles SET resume_id = %s WHERE user_id = %s",
                                     (resume_id, user_id),
                                 )
-                                logger.info(f"Updated user profile for user {user_id} with resume {resume_id}")
+                                logger.info(
+                                    f"Updated user profile for user {user_id} with resume {resume_id}"
+                                )
 
             except Exception as e:
                 logger.error(f"User profile update failed for task {task_id}: {str(e)}")
                 # Don't fail the task for profile update issues, log warning instead
-                logger.warning(f"Resume {resume_id} stored but user profile update failed: {str(e)}")
+                logger.warning(
+                    f"Resume {resume_id} stored but user profile update failed: {str(e)}"
+                )
 
             await self.update_progress(task_id, 100, "Resume parsing completed")
 

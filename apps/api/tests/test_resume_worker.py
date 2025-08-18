@@ -384,19 +384,27 @@ class TestResumeParseWorker:
             mock_pool = Mock()
             mock_conn = Mock()
             mock_cursor = Mock()
-            
+
             # Configure mocks for async context managers
-            mock_pool.connection.return_value.__aenter__ = AsyncMock(return_value=mock_conn)
+            mock_pool.connection.return_value.__aenter__ = AsyncMock(
+                return_value=mock_conn
+            )
             mock_pool.connection.return_value.__aexit__ = AsyncMock(return_value=None)
-            mock_conn.transaction.return_value.__aenter__ = AsyncMock(return_value=mock_conn)
+            mock_conn.transaction.return_value.__aenter__ = AsyncMock(
+                return_value=mock_conn
+            )
             mock_conn.transaction.return_value.__aexit__ = AsyncMock(return_value=None)
-            mock_conn.cursor.return_value.__aenter__ = AsyncMock(return_value=mock_cursor)
+            mock_conn.cursor.return_value.__aenter__ = AsyncMock(
+                return_value=mock_cursor
+            )
             mock_conn.cursor.return_value.__aexit__ = AsyncMock(return_value=None)
-            
+
             # Mock cursor operations
             mock_cursor.execute = AsyncMock()
-            mock_cursor.fetchone = AsyncMock(return_value=("user_123",))  # Profile exists
-            
+            mock_cursor.fetchone = AsyncMock(
+                return_value=("user_123",)
+            )  # Profile exists
+
             mock_postgres.return_value = mock_pool
 
             await worker.execute_task(base_task_data)

@@ -1,6 +1,6 @@
 ---
 description: Execute comprehensive testing workflow
-allowedTools: Task, Bash, mcp__puppeteer__*, mcp__docker-mcp__get-logs, TodoWrite
+allowedTools: Task, Bash, mcp__playwright__*, mcp__docker-mcp__get-logs, TodoWrite
 ---
 
 # Test Execution
@@ -18,7 +18,7 @@ cd apps/api && uv run pytest --cov
 # Frontend tests
 cd apps/web && pnpm test
 
-# E2E tests with Puppeteer
+# E2E tests with Playwright
 ```
 
 ## Test Scope

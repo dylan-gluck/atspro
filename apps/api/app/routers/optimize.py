@@ -41,10 +41,10 @@ class TaskResponse(BaseModel):
 async def get_optimization_service():
     """Get optimization service instance"""
     task_service = await get_task_service()
-    
+
     # Get ArangoDB from the task service
     arango_db = task_service.arango_db
-    
+
     return OptimizationService(arango_db, task_service)
 
 
@@ -77,9 +77,7 @@ async def optimize_resume(
         )
 
         return ApiResponse(
-            success=True,
-            data=result,
-            message="Optimization task created successfully"
+            success=True, data=result, message="Optimization task created successfully"
         )
 
     except ValueError as e:
@@ -120,9 +118,7 @@ async def score_resume(
         )
 
         return ApiResponse(
-            success=True,
-            data=result,
-            message="Scoring task created successfully"
+            success=True, data=result, message="Scoring task created successfully"
         )
 
     except ValueError as e:
@@ -163,9 +159,7 @@ async def research_company(
         )
 
         return ApiResponse(
-            success=True,
-            data=result,
-            message="Research task created successfully"
+            success=True, data=result, message="Research task created successfully"
         )
 
     except ValueError as e:
