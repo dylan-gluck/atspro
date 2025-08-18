@@ -1,0 +1,93 @@
+{
+  "id": "feature-implementation",
+  "name": "Full Stack Feature Implementation",
+  "description": "Implements a complete feature across frontend and backend with testing",
+  "version": "1.0.0",
+  "steps": [
+    {
+      "id": "research",
+      "name": "Research & Documentation",
+      "agent": "doc-expert",
+      "action": "research",
+      "inputs": {
+        "requirements": "$FEATURE_REQUIREMENTS",
+        "scope": "$FEATURE_SCOPE"
+      },
+      "outputs": [
+        "technical_spec",
+        "dependencies",
+        "api_contracts",
+        "ui_mockups"
+      ],
+      "memory_keys": [
+        "feature_spec",
+        "dependencies"
+      ]
+    },
+    {
+      "id": "implementation",
+      "name": "Full Stack Implementation",
+      "agent": "fullstack-eng",
+      "action": "implement",
+      "inputs": {
+        "spec": "@memory:feature_spec",
+        "dependencies": "@memory:dependencies"
+      },
+      "outputs": [
+        "backend_code",
+        "frontend_code",
+        "migration_scripts"
+      ],
+      "memory_keys": [
+        "implementation_details",
+        "api_endpoints"
+      ]
+    },
+    {
+      "id": "testing",
+      "name": "End-to-End Testing",
+      "agent": "e2e-tester",
+      "action": "test",
+      "inputs": {
+        "implementation": "@memory:implementation_details",
+        "endpoints": "@memory:api_endpoints"
+      },
+      "outputs": [
+        "test_results",
+        "screenshots",
+        "coverage_report"
+      ],
+      "memory_keys": [
+        "test_results"
+      ]
+    },
+    {
+      "id": "review",
+      "name": "Code Review",
+      "agent": "code-review",
+      "action": "review",
+      "inputs": {
+        "implementation": "@memory:implementation_details",
+        "test_results": "@memory:test_results"
+      },
+      "outputs": [
+        "review_feedback",
+        "suggestions",
+        "approval_status"
+      ],
+      "memory_keys": [
+        "review_feedback"
+      ]
+    }
+  ],
+  "hooks": {
+    "preWorkflow": "echo 'Starting feature implementation workflow'",
+    "postStep": "echo 'Completed step: $STEP_ID'",
+    "postWorkflow": "echo 'Feature implementation complete'"
+  },
+  "error_handling": {
+    "retry_count": 2,
+    "fallback_agent": "orchestrator",
+    "notification": true
+  }
+}

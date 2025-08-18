@@ -1,0 +1,49 @@
+{
+  "id": "code-review",
+  "name": "Code Review",
+  "description": "Perform comprehensive code review",
+  "agent": "code-review",
+  "category": "quality",
+  "inputs": {
+    "files": {
+      "type": "array",
+      "description": "Files to review",
+      "required": true
+    },
+    "review_type": {
+      "type": "string",
+      "description": "Type of review (security, performance, quality, all)",
+      "default": "all"
+    },
+    "severity_threshold": {
+      "type": "string",
+      "description": "Minimum severity to report (info, warning, error, critical)",
+      "default": "info"
+    }
+  },
+  "outputs": {
+    "issues": {
+      "type": "array",
+      "description": "List of issues found with severity and suggestions"
+    },
+    "metrics": {
+      "type": "object",
+      "description": "Code quality metrics"
+    },
+    "suggestions": {
+      "type": "array",
+      "description": "Improvement suggestions"
+    },
+    "approval_status": {
+      "type": "string",
+      "description": "Review approval status (approved, needs-changes, rejected)"
+    }
+  },
+  "instructions": "Review {files} focusing on {review_type}. Check for code quality, potential bugs, security issues, performance problems, and adherence to project conventions. Report issues above {severity_threshold} severity.",
+  "memory_keys": [
+    "review_results",
+    "review_issues",
+    "review_suggestions"
+  ],
+  "estimated_time": "15-30 minutes"
+}

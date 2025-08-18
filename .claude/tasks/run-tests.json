@@ -1,0 +1,49 @@
+{
+  "id": "run-tests",
+  "name": "Execute Tests",
+  "description": "Run test suites and validate functionality",
+  "agent": "e2e-tester",
+  "category": "testing",
+  "inputs": {
+    "test_scope": {
+      "type": "string",
+      "description": "Scope of tests to run (unit, integration, e2e, all)",
+      "default": "all"
+    },
+    "target": {
+      "type": "string",
+      "description": "Specific module or feature to test",
+      "required": false
+    },
+    "coverage": {
+      "type": "boolean",
+      "description": "Include coverage report",
+      "default": true
+    }
+  },
+  "outputs": {
+    "results": {
+      "type": "object",
+      "description": "Test execution results"
+    },
+    "coverage_report": {
+      "type": "object",
+      "description": "Code coverage metrics"
+    },
+    "failed_tests": {
+      "type": "array",
+      "description": "List of failed tests with error details"
+    },
+    "screenshots": {
+      "type": "array",
+      "description": "Screenshots from e2e tests"
+    }
+  },
+  "instructions": "Execute {test_scope} tests for {target}. Use Puppeteer for e2e tests, pytest for API tests, and vitest for frontend tests. Capture screenshots of any failures. Generate coverage report if requested.",
+  "memory_keys": [
+    "test_results",
+    "test_coverage",
+    "test_screenshots"
+  ],
+  "estimated_time": "10-20 minutes"
+}

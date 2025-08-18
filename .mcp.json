@@ -5,8 +5,8 @@
       "args": ["mcp-memory-service"],
       "env": {
         "MCP_MEMORY_STORAGE_BACKEND": "sqlite_vec",
-        "MCP_MEMORY_SQLITE_PATH": ".claude/memory/team_memory.db",
-        "MCP_MEMORY_BACKUPS_PATH": ".claude/memory-backup/"
+        "MCP_MEMORY_SQLITE_PATH": "/Users/dylan/Workspace/projects/atspro/.claude/memory/team_memory.db",
+        "MCP_MEMORY_BACKUPS_PATH": "/Users/dylan/Workspace/projects/atspro/.claude/memory-backup/"
       }
     },
     "sequential-thinking": {

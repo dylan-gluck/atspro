@@ -1,0 +1,63 @@
+{
+  "id": "bug-fix",
+  "name": "Bug Investigation and Fix",
+  "description": "Investigates, fixes, and tests bug reports",
+  "version": "1.0.0",
+  "steps": [
+    {
+      "id": "investigate",
+      "name": "Bug Investigation",
+      "agent": "fullstack-eng",
+      "action": "debug",
+      "inputs": {
+        "bug_report": "$BUG_DESCRIPTION",
+        "logs": "$ERROR_LOGS"
+      },
+      "outputs": [
+        "root_cause",
+        "affected_files",
+        "reproduction_steps"
+      ],
+      "memory_keys": [
+        "bug_analysis"
+      ]
+    },
+    {
+      "id": "fix",
+      "name": "Implement Fix",
+      "agent": "fullstack-eng",
+      "action": "fix",
+      "inputs": {
+        "analysis": "@memory:bug_analysis"
+      },
+      "outputs": [
+        "fix_implementation",
+        "updated_tests"
+      ],
+      "memory_keys": [
+        "bug_fix"
+      ]
+    },
+    {
+      "id": "verify",
+      "name": "Verify Fix",
+      "agent": "e2e-tester",
+      "action": "verify",
+      "inputs": {
+        "fix": "@memory:bug_fix",
+        "reproduction_steps": "@memory:bug_analysis.reproduction_steps"
+      },
+      "outputs": [
+        "verification_results",
+        "regression_test_results"
+      ],
+      "memory_keys": [
+        "verification"
+      ]
+    }
+  ],
+  "hooks": {
+    "preWorkflow": "echo 'Starting bug fix workflow'",
+    "postWorkflow": "echo 'Bug fix complete'"
+  }
+}

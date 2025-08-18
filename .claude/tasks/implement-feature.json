@@ -1,0 +1,44 @@
+{
+  "id": "implement-feature",
+  "name": "Implement Feature",
+  "description": "Implement a complete feature based on specifications",
+  "agent": "fullstack-eng",
+  "category": "implementation",
+  "inputs": {
+    "specification": {
+      "type": "object",
+      "description": "Feature specification with requirements",
+      "required": true
+    },
+    "dependencies": {
+      "type": "array",
+      "description": "Required dependencies",
+      "default": []
+    },
+    "test_requirements": {
+      "type": "boolean",
+      "description": "Include test implementation",
+      "default": true
+    }
+  },
+  "outputs": {
+    "implementation": {
+      "type": "object",
+      "description": "Code changes and new files"
+    },
+    "tests": {
+      "type": "array",
+      "description": "Test files created or modified"
+    },
+    "documentation": {
+      "type": "string",
+      "description": "Implementation documentation"
+    }
+  },
+  "instructions": "Implement the feature according to {specification}. Follow existing code patterns, add appropriate error handling, and ensure type safety. If test_requirements is true, include comprehensive tests.",
+  "memory_keys": [
+    "feature_implementation",
+    "feature_tests"
+  ],
+  "estimated_time": "30-60 minutes"
+}
