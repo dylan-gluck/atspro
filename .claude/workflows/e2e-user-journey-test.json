@@ -1,0 +1,231 @@
+{
+  "name": "e2e-user-journey-test",
+  "description": "End-to-end test workflow for post-onboarding user journey covering login, resume editing, job management, and settings",
+  "version": "1.0.0",
+  "agent": "e2e-tester",
+  "inputs": {
+    "test_data_file": ".test-data/user-data.json",
+    "base_url": "http://localhost:3000",
+    "api_url": "http://localhost:8000"
+  },
+  "outputs": {
+    "test_report": "docs/tests/e2e-user-journey-test-{timestamp}.md",
+    "screenshots": "docs/tests/screenshots/", 
+    "test_results": "test_results",
+    "summary_file": "docs/tests/e2e-summary-{timestamp}.json"
+  },
+  "steps": [
+    {
+      "id": "setup",
+      "name": "Test Environment Setup",
+      "description": "Verify application is running and load test data",
+      "agent": "e2e-tester",
+      "inputs": {
+        "verify_services": ["web", "api", "postgres", "arangodb", "redis"],
+        "test_data": "{test_data_file}"
+      },
+      "outputs": ["environment_status", "test_user_credentials"]
+    },
+    {
+      "id": "login_flow",
+      "name": "User Authentication Flow",
+      "description": "Test user login and navigation to dashboard",
+      "agent": "e2e-tester",
+      "depends_on": ["setup"],
+      "test_scenarios": [
+        {
+          "name": "successful_login",
+          "steps": [
+            "Navigate to sign-in page",
+            "Enter test user credentials",
+            "Submit login form",
+            "Verify redirect to dashboard",
+            "Take screenshot of dashboard"
+          ]
+        }
+      ],
+      "assertions": [
+        "User is successfully authenticated",
+        "Dashboard displays user data",
+        "Navigation menu is accessible"
+      ]
+    },
+    {
+      "id": "resume_editing",
+      "name": "Resume Edit and Persistence Test",
+      "description": "Test resume editing functionality and data persistence",
+      "agent": "e2e-tester",
+      "depends_on": ["login_flow"],
+      "test_scenarios": [
+        {
+          "name": "edit_resume_content",
+          "steps": [
+            "Navigate to resume edit page",
+            "Modify contact information",
+            "Add new work experience entry",
+            "Update skills list",
+            "Save changes",
+            "Verify success notification",
+            "Refresh page",
+            "Verify changes persisted"
+          ]
+        },
+        {
+          "name": "auto_save_functionality",
+          "steps": [
+            "Make small text changes",
+            "Wait for auto-save (3 seconds)",
+            "Verify auto-save notification",
+            "Navigate away and back",
+            "Verify auto-saved changes persisted"
+          ]
+        }
+      ],
+      "assertions": [
+        "Resume edits are saved successfully",
+        "Data persists after page refresh",
+        "Auto-save functionality works",
+        "No data loss occurs"
+      ]
+    },
+    {
+      "id": "job_management",
+      "name": "Job URL Addition and Management Test",
+      "description": "Test adding jobs from URLs and job list functionality",
+      "agent": "e2e-tester",
+      "depends_on": ["login_flow"],
+      "test_scenarios": [
+        {
+          "name": "add_job_from_url",
+          "steps": [
+            "Navigate to job creation/import page",
+            "Enter test job URL from test data",
+            "Submit URL for processing",
+            "Verify job parsing/creation",
+            "Check job appears in job list",
+            "Navigate to job details page",
+            "Verify job data is correctly displayed"
+          ]
+        },
+        {
+          "name": "job_list_functionality",
+          "steps": [
+            "Navigate to jobs list page",
+            "Verify job appears in list",
+            "Test job filtering/sorting",
+            "Click on job to view details",
+            "Verify navigation to job detail page"
+          ]
+        }
+      ],
+      "assertions": [
+        "Job is successfully added from URL",
+        "Job appears in job list",
+        "Job details are accessible",
+        "Job data is correctly parsed and displayed"
+      ]
+    },
+    {
+      "id": "settings_management",
+      "name": "Settings Update and Persistence Test",
+      "description": "Test user settings updates and data persistence",
+      "agent": "e2e-tester",
+      "depends_on": ["login_flow"],
+      "test_scenarios": [
+        {
+          "name": "update_profile_settings",
+          "steps": [
+            "Navigate to settings page",
+            "Update profile information (name, phone, location)",
+            "Update notification preferences",
+            "Save settings",
+            "Verify success notification",
+            "Navigate away and back to settings",
+            "Verify settings persisted"
+          ]
+        },
+        {
+          "name": "account_settings",
+          "steps": [
+            "Update account preferences",
+            "Save changes",
+            "Verify persistence across sessions"
+          ]
+        }
+      ],
+      "assertions": [
+        "Settings are updated successfully",
+        "Changes persist after navigation",
+        "All setting categories work correctly"
+      ]
+    },
+    {
+      "id": "integration_validation",
+      "name": "Cross-Feature Integration Validation",
+      "description": "Validate that all features work together seamlessly",
+      "agent": "e2e-tester",
+      "depends_on": ["resume_editing", "job_management", "settings_management"],
+      "test_scenarios": [
+        {
+          "name": "full_user_journey",
+          "steps": [
+            "Complete full user workflow end-to-end",
+            "Verify data consistency across features",
+            "Test navigation between all major pages",
+            "Verify responsive design works",
+            "Test error handling scenarios"
+          ]
+        }
+      ],
+      "assertions": [
+        "All features integrate seamlessly",
+        "Data consistency is maintained",
+        "Navigation works correctly",
+        "Error handling is robust"
+      ]
+    },
+    {
+      "id": "report_generation",
+      "name": "Generate and Save Test Report",
+      "description": "Generate comprehensive test report and save to docs/tests/ directory",
+      "agent": "e2e-tester",
+      "depends_on": ["integration_validation"],
+      "test_scenarios": [
+        {
+          "name": "generate_report",
+          "steps": [
+            "Compile all test results and observations",
+            "Include screenshots and performance data",
+            "Generate detailed failure analysis",
+            "Create actionable recommendations",
+            "Save report to docs/tests/e2e-user-journey-test-{timestamp}.md",
+            "Update workflow status and summary"
+          ]
+        }
+      ],
+      "outputs": {
+        "report_file": "docs/tests/e2e-user-journey-test-{timestamp}.md",
+        "summary": "test_execution_summary",
+        "recommendations": "prioritized_action_items"
+      },
+      "assertions": [
+        "Test report is comprehensive and actionable",
+        "All findings are properly documented", 
+        "Report is saved successfully to docs/tests/",
+        "Recommendations are prioritized by impact"
+      ]
+    }
+  ],
+  "error_handling": {
+    "screenshot_on_failure": true,
+    "log_capture": true,
+    "retry_count": 2,
+    "timeout_per_step": 30000
+  },
+  "reporting": {
+    "format": "markdown",
+    "include_screenshots": true,
+    "include_performance_metrics": true,
+    "include_error_details": true
+  }
+}

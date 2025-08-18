@@ -2,7 +2,8 @@
   "id": "feature-implementation",
   "name": "Full Stack Feature Implementation",
   "description": "Implements a complete feature across frontend and backend with testing",
-  "version": "1.0.0",
+  "version": "2.0.0",
+  "context_system": "json",
   "steps": [
     {
       "id": "research",
@@ -19,9 +20,22 @@
         "api_contracts",
         "ui_mockups"
       ],
-      "memory_keys": [
+      "context_keys": [
         "feature_spec",
-        "dependencies"
+        "dependencies",
+        "api_contracts"
+      ],
+      "context_operations": [
+        {
+          "action": "store",
+          "key": "feature_spec",
+          "source": "research_output.technical_spec"
+        },
+        {
+          "action": "store", 
+          "key": "dependencies",
+          "source": "research_output.dependencies"
+        }
       ]
     },
     {
@@ -30,17 +44,29 @@
       "agent": "fullstack-eng",
       "action": "implement",
       "inputs": {
-        "spec": "@memory:feature_spec",
-        "dependencies": "@memory:dependencies"
+        "spec": "@context:feature_spec",
+        "dependencies": "@context:dependencies"
       },
       "outputs": [
         "backend_code",
         "frontend_code",
         "migration_scripts"
       ],
-      "memory_keys": [
+      "context_keys": [
         "implementation_details",
         "api_endpoints"
+      ],
+      "context_operations": [
+        {
+          "action": "store",
+          "key": "implementation_details",
+          "source": "agent_results.summary"
+        },
+        {
+          "action": "store",
+          "key": "api_endpoints", 
+          "source": "implementation_output.api_endpoints"
+        }
       ]
     },
     {
@@ -49,16 +75,23 @@
       "agent": "e2e-tester",
       "action": "test",
       "inputs": {
-        "implementation": "@memory:implementation_details",
-        "endpoints": "@memory:api_endpoints"
+        "implementation": "@context:implementation_details",
+        "endpoints": "@context:api_endpoints"
       },
       "outputs": [
         "test_results",
         "screenshots",
         "coverage_report"
       ],
-      "memory_keys": [
+      "context_keys": [
         "test_results"
+      ],
+      "context_operations": [
+        {
+          "action": "store",
+          "key": "test_results",
+          "source": "agent_results.findings"
+        }
       ]
     },
     {
@@ -67,27 +100,61 @@
       "agent": "code-review",
       "action": "review",
       "inputs": {
-        "implementation": "@memory:implementation_details",
-        "test_results": "@memory:test_results"
+        "implementation": "@context:implementation_details",
+        "test_results": "@context:test_results"
       },
       "outputs": [
         "review_feedback",
         "suggestions",
         "approval_status"
       ],
-      "memory_keys": [
+      "context_keys": [
         "review_feedback"
+      ],
+      "context_operations": [
+        {
+          "action": "store",
+          "key": "review_feedback",
+          "source": "agent_results.findings"
+        }
       ]
     }
   ],
   "hooks": {
-    "preWorkflow": "echo 'Starting feature implementation workflow'",
-    "postStep": "echo 'Completed step: $STEP_ID'",
-    "postWorkflow": "echo 'Feature implementation complete'"
+    "preWorkflow": "source .claude/lib/context.sh && start_workflow feature-implementation 'Full Stack Feature Implementation' 4",
+    "postStep": "source .claude/lib/context.sh && increment_metric workflowSteps 1",
+    "postWorkflow": "source .claude/lib/context.sh && update_workflow feature-implementation completed 4"
   },
   "error_handling": {
     "retry_count": 2,
     "fallback_agent": "fullstack-eng",
-    "notification": true
+    "notification": true,
+    "error_context": true
+  },
+  "context_schema": {
+    "feature_spec": {
+      "type": "object",
+      "description": "Technical specification from research phase"
+    },
+    "dependencies": {
+      "type": "array",
+      "description": "Required dependencies and libraries"
+    },
+    "implementation_details": {
+      "type": "string", 
+      "description": "Summary of implementation work completed"
+    },
+    "api_endpoints": {
+      "type": "array",
+      "description": "List of API endpoints created/modified"
+    },
+    "test_results": {
+      "type": "array",
+      "description": "Test results and coverage data"
+    },
+    "review_feedback": {
+      "type": "array",
+      "description": "Code review findings and suggestions"
+    }
   }
 }

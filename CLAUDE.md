@@ -177,7 +177,7 @@ pnpm build       # Build all apps
 
 ## Multi-Agent Orchestration
 
-This project uses Claude Code's multi-agent orchestration framework for complex development tasks. **The main Claude Code session acts as the orchestrator**, coordinating specialized agents and workflows.
+This project uses Claude Code's **enhanced multi-agent orchestration framework** with a custom JSON-based context system for complex development tasks. **The main Claude Code session acts as the orchestrator**, coordinating specialized agents and workflows through structured JSON communication.
 
 ### Orchestration Commands
 
@@ -203,41 +203,74 @@ This project uses Claude Code's multi-agent orchestration framework for complex 
 # Manage workflows
 /workflow list
 /workflow execute feature-implementation
+
+# NEW: Context management
+/context status
+/context agents
+/context workflows
 ```
 
-### Memory Integration
+### JSON Context System
 
-All agents use memory MCP tools for persistent context:
-- `mcp__memory__store` - Store workflow data and context
-- `mcp__memory__get` - Retrieve stored information
-- `mcp__memory__list` - List available memory keys
-- `mcp__memory__track_progress` - Track workflow progress
-- `mcp__memory__log_decision` - Log important decisions
+**NEW**: Custom JSON-based agent coordination replacing MCP memory tools:
+
+```bash
+# Context operations using jq
+source .claude/lib/context.sh
+
+# Agent lifecycle automatically tracked
+update_agent "agent_id" "fullstack-eng" "completed" "task"
+
+# Cross-agent communication via shared context
+update_workflow_context "workflow_id" "api_endpoints" "$ENDPOINTS_JSON"
+get_workflow_context "workflow_id"
+
+# Rich results storage
+add_agent_results "agent_id" "Summary" '[{"type": "improvement", "severity": "medium"}]'
+
+# Metrics tracking
+increment_metric "linesAnalyzed" 1500
+```
 
 ### Agent Coordination
 
 As the orchestrator, the main Claude Code session:
 1. **Launches specialized agents** using the Task tool
 2. **Manages workflows** from `.claude/workflows/`
-3. **Stores context** in memory for agent communication
-4. **Aggregates results** from parallel agent execution
-5. **Tracks progress** across multi-step operations
+3. **Tracks agent lifecycle** in JSON context system
+4. **Facilitates cross-agent communication** via shared context
+5. **Aggregates results** with structured findings and metadata
+6. **Monitors progress** with real-time metrics
 
 ### Available Specialized Agents
 
 - **fullstack-eng** - Full stack implementation across frontend/backend
 - **doc-expert** - Documentation research and compilation
 - **code-review** - Code quality analysis and security review
-- **e2e-tester** - End-to-end testing with Puppeteer
+- **e2e-tester** - End-to-end testing with Playwright
 - **frontend-eng/ux-eng** - UI/UX implementation with React/shadcn
 - **log-monitor** - Docker log monitoring and analysis
 
 ### Workflow Templates
 
-Predefined workflows in `.claude/workflows/`:
-- **feature-implementation.json** - Complete feature development cycle
+Enhanced workflows in `.claude/workflows/` with JSON context operations:
+- **feature-implementation.json** - Complete feature development cycle with context sharing
 - **bug-fix.json** - Bug investigation and resolution
 - **codebase-analysis.json** - Comprehensive parallel code analysis
+- **e2e-user-journey-test.json** - End-to-end testing workflows
+
+### Context System Architecture
+
+```
+.claude/
+├── context/         # JSON context system
+│   ├── context.json # Session state, agents, workflows
+│   └── schema.json  # JSON schema definitions
+├── lib/             # Context management functions
+│   └── context.sh   # jq-based operations
+├── hooks/          # Automated tracking via hooks
+└── workflows/      # Enhanced workflow templates
+```
 
 ## Important Notes
 
@@ -246,5 +279,6 @@ Predefined workflows in `.claude/workflows/`:
 - Python code must maintain 100% test coverage
 - All commits must pass linting and type checking
 - Use appropriate package managers: `uv` for Python, `pnpm` for Node.js
-- Memory MCP server stores persistent context in `.claude/memory/`
+- **JSON context system** stores structured agent communication in `.claude/context/`
 - Always use orchestration commands for complex multi-step tasks
+- Context system provides rich agent coordination and progress tracking

@@ -24,11 +24,11 @@
         ]
       },
       {
-        "matcher": "mcp__memory__(store|track_progress|log_decision)",
+        "matcher": "TodoWrite",
         "hooks": [
           {
             "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/pre-memory-operation.sh",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/pre-workflow-operation.sh",
             "timeout": 2000
           }
         ]
@@ -46,11 +46,11 @@
         ]
       },
       {
-        "matcher": "mcp__memory__(store|track_progress|log_decision)",
+        "matcher": "TodoWrite",
         "hooks": [
           {
             "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/post-memory-operation.sh",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/post-workflow-operation.sh",
             "timeout": 3000
           }
         ]

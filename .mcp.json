@@ -1,15 +1,5 @@
 {
   "mcpServers": {
-    "memory": {
-      "command": "npx",
-      "args": [
-        "@movibe/memory-bank-mcp",
-        "--mode",
-        "code",
-        "--memory-path",
-        "/Users/dylan/Workspace/projects/atspro/.claude/memory"
-      ]
-    },
     "sequential-thinking": {
       "type": "stdio",
       "command": "npx",
