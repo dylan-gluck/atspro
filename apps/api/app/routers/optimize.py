@@ -4,10 +4,14 @@ from fastapi import APIRouter, Depends, Header, HTTPException
 from pydantic import BaseModel
 
 from ..logger.logger import logger
-from ..schema.responses import ApiResponse, TaskData
+from ..schema.responses import (
+    ApiResponse,
+    OptimizationApiResponse,
+    ScoringApiResponse,
+    ResearchApiResponse,
+)
 from ..services.optimization_service import OptimizationService
-from ..services.task_service import TaskService
-from ..dependencies import get_current_user, get_task_service
+from ..dependencies import get_current_user
 
 router = APIRouter()
 
@@ -28,10 +32,7 @@ class ResearchRequest(BaseModel):
     job_id: str
 
 
-# Legacy TaskResponse for backward compatibility - use ApiResponse for new endpoints
-class TaskResponse(BaseModel):
-    success: bool
-    data: dict
+# Legacy TaskResponse removed - all endpoints now use ApiResponse with specific models
 
 
 # Auth and service dependencies are now imported from dependencies module
@@ -40,15 +41,15 @@ class TaskResponse(BaseModel):
 # Service dependencies
 async def get_optimization_service():
     """Get optimization service instance"""
-    task_service = await get_task_service()
+    from ..database.connections import get_arango_client
+    
+    # Get ArangoDB directly
+    arango_db = get_arango_client()
 
-    # Get ArangoDB from the task service
-    arango_db = task_service.arango_db
-
-    return OptimizationService(arango_db, task_service)
+    return OptimizationService(arango_db, None)
 
 
-@router.post("/optimize", response_model=ApiResponse[dict])
+@router.post("/optimize", response_model=ApiResponse[dict])  # TODO: Update to OptimizationApiResponse when converted to sync
 async def optimize_resume(
     request: OptimizeRequest,
     current_user=Depends(get_current_user),
@@ -89,7 +90,7 @@ async def optimize_resume(
         raise HTTPException(status_code=500, detail="Error creating optimization task")
 
 
-@router.post("/score", response_model=ApiResponse[dict])
+@router.post("/score", response_model=ApiResponse[dict])  # TODO: Update to ScoringApiResponse when converted to sync
 async def score_resume(
     request: ScoreRequest,
     current_user=Depends(get_current_user),
@@ -130,7 +131,7 @@ async def score_resume(
         raise HTTPException(status_code=500, detail="Error creating scoring task")
 
 
-@router.post("/research", response_model=ApiResponse[dict])
+@router.post("/research", response_model=ApiResponse[dict])  # TODO: Update to ResearchApiResponse when converted to sync
 async def research_company(
     request: ResearchRequest,
     current_user=Depends(get_current_user),

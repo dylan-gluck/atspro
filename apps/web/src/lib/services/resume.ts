@@ -98,99 +98,9 @@ export class ResumeServiceImpl extends BaseServiceImpl implements ResumeService 
     return response;
   }
 
-  // Task status polling
-  async getTaskStatus(taskId: string): Promise<ApiResponse<{
-    id: string;
-    status: string;
-    progress: number;
-    created_at: string;
-    started_at?: string;
-    completed_at?: string;
-    task_type: string;
-    user_id: string;
-    priority: number;
-    error_message?: string;
-    result_id?: string;
-    estimated_duration_ms?: number;
-    max_retries: number;
-    retry_count: number;
-  }>> {
-    return this.apiClient.get(`/api/tasks/${taskId}`);
-  }
-
-  async getTaskResult(taskId: string): Promise<ApiResponse<any>> {
-    return this.apiClient.get(`/api/tasks/${taskId}/result`);
-  }
-
-  async pollTaskUntilComplete(
-    taskId: string, 
-    onProgress?: (progress: number, status: string) => void,
-    maxWaitTime: number = 300000 // 5 minutes default
-  ): Promise<ApiResponse<any>> {
-    const startTime = Date.now();
-    const pollInterval = 1000; // Poll every second
-
-    while (Date.now() - startTime < maxWaitTime) {
-      try {
-        const statusResponse = await this.getTaskStatus(taskId);
-        
-        if (!statusResponse.success) {
-          return {
-            data: null,
-            success: false,
-            message: statusResponse.message || 'Failed to get task status',
-            errors: statusResponse.errors || ['Failed to get task status']
-          };
-        }
-
-        const task = statusResponse.data;
-        
-        // Call progress callback if provided
-        if (onProgress) {
-          onProgress(task.progress, task.status);
-        }
-
-        // Check if task is complete
-        if (task.status === 'completed') {
-          // Get the result
-          const resultResponse = await this.getTaskResult(taskId);
-          return resultResponse;
-        } else if (task.status === 'failed') {
-          return {
-            data: null,
-            success: false,
-            message: task.error_message || 'Task failed',
-            errors: [task.error_message || 'Task failed']
-          };
-        } else if (task.status === 'cancelled') {
-          return {
-            data: null,
-            success: false,
-            message: 'Task was cancelled',
-            errors: ['Task was cancelled']
-          };
-        }
-
-        // Wait before next poll
-        await new Promise(resolve => setTimeout(resolve, pollInterval));
-        
-      } catch (error) {
-        console.error('Error polling task status:', error);
-        await new Promise(resolve => setTimeout(resolve, pollInterval));
-      }
-    }
-
-    // Timeout reached
-    return {
-      data: null,
-      success: false,
-      message: 'Task polling timeout reached',
-      errors: ['Task polling timeout reached']
-    };
-  }
 
   // File Operations
-  async parseResume(file: File): Promise<ApiResponse<{ task_id: string; resume_id: string }>> {
+  async parseResume(file: File): Promise<ApiResponse<ResumeVersion>> {
     // Validate file type
     const allowedTypes = [
       'application/pdf',
@@ -202,7 +112,7 @@ export class ResumeServiceImpl extends BaseServiceImpl implements ResumeService 
     
     if (!allowedTypes.includes(file.type)) {
       return {
-        data: null as unknown as { task_id: string; resume_id: string },
+        data: null as unknown as ResumeVersion,
         success: false,
         message: 'Invalid file type. Please upload a PDF, DOC, DOCX, TXT, or MD file.',
         errors: ['Invalid file type']
@@ -213,7 +123,7 @@ export class ResumeServiceImpl extends BaseServiceImpl implements ResumeService 
     const maxSize = 10 * 1024 * 1024; // 10MB
     if (file.size > maxSize) {
       return {
-        data: null as unknown as { task_id: string; resume_id: string },
+        data: null as unknown as ResumeVersion,
         success: false,
         message: 'File size too large. Maximum size is 10MB.',
         errors: ['File size too large']
@@ -224,7 +134,7 @@ export class ResumeServiceImpl extends BaseServiceImpl implements ResumeService 
     const userResponse = await this.authService.getCurrentUser();
     if (!userResponse.success || !userResponse.data) {
       return {
-        data: null as unknown as { task_id: string; resume_id: string },
+        data: null as unknown as ResumeVersion,
         success: false,
         message: 'User not authenticated',
         errors: ['User not authenticated']
@@ -232,10 +142,11 @@ export class ResumeServiceImpl extends BaseServiceImpl implements ResumeService 
     }
 
     const userId = userResponse.data.id;
-    const response = await this.apiClient.upload<{ task_id: string; resume_id: string }>('/api/parse', file, {
+    const response = await this.apiClient.upload<ResumeVersion>('/api/parse', file, {
       headers: {
         'X-User-Id': userId
-      }
+      },
+      timeout: 120000 // 2 minute timeout
     });
     
     if (response.success) {
@@ -408,10 +319,10 @@ export class ResumeServiceImpl extends BaseServiceImpl implements ResumeService 
   }
 
   // Manual Resume Creation
-  async createManualResume(resumeData: Resume): Promise<ApiResponse<{ resume_id: string; status: string }>> {
+  async createManualResume(resumeData: Resume): Promise<ApiResponse<ResumeVersion>> {
     if (!resumeData) {
       return {
-        data: null as unknown as { resume_id: string; status: string },
+        data: null as unknown as ResumeVersion,
         success: false,
         message: 'Resume data is required',
         errors: ['Resume data is required']
@@ -422,14 +333,16 @@ export class ResumeServiceImpl extends BaseServiceImpl implements ResumeService 
     const userResponse = await this.authService.getCurrentUser();
     if (!userResponse.success || !userResponse.data) {
       return {
-        data: null as unknown as { resume_id: string; status: string },
+        data: null as unknown as ResumeVersion,
         success: false,
         message: 'User not authenticated',
         errors: ['User not authenticated']
       };
     }
 
-    const response = await this.apiClient.post<{ resume_id: string; status: string }>('/api/resume/manual', resumeData);
+    const response = await this.apiClient.post<ResumeVersion>('/api/resume/manual', resumeData, {
+      timeout: 60000 // 1 minute timeout for manual creation
+    });
     
     if (response.success) {
       // Clear resume caches since we have new content

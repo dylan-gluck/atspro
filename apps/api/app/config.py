@@ -14,9 +14,6 @@ class Settings(BaseSettings):
         default="postgresql://atspro_user:atspro_password@localhost:5432/atspro",
         description="PostgreSQL database URL",
     )
-    redis_url: str = Field(
-        default="redis://localhost:6379", description="Redis connection URL"
-    )
     arango_url: str = Field(
         default="http://localhost:8529", description="ArangoDB connection URL"
     )
@@ -38,29 +35,6 @@ class Settings(BaseSettings):
     max_retries: int = Field(default=3, description="Default maximum retry attempts")
     result_ttl_hours: int = Field(default=24, description="Task result TTL in hours")
 
-    # Queue settings
-    redis_queue_prefix: str = Field(
-        default="atspro", description="Redis queue key prefix"
-    )
-    high_priority_workers: int = Field(
-        default=2, description="Number of high priority workers"
-    )
-    normal_priority_workers: int = Field(
-        default=3, description="Number of normal priority workers"
-    )
-    low_priority_workers: int = Field(
-        default=1, description="Number of low priority workers"
-    )
-
-    # Task cleanup
-    cleanup_interval_seconds: int = Field(
-        default=300, description="Cleanup task interval in seconds"
-    )
-
-    # Health monitoring
-    health_check_interval_seconds: int = Field(
-        default=30, description="Worker health check interval in seconds"
-    )
 
     # API settings
     cors_origins: list[str] = Field(

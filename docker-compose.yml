@@ -32,35 +32,6 @@ services:
       start_period: 60s
     restart: unless-stopped
 
-  # Redis Cache
-  redis:
-    image: redis:7-alpine
-    container_name: atspro-redis
-    environment:
-      REDIS_PASSWORD: ${REDIS_PASSWORD:-dev_redis_password_change_in_prod}
-    command: >
-      --requirepass ${REDIS_PASSWORD:-dev_redis_password_change_in_prod}
-      --appendonly yes
-      --save 900 1
-      --save 300 10
-      --save 60 10000
-      --maxclients 1000
-      --tcp-keepalive 60
-      --timeout 300
-    volumes:
-      - redis_data:/data
-    ports:
-      - "6379:6379"
-    networks:
-      - atspro-network
-    healthcheck:
-      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 30s
-    restart: unless-stopped
-
   # ArangoDB Document Database
   arangodb:
     image: arangodb:3.11
@@ -91,7 +62,6 @@ services:
     environment:
       - NODE_ENV=production
       - DATABASE_URL=postgresql://atspro_user:${POSTGRES_PASSWORD:-dev_password_change_in_prod}@postgres:5432/atspro
-      - REDIS_URL=redis://:${REDIS_PASSWORD:-dev_redis_password_change_in_prod}@redis:6379
       - ARANGO_URL=http://arangodb:8529
       - ARANGO_DATABASE=atspro
       - ARANGO_USERNAME=atspro_user
@@ -102,8 +72,6 @@ services:
       - "8000:8000"
     depends_on:
       postgres:
-        condition: service_healthy
-      redis:
         condition: service_healthy
       arangodb:
         condition: service_healthy
@@ -148,8 +116,6 @@ services:
 
 volumes:
   postgres_data:
-    driver: local
-  redis_data:
     driver: local
   arangodb_data:
     driver: local

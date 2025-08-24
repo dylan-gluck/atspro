@@ -29,40 +29,24 @@ export default function OnboardingPage() {
     setError(null);
 
     try {
-      // Stage 1: Uploading
+      // Stage 1: Uploading and parsing
       setProcessingStage('uploading');
       setProgress(10);
       
-      // Upload file and get task ID
+      // Upload file and parse directly (synchronous response)
       const parseResponse = await services.resumeService.parseResume(file);
       
       if (!parseResponse.success) {
         throw new Error(parseResponse.message || 'Failed to parse resume. Please check your file and try again.');
       }
 
-      const { task_id, resume_id } = parseResponse.data;
+      // Extract resume ID from the ResumeVersion response
+      const resumeVersion = parseResponse.data;
+      const resume_id = resumeVersion.id;
       
-      // Stage 2: Parsing the resume - poll task status
+      // Stage 2: Processing complete
       setProcessingStage('parsing');
-      setProgress(15);
-      
-      const taskResult = await services.resumeService.pollTaskUntilComplete(
-        task_id,
-        (taskProgress, status) => {
-          // Update UI based on actual task progress
-          if (status === 'running' || status === 'pending') {
-            setProcessingStage('parsing');
-          }
-          // Update progress from backend task (15-85% range for parsing)
-          const adjustedProgress = 15 + (taskProgress * 0.7); // Map 0-100% to 15-85%
-          setProgress(Math.round(adjustedProgress));
-        },
-        300000 // 5 minute timeout
-      );
-      
-      if (!taskResult.success) {
-        throw new Error(taskResult.message || 'Failed to process resume. Please try again.');
-      }
+      setProgress(70);
       
       // Stage 3: Updating profile
       setProcessingStage('updating');
@@ -126,14 +110,16 @@ export default function OnboardingPage() {
       setProcessingStage('uploading'); // Reuse existing stage for consistency
       setProgress(25);
 
-      // Create manual resume
+      // Create manual resume (synchronous response)
       const createResponse = await services.resumeService.createManualResume(resumeData);
       
       if (!createResponse.success) {
         throw new Error(createResponse.message || 'Failed to create resume. Please check your information and try again.');
       }
 
-      const { resume_id } = createResponse.data;
+      // Extract resume ID from the ResumeVersion response
+      const resumeVersion = createResponse.data;
+      const resume_id = resumeVersion.id;
       
       // Stage 2: Updating profile
       setProcessingStage('updating');

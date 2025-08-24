@@ -71,39 +71,6 @@ export class JobsServiceImpl extends BaseServiceImpl implements JobsService {
     });
   }
 
-  async createJobAsync(jobUrl: string): Promise<ApiResponse<{ task_id: string; job_id: string }>> {
-    if (!jobUrl) {
-      return {
-        data: null as unknown as { task_id: string; job_id: string },
-        success: false,
-        message: 'Job URL is required',
-        errors: ['Job URL is required']
-      };
-    }
-
-    // Basic URL validation
-    try {
-      new URL(jobUrl);
-    } catch {
-      return {
-        data: null as unknown as { task_id: string; job_id: string },
-        success: false,
-        message: 'Invalid URL format',
-        errors: ['Invalid URL format']
-      };
-    }
-
-    const response = await this.apiClient.post<{ task_id: string; job_id: string }>('/api/jobs', { job_url: jobUrl });
-    
-    if (response.success) {
-      // Clear job list caches
-      this.clearCachePattern('listJobs');
-      this.clearCachePattern('searchJobs');
-      this.clearCachePattern('filterJobs');
-    }
-    
-    return response;
-  }
 
   async createJob(jobUrl: string): Promise<ApiResponse<JobEntity>> {
     if (!jobUrl) {
@@ -115,25 +82,38 @@ export class JobsServiceImpl extends BaseServiceImpl implements JobsService {
       };
     }
 
-    // Use async method and poll for completion
-    const taskResponse = await this.createJobAsync(jobUrl);
-    if (!taskResponse.success) {
+    // Basic URL validation
+    try {
+      new URL(jobUrl);
+    } catch {
       return {
         data: null as unknown as JobEntity,
         success: false,
-        message: taskResponse.message || 'Failed to create job',
-        errors: taskResponse.errors || ['Failed to create job']
+        message: 'Invalid URL format',
+        errors: ['Invalid URL format']
       };
     }
 
-    // Poll task until complete
-    return this.pollTaskUntilComplete(taskResponse.data.task_id);
+    const response = await this.apiClient.post<JobEntity>('/api/jobs', 
+      { job_url: jobUrl }, 
+      { timeout: 120000 } // 2 minute timeout
+    );
+    
+    if (response.success) {
+      // Clear job list caches
+      this.clearCachePattern('listJobs');
+      this.clearCachePattern('searchJobs');
+      this.clearCachePattern('filterJobs');
+    }
+    
+    return response;
   }
 
-  async parseJobFromDocumentAsync(file: File): Promise<ApiResponse<{ task_id: string; job_id: string }>> {
+
+  async parseJobFromDocument(file: File): Promise<ApiResponse<JobEntity>> {
     if (!file) {
       return {
-        data: null as unknown as { task_id: string; job_id: string },
+        data: null as unknown as JobEntity,
         success: false,
         message: 'File is required',
         errors: ['File is required']
@@ -151,7 +131,7 @@ export class JobsServiceImpl extends BaseServiceImpl implements JobsService {
 
     if (!allowedTypes.includes(file.type)) {
       return {
-        data: null as unknown as { task_id: string; job_id: string },
+        data: null as unknown as JobEntity,
         success: false,
         message: 'Invalid file type. Only PDF, DOCX, DOC, TXT, and MD files are supported.',
         errors: ['Invalid file type']
@@ -162,14 +142,16 @@ export class JobsServiceImpl extends BaseServiceImpl implements JobsService {
     const maxSize = 10 * 1024 * 1024; // 10MB
     if (file.size > maxSize) {
       return {
-        data: null as unknown as { task_id: string; job_id: string },
+        data: null as unknown as JobEntity,
         success: false,
         message: 'File size too large. Maximum size is 10MB.',
         errors: ['File size too large']
       };
     }
 
-    const response = await this.apiClient.upload<{ task_id: string; job_id: string }>('/api/job/parse-document', file);
+    const response = await this.apiClient.upload<JobEntity>('/api/job/parse-document', file, {
+      timeout: 120000 // 2 minute timeout
+    });
     
     if (response.success) {
       // Clear job list caches
@@ -181,127 +163,6 @@ export class JobsServiceImpl extends BaseServiceImpl implements JobsService {
     return response;
   }
 
-  async parseJobFromDocument(file: File): Promise<ApiResponse<JobEntity>> {
-    if (!file) {
-      return {
-        data: null as unknown as JobEntity,
-        success: false,
-        message: 'File is required',
-        errors: ['File is required']
-      };
-    }
-
-    // Use async method and poll for completion
-    const taskResponse = await this.parseJobFromDocumentAsync(file);
-    if (!taskResponse.success) {
-      return {
-        data: null as unknown as JobEntity,
-        success: false,
-        message: taskResponse.message || 'Failed to parse job document',
-        errors: taskResponse.errors || ['Failed to parse job document']
-      };
-    }
-
-    // Poll task until complete
-    return this.pollTaskUntilComplete(taskResponse.data.task_id);
-  }
-
-  // Task status polling
-  async getTaskStatus(taskId: string): Promise<ApiResponse<{
-    id: string;
-    status: string;
-    progress: number;
-    created_at: string;
-    started_at?: string;
-    completed_at?: string;
-    task_type: string;
-    user_id: string;
-    priority: number;
-    error_message?: string;
-    result_id?: string;
-    estimated_duration_ms?: number;
-    max_retries: number;
-    retry_count: number;
-  }>> {
-    return this.apiClient.get(`/api/tasks/${taskId}`);
-  }
-
-  async getTaskResult(taskId: string): Promise<ApiResponse<JobEntity>> {
-    return this.apiClient.get(`/api/tasks/${taskId}/result`);
-  }
-
-  async pollTaskUntilComplete(
-    taskId: string, 
-    onProgress?: (progress: number, status: string) => void,
-    maxWaitTime: number = 300000 // 5 minutes default
-  ): Promise<ApiResponse<JobEntity>> {
-    const startTime = Date.now();
-    const pollInterval = 1000; // Poll every second
-
-    while (Date.now() - startTime < maxWaitTime) {
-      try {
-        const statusResponse = await this.getTaskStatus(taskId);
-        
-        if (!statusResponse.success) {
-          return {
-            data: null as unknown as JobEntity,
-            success: false,
-            message: statusResponse.message || 'Failed to get task status',
-            errors: statusResponse.errors || ['Failed to get task status']
-          };
-        }
-
-        const task = statusResponse.data;
-        
-        // Call progress callback if provided
-        if (onProgress) {
-          onProgress(task.progress, task.status);
-        }
-
-        // Check if task is complete
-        if (task.status === 'completed') {
-          // Get the result
-          const resultResponse = await this.getTaskResult(taskId);
-          if (resultResponse.success) {
-            // Clear job list caches since we have new content
-            this.clearCachePattern('listJobs');
-            this.clearCachePattern('searchJobs');
-            this.clearCachePattern('filterJobs');
-          }
-          return resultResponse;
-        } else if (task.status === 'failed') {
-          return {
-            data: null as unknown as JobEntity,
-            success: false,
-            message: task.error_message || 'Task failed',
-            errors: [task.error_message || 'Task failed']
-          };
-        } else if (task.status === 'cancelled') {
-          return {
-            data: null as unknown as JobEntity,
-            success: false,
-            message: 'Task was cancelled',
-            errors: ['Task was cancelled']
-          };
-        }
-
-        // Wait before next poll
-        await new Promise(resolve => setTimeout(resolve, pollInterval));
-        
-      } catch (error) {
-        console.error('Error polling task status:', error);
-        await new Promise(resolve => setTimeout(resolve, pollInterval));
-      }
-    }
-
-    // Timeout reached
-    return {
-      data: null as unknown as JobEntity,
-      success: false,
-      message: 'Task polling timeout reached',
-      errors: ['Task polling timeout reached']
-    };
-  }
 
   async updateJob(id: string, updates: Partial<JobEntity>): Promise<ApiResponse<JobEntity>> {
     if (!id) {

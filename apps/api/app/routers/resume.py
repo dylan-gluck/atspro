@@ -10,14 +10,22 @@ from fastapi import APIRouter, Depends, HTTPException
 from ..database.connections import get_arango_client
 from ..dependencies import get_current_user
 from ..schema.resume import Resume
-from ..schema.responses import ApiResponse
+from ..schema.responses import (
+    ApiResponse,
+    ResumeCreationApiResponse,
+    ResumeCreationResponse,
+    ResumeDataApiResponse,
+    ResumeDataResponse,
+    ResumeUpdateApiResponse,
+    ResumeUpdateResponse,
+)
 from ..services.resume_service import ResumeService
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
 
-@router.post("/resume/manual", response_model=ApiResponse[dict])
+@router.post("/resume/manual", response_model=ResumeCreationApiResponse)
 async def create_manual_resume(
     resume_data: Resume,
     current_user: dict = Depends(get_current_user),
@@ -96,7 +104,7 @@ async def create_manual_resume(
         )
 
 
-@router.get("/resume", response_model=ApiResponse[dict])
+@router.get("/resume", response_model=ResumeDataApiResponse)
 async def get_current_resume(
     current_user: dict = Depends(get_current_user),
 ):
@@ -170,7 +178,7 @@ async def get_current_resume(
         raise HTTPException(status_code=500, detail="Error retrieving resume")
 
 
-@router.put("/resume", response_model=ApiResponse[dict])
+@router.put("/resume", response_model=ResumeUpdateApiResponse)
 async def update_resume(
     resume_data: Resume,
     current_user: dict = Depends(get_current_user),

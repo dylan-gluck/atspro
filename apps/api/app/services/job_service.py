@@ -6,8 +6,7 @@ from typing import Dict, Any, Optional
 from uuid import uuid4
 from datetime import datetime
 
-from ..queue.redis_queue import TaskPriority
-from ..services.task_service import TaskService
+from ..database.connections import get_arango_client
 
 logger = logging.getLogger(__name__)
 
@@ -15,146 +14,13 @@ logger = logging.getLogger(__name__)
 class JobService:
     """Service layer for job-related operations."""
 
-    def __init__(self, task_service: TaskService):
-        """Initialize job service.
+    def __init__(self):
+        """Initialize job service."""
+        self.arango_db = get_arango_client()
 
-        Args:
-            task_service: Task service instance for queue operations
-        """
-        self.task_service = task_service
-
-    async def create_parse_task(
-        self,
-        user_id: str,
-        url: str,
-        job_id: str,
-        priority: TaskPriority = TaskPriority.NORMAL,
-    ) -> str:
-        """Create a job parsing task.
-
-        Args:
-            user_id: ID of user creating the task
-            url: URL to parse for job information
-            job_id: Pre-generated job ID for the result
-            priority: Task priority level
-
-        Returns:
-            Task ID
-
-        Raises:
-            ValueError: If URL is invalid
-            Exception: If task creation fails
-        """
-        # Validate URL
-        if not url or not url.startswith(("http://", "https://")):
-            raise ValueError("Invalid URL format")
-
-        # Create task payload
-        payload = {
-            "url": url,
-            "job_id": job_id,
-            "user_id": user_id,
-            "created_at": datetime.utcnow().isoformat(),
-        }
-
-        try:
-            # Submit task to queue
-            task_id = await self.task_service.create_task(
-                task_type="parse_job",
-                payload=payload,
-                user_id=user_id,
-                priority=priority,
-                max_retries=3,
-                estimated_duration_ms=30000,  # Estimate 30 seconds
-            )
-
-            # Create placeholder job document in ArangoDB
-            await self._create_job_placeholder(job_id, user_id, url)
-
-            logger.info(f"Created job parse task {task_id} for job {job_id}")
-            return task_id
-
-        except Exception as e:
-            logger.error(f"Error creating job parse task: {e}")
-            raise
-
-    async def create_document_parse_task(
-        self,
-        user_id: str,
-        file_content: bytes,
-        filename: str,
-        content_type: str,
-        job_id: str,
-        priority: TaskPriority = TaskPriority.NORMAL,
-    ) -> str:
-        """Create a job document parsing task.
-
-        Args:
-            user_id: ID of user creating the task
-            file_content: File content as bytes
-            filename: Original filename
-            content_type: MIME type of the file
-            job_id: Pre-generated job ID for the result
-            priority: Task priority level
-
-        Returns:
-            Task ID
-
-        Raises:
-            ValueError: If file data is invalid
-            Exception: If task creation fails
-        """
-        # Validate file content
-        if not file_content:
-            raise ValueError("Empty file content")
-
-        # Validate file size (10MB limit)
-        max_size = 10 * 1024 * 1024  # 10MB
-        if len(file_content) > max_size:
-            raise ValueError(
-                f"File too large. Maximum size: {max_size / (1024 * 1024):.1f}MB"
-            )
-
-        # Encode file content for task payload
-        file_data = {
-            "content": base64.b64encode(file_content).decode("utf-8"),
-            "filename": filename,
-            "content_type": content_type,
-            "size": len(file_content),
-        }
-
-        # Create task payload
-        payload = {
-            "job_id": job_id,
-            "user_id": user_id,
-            "file_data": file_data,
-            "created_at": datetime.utcnow().isoformat(),
-        }
-
-        try:
-            # Submit task to queue
-            task_id = await self.task_service.create_task(
-                task_type="parse_job_document",
-                payload=payload,
-                user_id=user_id,
-                priority=priority,
-                max_retries=3,
-                estimated_duration_ms=30000,  # Estimate 30 seconds
-            )
-
-            # Create placeholder job document in ArangoDB
-            await self._create_job_document_placeholder(job_id, user_id, filename)
-
-            logger.info(f"Created job document parse task {task_id} for job {job_id}")
-            return task_id
-
-        except Exception as e:
-            logger.error(f"Error creating job document parse task: {e}")
-            raise
 
     async def store_job_result(
         self,
-        task_id: str,
         job_id: str,
         job_data: Dict[str, Any],
         user_id: Optional[str] = None,
@@ -162,7 +28,6 @@ class JobService:
         """Store parsed job data in ArangoDB.
 
         Args:
-            task_id: Task ID that generated this result
             job_id: Job document ID
             job_data: Parsed job information
             user_id: User ID for ownership
@@ -174,7 +39,6 @@ class JobService:
             # Prepare job document
             job_doc = {
                 "_key": job_id,
-                "task_id": task_id,
                 "user_id": user_id,
                 "type": "job",
                 "status": "completed",
@@ -185,24 +49,17 @@ class JobService:
 
             # Store in ArangoDB jobs collection
             try:
-                collection = self.task_service.arango_db.collection("jobs")
+                collection = self.arango_db.collection("jobs")
                 if not collection.exists():
                     collection.create()
                     logger.info("Created jobs collection")
             except Exception as e:
                 logger.warning(f"Could not create/verify jobs collection: {e}")
-                collection = self.task_service.arango_db.collection("jobs")
+                collection = self.arango_db.collection("jobs")
 
             collection.replace(job_doc, overwrite=True)
 
-            # Also store the result in the task_results collection for consistency
-            await self.task_service.store_task_result(
-                task_id=task_id,
-                result=job_data,
-                result_id=job_id,
-            )
-
-            logger.info(f"Stored job result for task {task_id} as job {job_id}")
+            logger.info(f"Stored job result as job {job_id}")
             return job_id
 
         except Exception as e:
@@ -222,7 +79,7 @@ class JobService:
             Job information or None if not found
         """
         try:
-            collection = self.task_service.arango_db.collection("jobs")
+            collection = self.arango_db.collection("jobs")
             job_doc = collection.get(job_id)
 
             if not job_doc:
@@ -257,7 +114,7 @@ class JobService:
             List of job documents
         """
         try:
-            collection = self.task_service.arango_db.collection("jobs")
+            collection = self.arango_db.collection("jobs")
 
             # Build AQL query
             query = """
@@ -277,7 +134,7 @@ class JobService:
             """
             bind_vars.update({"offset": offset, "limit": limit})
 
-            cursor = self.task_service.arango_db.aql.execute(query, bind_vars=bind_vars)
+            cursor = self.arango_db.aql.execute(query, bind_vars=bind_vars)
             return list(cursor)
 
         except Exception as e:
@@ -311,7 +168,7 @@ class JobService:
             error_message: Optional error message
         """
         try:
-            collection = self.task_service.arango_db.collection("jobs")
+            collection = self.arango_db.collection("jobs")
 
             update_data = {
                 "status": status,
@@ -342,14 +199,14 @@ class JobService:
         try:
             # Ensure jobs collection exists
             try:
-                collection = self.task_service.arango_db.collection("jobs")
+                collection = self.arango_db.collection("jobs")
                 if not collection.exists():
                     collection.create()
                     logger.info("Created jobs collection")
             except Exception as e:
                 logger.warning(f"Could not create/verify jobs collection: {e}")
                 # Try to get collection anyway
-                collection = self.task_service.arango_db.collection("jobs")
+                collection = self.arango_db.collection("jobs")
 
             job_doc = {
                 "_key": job_id,
@@ -391,7 +248,7 @@ class JobService:
                 "updated_at": datetime.utcnow().isoformat(),
             }
 
-            collection = self.task_service.arango_db.collection("jobs")
+            collection = self.arango_db.collection("jobs")
             collection.insert(job_doc)
 
             logger.debug(f"Created job document placeholder {job_id}")
@@ -415,7 +272,7 @@ class JobService:
             # Add updated timestamp
             updates["updated_at"] = datetime.utcnow().isoformat()
 
-            collection = self.task_service.arango_db.collection("jobs")
+            collection = self.arango_db.collection("jobs")
             collection.update({"_key": job_id}, updates)
 
             logger.info(f"Updated job {job_id}")
@@ -431,7 +288,7 @@ class JobService:
             job_id: Job document ID
         """
         try:
-            collection = self.task_service.arango_db.collection("jobs")
+            collection = self.arango_db.collection("jobs")
             collection.delete({"_key": job_id})
 
             logger.info(f"Deleted job {job_id}")
@@ -453,7 +310,7 @@ class JobService:
             Resume information or None if not found
         """
         try:
-            collection = self.task_service.arango_db.collection("resumes")
+            collection = self.arango_db.collection("resumes")
             resume_doc = collection.get(resume_id)
 
             if not resume_doc:
@@ -517,7 +374,7 @@ class JobService:
             # Add updated timestamp
             updates["updated_at"] = datetime.utcnow().isoformat()
 
-            collection = self.task_service.arango_db.collection("resumes")
+            collection = self.arango_db.collection("resumes")
             collection.update({"_key": resume_id}, updates)
 
             logger.info(f"Updated resume {resume_id}")

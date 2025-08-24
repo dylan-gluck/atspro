@@ -1,49 +1,35 @@
-import base64
-from io import BytesIO
-from typing import Optional
-from uuid import uuid4
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
-from unstructured.partition.auto import partition
 
-from ..database.connections import (
-    get_arango_client,
-    get_postgres_pool,
-    get_redis_client,
-)
+from ..dependencies import get_current_user
 from ..logger.logger import logger
-from ..queue.redis_queue import TaskPriority
-from ..schema.resume import Resume
-from ..schema.responses import ApiResponse, TaskData
-from ..services.task_service import TaskService
-from ..dependencies import get_current_user, get_task_service
+from ..schema.responses import ApiResponse, ParseResumeApiResponse, ParsedResumeResponse
+from ..services.resume_processor import (
+    AIProcessingError,
+    FileProcessingError,
+    ResumeProcessingError,
+    ResumeProcessorService,
+    StorageError,
+    ValidationError,
+)
 
 router = APIRouter()
 
 
-# Auth and service dependencies are now imported from dependencies module
-
-
-# Global task service instance
-# Task service is now injected via dependencies module
-
-
-@router.post("/parse", response_model=ApiResponse[dict])
+@router.post("/parse", response_model=ParseResumeApiResponse)
 async def parse_resume(
     file: UploadFile = File(...),
     current_user: dict = Depends(get_current_user),
-    task_service: TaskService = Depends(get_task_service),
 ):
     """
-    Submit resume document for async parsing and return task/resume IDs immediately.
+    Parse resume document synchronously and return parsed data immediately.
 
     Args:
         file: File object (pdf, md, doc, docx)
         current_user: Current authenticated user
-        task_service: Task service dependency
 
     Returns:
-        Task ID and resume placeholder ID for tracking the parsing job
+        Parsed resume data with resume ID and user ID
     """
     supported_types = [
         "application/pdf",
@@ -85,116 +71,57 @@ async def parse_resume(
         logger.error(f"Error reading file: {str(e)}")
         raise HTTPException(status_code=422, detail="Error reading uploaded file")
 
-    # Generate IDs
-    resume_id = str(uuid4())
     user_id = current_user["id"]
 
-    # Encode file content for task payload
-    file_data = {
-        "content": base64.b64encode(content).decode("utf-8"),
-        "filename": file.filename,
-        "content_type": file.content_type,
-        "size": len(content),
-    }
-
-    # Create task payload
-    task_payload = {
-        "resume_id": resume_id,
-        "user_id": user_id,
-        "file_data": file_data,
-    }
-
     try:
-        # Submit task to queue
-        task_id = await task_service.create_task(
-            task_type="parse_resume",
-            payload=task_payload,
+        # Initialize resume processor service
+        processor = ResumeProcessorService()
+
+        # Process resume synchronously
+        result = await processor.process_resume_sync(
+            file_content=content,
+            filename=file.filename,
             user_id=user_id,
-            priority=TaskPriority.NORMAL,
-            max_retries=3,
-            estimated_duration_ms=30000,  # 30 seconds estimate
+            content_type=file.content_type,
         )
 
-        logger.info(f"Created resume parse task {task_id} for user {user_id}")
-
-        task_data = TaskData(task_id=task_id, status="pending")
+        logger.info(f"Resume processing completed successfully for user {user_id}")
 
         return ApiResponse(
             success=True,
-            data={
-                "task_id": task_id,
-                "resume_id": resume_id,
-            },
-            message="Resume submitted for parsing",
+            data=result,
+            message="Resume parsed successfully",
         )
 
-    except Exception as e:
-        logger.error(f"Error creating parse task: {str(e)}")
+    except FileProcessingError as e:
+        logger.error(f"File processing error for user {user_id}: {str(e)}")
+        raise HTTPException(status_code=422, detail=f"Unable to process file: {str(e)}")
+
+    except AIProcessingError as e:
+        logger.error(f"AI processing error for user {user_id}: {str(e)}")
         raise HTTPException(
-            status_code=500, detail="Error submitting resume for processing"
+            status_code=503, detail=f"AI processing service unavailable: {str(e)}"
         )
 
-
-@router.get("/parse/{task_id}", response_model=ApiResponse[dict])
-async def get_parse_task_status(
-    task_id: str,
-    current_user: dict = Depends(get_current_user),
-    task_service: TaskService = Depends(get_task_service),
-):
-    """
-    Get the status and result of a parse task.
-
-    Args:
-        task_id: Task ID to check
-        current_user: Current authenticated user
-        task_service: Task service dependency
-
-    Returns:
-        Task status and result if completed
-    """
-    try:
-        task = await task_service.get_task(task_id)
-
-        if not task:
-            raise HTTPException(status_code=404, detail="Task not found")
-
-        # Verify task ownership
-        if task.get("user_id") != current_user["id"]:
-            raise HTTPException(status_code=403, detail="Access denied")
-
-        # Get result if completed
-        result = None
-        if task.get("status") == "completed":
-            result = await task_service.get_task_result(task_id)
-
-        task_data = TaskData(
-            task_id=task["id"],
-            status=task["status"],
-            progress=task.get("progress", 0),
-            created_at=task["created_at"],
-            started_at=task.get("started_at"),
-            completed_at=task.get("completed_at"),
-            result=result,
-            error=task.get("error_message"),
+    except ValidationError as e:
+        logger.error(f"Resume validation error for user {user_id}: {str(e)}")
+        raise HTTPException(
+            status_code=422, detail=f"Resume data validation failed: {str(e)}"
         )
 
-        return ApiResponse(
-            success=True,
-            data={
-                "id": task["id"],
-                "status": task["status"],
-                "progress": task.get("progress", 0),
-                "created_at": task["created_at"],
-                "started_at": task.get("started_at"),
-                "completed_at": task.get("completed_at"),
-                "task_type": task["task_type"],
-                "result": result,
-                "error": task.get("error_message"),
-            },
+    except StorageError as e:
+        logger.error(f"Storage error for user {user_id}: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to save resume: {str(e)}")
+
+    except ResumeProcessingError as e:
+        logger.error(f"Resume processing error for user {user_id}: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Resume processing failed: {str(e)}"
         )
 
-    except HTTPException:
-        raise
     except Exception as e:
-        logger.error(f"Error getting task status: {str(e)}")
-        raise HTTPException(status_code=500, detail="Error retrieving task status")
+        logger.error(f"Unexpected error processing resume for user {user_id}: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail="An unexpected error occurred during resume processing",
+        )

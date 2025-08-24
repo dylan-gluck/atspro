@@ -12,7 +12,7 @@ from ..schema.user import (
     UserProfileResponse,
     UserProfileUpdate,
 )
-from ..dependencies import get_current_user, get_task_service
+from ..dependencies import get_current_user
 
 router = APIRouter(prefix="/user", tags=["user"])
 
@@ -23,7 +23,6 @@ router = APIRouter(prefix="/user", tags=["user"])
 @router.get("/profile", response_model=UserProfileResponse)
 async def get_user_profile(
     current_user: dict = Depends(get_current_user),
-    task_service=Depends(get_task_service),
 ):
     """
     Get the current user's profile.
@@ -34,7 +33,8 @@ async def get_user_profile(
     user_id = current_user["id"]
 
     try:
-        async with task_service.postgres_pool.connection() as conn:
+        from ..database.connections import get_postgres_connection
+        async with get_postgres_connection() as conn:
             # Query user profile
             async with conn.cursor() as cursor:
                 await cursor.execute(
@@ -79,7 +79,6 @@ async def get_user_profile(
 async def update_user_profile(
     profile_update: UserProfileUpdate,
     current_user: dict = Depends(get_current_user),
-    task_service=Depends(get_task_service),
 ):
     """
     Update the current user's profile (creates profile if it doesn't exist).
@@ -99,7 +98,8 @@ async def update_user_profile(
         raise HTTPException(status_code=422, detail="No fields provided for update")
 
     try:
-        async with task_service.postgres_pool.connection() as conn:
+        from ..database.connections import get_postgres_connection
+        async with get_postgres_connection() as conn:
             async with conn.transaction():
                 # First, check if profile exists, if not create it
                 async with conn.cursor() as cursor:
@@ -184,7 +184,6 @@ async def update_user_profile(
 @router.delete("/profile", response_model=UserProfileDeleteResponse)
 async def delete_user_profile(
     current_user: dict = Depends(get_current_user),
-    task_service=Depends(get_task_service),
 ):
     """
     Delete the current user's profile.
@@ -195,7 +194,8 @@ async def delete_user_profile(
     user_id = current_user["id"]
 
     try:
-        async with task_service.postgres_pool.connection() as conn:
+        from ..database.connections import get_postgres_connection
+        async with get_postgres_connection() as conn:
             # Delete user profile
             async with conn.cursor() as cursor:
                 await cursor.execute(

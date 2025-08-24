@@ -129,3 +129,38 @@ export function JobErrorFallback({ error, retry }: { error?: Error; retry: () =>
     </Card>
   );
 }
+
+// Timeout-specific error fallback
+export function TimeoutErrorFallback({ error, retry, operation }: { error?: Error; retry: () => void; operation?: string }) {
+  const isTimeoutError = error?.message?.includes('timeout') || error?.message?.includes('Request timeout');
+  
+  return (
+    <Card className="w-full max-w-md mx-auto">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-destructive">
+          <AlertCircle className="w-5 h-5" />
+          {isTimeoutError ? 'Request Timeout' : 'Processing Error'}
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <p className="text-sm text-muted-foreground">
+          {isTimeoutError 
+            ? `The ${operation || 'operation'} is taking longer than expected. This might be due to a large file size or high server load.`
+            : `Failed to ${operation || 'complete the operation'}. Please try again.`
+          }
+        </p>
+        <div className="flex flex-col gap-2">
+          <Button onClick={retry} className="w-full">
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Try Again
+          </Button>
+          {isTimeoutError && (
+            <p className="text-xs text-muted-foreground text-center">
+              Large files may take up to 2 minutes to process
+            </p>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}

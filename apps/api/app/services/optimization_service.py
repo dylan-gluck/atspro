@@ -12,12 +12,12 @@ logger = logging.getLogger(__name__)
 class OptimizationService:
     """Service layer for optimization-specific operations and validation."""
 
-    def __init__(self, arango_db, task_service):
+    def __init__(self, arango_db, task_service=None):
         """Initialize optimization service.
 
         Args:
             arango_db: ArangoDB database instance
-            task_service: Task service instance
+            task_service: Task service instance (optional, for legacy support)
         """
         self.arango_db = arango_db
         self.task_service = task_service
@@ -169,6 +169,9 @@ class OptimizationService:
         document_id = await self.create_document_id()
 
         # Create task
+        if not self.task_service:
+            raise NotImplementedError("Async task processing is not available. Task service not configured.")
+        
         task_id = await self.task_service.create_task(
             task_type="optimize",
             payload={"resume_id": resume_id, "job_id": job_id},
@@ -210,6 +213,9 @@ class OptimizationService:
             raise ValueError(f"Scoring request validation failed: {error_msg}")
 
         # Create task
+        if not self.task_service:
+            raise NotImplementedError("Async task processing is not available. Task service not configured.")
+        
         task_id = await self.task_service.create_task(
             task_type="score",
             payload={"resume_id": resume_id, "job_id": job_id},
@@ -253,6 +259,9 @@ class OptimizationService:
         document_id = await self.create_document_id()
 
         # Create task
+        if not self.task_service:
+            raise NotImplementedError("Async task processing is not available. Task service not configured.")
+        
         task_id = await self.task_service.create_task(
             task_type="research",
             payload={"resume_id": resume_id, "job_id": job_id},
@@ -383,12 +392,12 @@ class OptimizationService:
             health_status["arango_error"] = str(e)
 
         try:
-            # Check task service
-            if hasattr(self.task_service, "health_check"):
+            # Check task service (if available)
+            if self.task_service and hasattr(self.task_service, "health_check"):
                 task_health = await self.task_service.health_check()
                 health_status["task_service"] = task_health.get("status") == "healthy"
             else:
-                health_status["task_service"] = True
+                health_status["task_service"] = False  # Indicate task service is not available
         except Exception as e:
             health_status["status"] = "degraded"
             health_status["task_service_error"] = str(e)

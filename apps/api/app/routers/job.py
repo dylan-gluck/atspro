@@ -15,10 +15,10 @@ from fastapi import (
 from pydantic import BaseModel
 
 from ..logger.logger import logger
-from ..queue.redis_queue import TaskPriority
 from ..schema.job import Job
-from ..schema.responses import ApiResponse, PaginationMeta, TaskData
+from ..schema.responses import ApiResponse, PaginationMeta, ParseJobApiResponse, ParsedJobResponse
 from ..services.job_service import JobService
+from ..services.job_processor import JobProcessorService, CircuitBreakerException
 from ..dependencies import get_current_user, get_job_service
 
 router = APIRouter()
@@ -63,10 +63,7 @@ class JobFilterRequest(BaseModel):
     date_range: Optional[List[str]] = None
 
 
-# Legacy TaskResponse for backward compatibility - use ApiResponse for new endpoints
-class TaskResponse(BaseModel):
-    success: bool
-    data: dict
+# Legacy TaskResponse removed - all endpoints now use ApiResponse with specific models
 
 
 class JobEntity(BaseModel):
@@ -92,59 +89,57 @@ class PaginatedResponse(BaseModel):
 # Dependencies are now imported from dependencies module
 
 
-@router.post("/job", response_model=ApiResponse[dict])
-async def parse_job_async(
+@router.post("/job", response_model=ParseJobApiResponse)
+async def parse_job_sync(
     request: JobParseRequest,
     current_user=Depends(get_current_user),
-    job_service: JobService = Depends(get_job_service),
 ):
     """
-    Parse job posting from URL asynchronously.
-    Returns task_id and job_id immediately for background processing.
+    Parse job posting from URL synchronously.
+    Returns job data directly after processing.
 
     Args:
         request: Contains URL to parse
 
     Returns:
-        Task ID and job ID for tracking the parsing result
+        Parsed job data
     """
     try:
-        # Validate URL format
-        if not request.url or not request.url.startswith(("http://", "https://")):
-            raise HTTPException(status_code=422, detail="Invalid URL format")
-
-        # Create job placeholder ID
-        job_id = str(uuid4())
-
-        # Create async task for job parsing
-        task_id = await job_service.create_parse_task(
-            user_id=current_user["id"],
+        # Initialize job processor service
+        job_processor = JobProcessorService()
+        
+        # Process job URL synchronously
+        result = await job_processor.process_job_url_sync(
             url=request.url,
-            job_id=job_id,
-            priority=TaskPriority.NORMAL,
+            user_id=current_user["id"]
         )
 
-        logger.info(f"Created job parse task {task_id} for user {current_user['id']}")
+        logger.info(f"Successfully parsed job for user {current_user['id']}: {result['job_data'].get('title', 'Unknown')}") 
 
         return ApiResponse(
             success=True,
             data={
-                "task_id": task_id,
-                "job_id": job_id,
-                "url": request.url,
+                "job_id": result["job_id"],
+                "url": result["url"],
+                "job_data": result["job_data"],
+                "status": result["status"],
             },
-            message="Job parsing task created successfully",
+            message="Job parsed successfully",
         )
 
-    except HTTPException:
-        raise
+    except ValueError as e:
+        logger.error(f"Validation error parsing job: {str(e)}")
+        raise HTTPException(status_code=422, detail=str(e))
+    except CircuitBreakerException as e:
+        logger.error(f"Circuit breaker error parsing job: {str(e)}")
+        raise HTTPException(status_code=503, detail=str(e))
     except Exception as e:
-        logger.error(f"Error creating job parse task: {str(e)}")
-        raise HTTPException(status_code=500, detail="Error creating job parse task")
+        logger.error(f"Error parsing job: {str(e)}")
+        raise HTTPException(status_code=500, detail="Error parsing job posting")
 
 
-# Legacy endpoint for backward compatibility
-@router.put("/job", response_model=ApiResponse[dict])
+# Legacy endpoint for backward compatibility with direct HTML parsing
+@router.put("/job", response_model=ParseJobApiResponse)
 async def job_info_legacy(url: str = Form(...)):
     """
     Legacy synchronous job parsing endpoint.
@@ -257,67 +252,61 @@ async def list_jobs(
         raise HTTPException(status_code=500, detail="Error listing jobs")
 
 
-@router.post("/jobs", response_model=ApiResponse[dict])
+@router.post("/jobs", response_model=ParseJobApiResponse)
 async def create_job(
     request: JobCreateRequest,
     current_user=Depends(get_current_user),
-    job_service: JobService = Depends(get_job_service),
 ):
-    """Create a new job from URL - matches frontend expectation"""
+    """Create a new job from URL synchronously - matches frontend expectation"""
     try:
-        # Validate URL format
-        if not request.job_url or not request.job_url.startswith(
-            ("http://", "https://")
-        ):
-            raise HTTPException(status_code=422, detail="Invalid URL format")
-
-        # Create job placeholder ID
-        job_id = str(uuid4())
-
-        # Create async task for job parsing
-        task_id = await job_service.create_parse_task(
-            user_id=current_user["id"],
+        # Initialize job processor service
+        job_processor = JobProcessorService()
+        
+        # Process job URL synchronously
+        result = await job_processor.process_job_url_sync(
             url=request.job_url,
-            job_id=job_id,
-            priority=TaskPriority.NORMAL,
+            user_id=current_user["id"]
         )
 
-        logger.info(f"Created job parse task {task_id} for user {current_user['id']}")
+        logger.info(f"Successfully created job for user {current_user['id']}: {result['job_data'].get('title', 'Unknown')}") 
 
         return ApiResponse(
             success=True,
             data={
-                "task_id": task_id,
-                "job_id": job_id,
-                "url": request.job_url,
+                "job_id": result["job_id"],
+                "url": result["url"],
+                "job_data": result["job_data"],
+                "status": result["status"],
             },
-            message="Job parsing task created successfully",
+            message="Job created and parsed successfully",
         )
 
-    except HTTPException:
-        raise
+    except ValueError as e:
+        logger.error(f"Validation error creating job: {str(e)}")
+        raise HTTPException(status_code=422, detail=str(e))
+    except CircuitBreakerException as e:
+        logger.error(f"Circuit breaker error creating job: {str(e)}")
+        raise HTTPException(status_code=503, detail=str(e))
     except Exception as e:
         logger.error(f"Error creating job: {str(e)}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Error creating job: {str(e)}")
+        raise HTTPException(status_code=500, detail="Error creating job")
 
 
-@router.post("/job/parse-document", response_model=ApiResponse[dict])
+@router.post("/job/parse-document", response_model=ParseJobApiResponse)
 async def parse_job_from_document(
     file: UploadFile = File(...),
     current_user=Depends(get_current_user),
-    job_service: JobService = Depends(get_job_service),
 ):
     """
-    Parse job posting from uploaded document (PDF, DOCX, TXT, etc.).
-    Returns task_id and job_id immediately for background processing.
+    Parse job posting from uploaded document (PDF, DOCX, TXT, etc.) synchronously.
+    Returns parsed job data directly after processing.
 
     Args:
         file: Job document file (PDF, DOCX, TXT, etc.)
         current_user: Current authenticated user
-        job_service: Job service dependency
 
     Returns:
-        Task ID and job ID for tracking the parsing result
+        Parsed job data
     """
     supported_types = [
         "application/pdf",
@@ -360,45 +349,41 @@ async def parse_job_from_document(
         logger.error(f"Error reading file: {str(e)}")
         raise HTTPException(status_code=422, detail="Error reading uploaded file")
 
-    # Generate job ID
-    job_id = str(uuid4())
-
     try:
-        # Create async task for job document parsing
-        task_id = await job_service.create_document_parse_task(
-            user_id=current_user["id"],
+        # Initialize job processor service
+        job_processor = JobProcessorService()
+        
+        # Process job document synchronously
+        result = await job_processor.process_job_document_sync(
             file_content=content,
             filename=file.filename or "unknown",
-            content_type=file.content_type,
-            job_id=job_id,
-            priority=TaskPriority.NORMAL,
+            user_id=current_user["id"]
         )
 
         logger.info(
-            f"Created job document parse task {task_id} for user {current_user['id']}"
+            f"Successfully parsed job document for user {current_user['id']}: {result['job_data'].get('title', 'Unknown')}"
         )
 
         return ApiResponse(
             success=True,
             data={
-                "task_id": task_id,
-                "job_id": job_id,
-                "filename": file.filename,
+                "job_id": result["job_id"],
+                "filename": result["filename"],
+                "job_data": result["job_data"],
+                "status": result["status"],
                 "content_type": file.content_type,
                 "size": len(content),
             },
-            message="Job document parsing task created successfully",
+            message="Job document parsed successfully",
         )
 
     except ValueError as e:
-        logger.error(f"Validation error: {str(e)}")
+        logger.error(f"Validation error parsing document: {str(e)}")
         raise HTTPException(status_code=422, detail=str(e))
-    except HTTPException:
-        raise
     except Exception as e:
-        logger.error(f"Error creating job document parse task: {str(e)}")
+        logger.error(f"Error parsing job document: {str(e)}")
         raise HTTPException(
-            status_code=500, detail="Error creating job document parse task"
+            status_code=500, detail="Error parsing job document"
         )
 
 

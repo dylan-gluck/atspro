@@ -5,7 +5,6 @@ import logging
 from contextlib import asynccontextmanager
 from typing import Optional
 
-import redis.asyncio as redis
 from arango import ArangoClient
 from psycopg.rows import dict_row
 from psycopg_pool import AsyncConnectionPool
@@ -16,7 +15,6 @@ logger = logging.getLogger(__name__)
 
 # Global connection instances
 _postgres_pool: Optional[AsyncConnectionPool] = None
-_redis_client: Optional[redis.Redis] = None
 _arango_client: Optional[ArangoClient] = None
 _arango_db = None
 
@@ -51,53 +49,6 @@ async def init_postgres() -> AsyncConnectionPool:
         logger.error(f"Failed to initialize PostgreSQL pool: {e}")
         # Clean up global reference on failure
         _postgres_pool = None
-        raise
-
-
-async def init_redis() -> redis.Redis:
-    """Initialize Redis client with proper connection pooling and timeout configuration."""
-    global _redis_client
-
-    if _redis_client is not None:
-        return _redis_client
-
-    try:
-        # Create connection pool with proper configuration
-        connection_pool = redis.ConnectionPool.from_url(
-            settings.redis_url,
-            encoding="utf-8",
-            decode_responses=True,
-            socket_timeout=30.0,  # Must be > BRPOP timeout (10s)
-            socket_connect_timeout=10.0,  # Connection establishment timeout
-            socket_keepalive=True,  # Enable keepalive
-            socket_keepalive_options={},  # Use system defaults
-            retry_on_timeout=True,
-            retry_on_error=[ConnectionError, TimeoutError],
-            health_check_interval=30,
-            max_connections=200,  # Increased pool size for workers and concurrent operations
-            connection_class=redis.Connection,  # Use default connection class
-        )
-
-        _redis_client = redis.Redis(connection_pool=connection_pool)
-
-        # Test connection with proper error handling
-        try:
-            await _redis_client.ping()
-            logger.info(
-                "Redis client initialized with connection pool (socket_timeout=30s)"
-            )
-        except Exception as ping_error:
-            logger.error(f"Redis ping failed during initialization: {ping_error}")
-            # Try to close the pool and re-raise
-            await connection_pool.disconnect()
-            raise
-
-        return _redis_client
-
-    except Exception as e:
-        logger.error(f"Failed to initialize Redis client: {e}")
-        # Clean up global reference on failure
-        _redis_client = None
         raise
 
 
@@ -138,7 +89,6 @@ async def init_databases():
     # Initialize all connections concurrently
     await asyncio.gather(
         init_postgres(),
-        init_redis(),
         asyncio.create_task(asyncio.to_thread(init_arango)),
     )
 
@@ -147,7 +97,7 @@ async def init_databases():
 
 async def close_databases():
     """Close all database connections."""
-    global _postgres_pool, _redis_client, _arango_client, _arango_db
+    global _postgres_pool, _arango_client, _arango_db
 
     logger.info("Closing database connections...")
 
@@ -156,12 +106,6 @@ async def close_databases():
         await _postgres_pool.close()
         _postgres_pool = None
         logger.info("PostgreSQL pool closed")
-
-    # Close Redis client
-    if _redis_client is not None:
-        await _redis_client.aclose()
-        _redis_client = None
-        logger.info("Redis client closed")
 
     # Close ArangoDB (no async close needed)
     if _arango_client is not None:
@@ -177,13 +121,6 @@ def get_postgres_pool() -> AsyncConnectionPool:
             "PostgreSQL pool not initialized. Call init_databases() first."
         )
     return _postgres_pool
-
-
-def get_redis_client() -> redis.Redis:
-    """Get the Redis client."""
-    if _redis_client is None:
-        raise RuntimeError("Redis client not initialized. Call init_databases() first.")
-    return _redis_client
 
 
 def get_arango_client():
@@ -228,29 +165,6 @@ async def check_postgres_health() -> dict:
         return {"status": "down", "error": str(e)}
 
 
-async def check_redis_health() -> dict:
-    """Check Redis connection health."""
-    try:
-        if _redis_client is None:
-            return {"status": "down", "error": "Client not initialized"}
-
-        # Use ping with timeout to check health
-        await _redis_client.ping()
-
-        # Get connection pool info if available
-        pool_info = {}
-        if hasattr(_redis_client, "connection_pool"):
-            pool = _redis_client.connection_pool
-            pool_info = {
-                "max_connections": getattr(pool, "max_connections", 0),
-                "created_connections": len(getattr(pool, "_created_connections", [])),
-            }
-
-        return {"status": "up", **pool_info}
-    except Exception as e:
-        return {"status": "down", "error": str(e)}
-
-
 def check_arango_health() -> dict:
     """Check ArangoDB connection health."""
     try:
@@ -272,7 +186,6 @@ def check_arango_health() -> dict:
 async def check_all_databases_health() -> dict:
     """Check health of all database connections."""
     postgres_health = await check_postgres_health()
-    redis_health = await check_redis_health()
 
     # Run ArangoDB check in thread since it's synchronous
     arango_health = await asyncio.to_thread(check_arango_health)
@@ -280,14 +193,13 @@ async def check_all_databases_health() -> dict:
     # Determine overall status
     all_up = all(
         health["status"] == "up"
-        for health in [postgres_health, redis_health, arango_health]
+        for health in [postgres_health, arango_health]
     )
 
     return {
         "status": "up" if all_up else "degraded",
         "databases": {
             "postgresql": postgres_health,
-            "redis": redis_health,
             "arangodb": arango_health,
         },
     }

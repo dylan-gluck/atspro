@@ -3,6 +3,8 @@ import type { ApiClient, RequestConfig, ApiResponse } from '@/types/services';
 export class ApiClientImpl implements ApiClient {
   private baseURL: string;
   private defaultHeaders: Record<string, string>;
+  private readonly DEFAULT_TIMEOUT = 30000; // 30 seconds
+  private readonly UPLOAD_TIMEOUT = 120000; // 2 minutes for file uploads
 
   constructor(baseURL: string) {
     this.baseURL = baseURL;
@@ -66,12 +68,13 @@ export class ApiClientImpl implements ApiClient {
         const controller = new AbortController();
         let timeoutId: NodeJS.Timeout | undefined;
 
-        // Set up timeout if specified
-        if (config?.timeout) {
-          timeoutId = setTimeout(() => {
-            controller.abort();
-          }, config.timeout);
-        }
+        // Set up timeout - use config timeout, upload timeout for form data, or default timeout
+        const timeoutDuration = config?.timeout || 
+          (data instanceof FormData ? this.UPLOAD_TIMEOUT : this.DEFAULT_TIMEOUT);
+        
+        timeoutId = setTimeout(() => {
+          controller.abort();
+        }, timeoutDuration);
 
         const response = await fetch(fullUrl, {
           method,
@@ -158,7 +161,7 @@ export class ApiClientImpl implements ApiClient {
 
   private getErrorMessage(error: unknown): string {
     if (error && typeof error === 'object' && 'name' in error && error.name === 'AbortError') {
-      return 'Request timeout';
+      return 'Request timeout. The operation took too long to complete. Please try again.';
     }
     if (error instanceof Error) {
       return error.message;
