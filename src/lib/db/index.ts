@@ -1,463 +1,276 @@
 import { Pool } from 'pg';
-import type { 
-  ContactInfo, 
-  WorkExperience, 
-  Education, 
-  Certification 
-} from '$lib/types/resume';
 import type { UserResume } from '$lib/types/user-resume';
-import type { 
-  UserJob, 
-  JobDocument, 
-  JobActivity, 
-  JobActivityType,
-  JobStatus 
+import type {
+	UserJob,
+	JobDocument,
+	JobActivity,
+	JobActivityType,
+	JobStatus
 } from '$lib/types/user-job';
+import { DATABASE_URL } from '$env/static/private';
 
+// Database connection pool
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+	connectionString: DATABASE_URL
 });
 
-export const db = {
-  // User Resume Functions
-  async getUserResume(userId: string): Promise<UserResume | null> {
-    const result = await pool.query(
-      `SELECT * FROM "userResume" WHERE "userId" = $1`,
-      [userId]
-    );
-    
-    if (result.rows.length === 0) return null;
-    
-    const row = result.rows[0];
-    return {
-      id: row.id,
-      userId: row.userId,
-      contactInfo: row.contactInfo as ContactInfo,
-      summary: row.summary,
-      workExperience: row.workExperience as WorkExperience[],
-      education: row.education as Education[],
-      certifications: row.certifications as Certification[],
-      skills: row.skills,
-      createdAt: row.createdAt,
-      updatedAt: row.updatedAt
-    };
-  },
+// Resume operations
+export const resume = {
+	async get(userId: string): Promise<UserResume | null> {
+		const { rows } = await pool.query(`SELECT * FROM "userResume" WHERE "userId" = $1`, [userId]);
+		return rows[0] || null;
+	},
 
-  async createUserResume(userId: string, resumeData: Partial<Omit<UserResume, 'id' | 'userId' | 'createdAt' | 'updatedAt'>>): Promise<UserResume> {
-    const result = await pool.query(
-      `INSERT INTO "userResume" 
+	async create(userId: string, data: any): Promise<UserResume> {
+		const { rows } = await pool.query(
+			`INSERT INTO "userResume"
        ("userId", "contactInfo", "summary", "workExperience", "education", "certifications", "skills")
        VALUES ($1, $2, $3, $4, $5, $6, $7)
        RETURNING *`,
-      [
-        userId,
-        JSON.stringify(resumeData.contactInfo || {}),
-        resumeData.summary || null,
-        JSON.stringify(resumeData.workExperience || []),
-        JSON.stringify(resumeData.education || []),
-        JSON.stringify(resumeData.certifications || []),
-        resumeData.skills || []
-      ]
-    );
-    
-    const row = result.rows[0];
-    return {
-      id: row.id,
-      userId: row.userId,
-      contactInfo: row.contactInfo as ContactInfo,
-      summary: row.summary,
-      workExperience: row.workExperience as WorkExperience[],
-      education: row.education as Education[],
-      certifications: row.certifications as Certification[],
-      skills: row.skills,
-      createdAt: row.createdAt,
-      updatedAt: row.updatedAt
-    };
-  },
+			[
+				userId,
+				JSON.stringify(data.contactInfo || {}),
+				data.summary || null,
+				JSON.stringify(data.workExperience || []),
+				JSON.stringify(data.education || []),
+				JSON.stringify(data.certifications || []),
+				data.skills || []
+			]
+		);
+		return rows[0];
+	},
 
-  async updateUserResume(userId: string, updates: Partial<Omit<UserResume, 'id' | 'userId' | 'createdAt' | 'updatedAt'>>): Promise<UserResume> {
-    const fields: string[] = [];
-    const values: any[] = [];
-    let paramCount = 1;
+	async update(userId: string, data: any): Promise<UserResume> {
+		const fields: string[] = [];
+		const values: any[] = [];
+		let idx = 1;
 
-    if (updates.contactInfo !== undefined) {
-      fields.push(`"contactInfo" = $${paramCount++}`);
-      values.push(JSON.stringify(updates.contactInfo));
-    }
-    if (updates.summary !== undefined) {
-      fields.push(`"summary" = $${paramCount++}`);
-      values.push(updates.summary);
-    }
-    if (updates.workExperience !== undefined) {
-      fields.push(`"workExperience" = $${paramCount++}`);
-      values.push(JSON.stringify(updates.workExperience));
-    }
-    if (updates.education !== undefined) {
-      fields.push(`"education" = $${paramCount++}`);
-      values.push(JSON.stringify(updates.education));
-    }
-    if (updates.certifications !== undefined) {
-      fields.push(`"certifications" = $${paramCount++}`);
-      values.push(JSON.stringify(updates.certifications));
-    }
-    if (updates.skills !== undefined) {
-      fields.push(`"skills" = $${paramCount++}`);
-      values.push(updates.skills);
-    }
+		Object.entries(data).forEach(([key, value]) => {
+			if (value !== undefined && key !== 'id' && key !== 'userId') {
+				fields.push(`"${key}" = $${idx++}`);
+				values.push(typeof value === 'object' ? JSON.stringify(value) : value);
+			}
+		});
 
-    values.push(userId);
+		values.push(userId);
 
-    const result = await pool.query(
-      `UPDATE "userResume" 
-       SET ${fields.join(', ')}
-       WHERE "userId" = $${paramCount}
-       RETURNING *`,
-      values
-    );
+		const { rows } = await pool.query(
+			`UPDATE "userResume" SET ${fields.join(', ')} WHERE "userId" = $${idx} RETURNING *`,
+			values
+		);
+		return rows[0];
+	}
+};
 
-    const row = result.rows[0];
-    return {
-      id: row.id,
-      userId: row.userId,
-      contactInfo: row.contactInfo as ContactInfo,
-      summary: row.summary,
-      workExperience: row.workExperience as WorkExperience[],
-      education: row.education as Education[],
-      certifications: row.certifications as Certification[],
-      skills: row.skills,
-      createdAt: row.createdAt,
-      updatedAt: row.updatedAt
-    };
-  },
+// Job operations
+export const jobs = {
+	async list(
+		userId: string,
+		options: { status?: JobStatus; limit?: number; offset?: number } = {}
+	): Promise<{ jobs: UserJob[]; total: number }> {
+		const { status, limit = 20, offset = 0 } = options;
 
-  // Job Functions
-  async getUserJobs(
-    userId: string, 
-    options: {
-      status?: JobStatus;
-      limit?: number;
-      offset?: number;
-      sort?: 'createdAt' | 'company' | 'title';
-      order?: 'asc' | 'desc';
-    } = {}
-  ): Promise<UserJob[]> {
-    const { status, limit = 20, offset = 0, sort = 'createdAt', order = 'desc' } = options;
-    
-    let query = `SELECT * FROM "userJobs" WHERE "userId" = $1`;
-    const params: any[] = [userId];
-    let paramCount = 2;
+		let query = `SELECT * FROM "userJobs" WHERE "userId" = $1`;
+		const params: any[] = [userId];
 
-    if (status) {
-      query += ` AND "status" = $${paramCount++}`;
-      params.push(status);
-    }
+		if (status) {
+			query += ` AND "status" = $2`;
+			params.push(status);
+		}
 
-    query += ` ORDER BY "${sort}" ${order.toUpperCase()}`;
-    query += ` LIMIT $${paramCount++} OFFSET $${paramCount}`;
-    params.push(limit, offset);
+		query += ` ORDER BY "createdAt" DESC LIMIT ${limit} OFFSET ${offset}`;
 
-    const result = await pool.query(query, params);
-    
-    return result.rows.map(row => ({
-      id: row.id,
-      userId: row.userId,
-      company: row.company,
-      title: row.title,
-      description: row.description,
-      salary: row.salary,
-      responsibilities: row.responsibilities,
-      qualifications: row.qualifications,
-      logistics: row.logistics,
-      location: row.location,
-      additionalInfo: row.additionalInfo,
-      link: row.link,
-      status: row.status,
-      notes: row.notes,
-      appliedAt: row.appliedAt,
-      createdAt: row.createdAt,
-      updatedAt: row.updatedAt
-    }));
-  },
+		const [jobsResult, countResult] = await Promise.all([
+			pool.query(query, params),
+			pool.query(
+				`SELECT COUNT(*) FROM "userJobs" WHERE "userId" = $1${status ? ` AND "status" = $2` : ''}`,
+				params.slice(0, status ? 2 : 1)
+			)
+		]);
 
-  async getUserJobsCount(userId: string, options: { status?: JobStatus } = {}): Promise<number> {
-    let query = `SELECT COUNT(*) FROM "userJobs" WHERE "userId" = $1`;
-    const params: any[] = [userId];
+		return {
+			jobs: jobsResult.rows,
+			total: parseInt(countResult.rows[0].count)
+		};
+	},
 
-    if (options.status) {
-      query += ` AND "status" = $2`;
-      params.push(options.status);
-    }
+	async get(jobId: string): Promise<UserJob | null> {
+		const { rows } = await pool.query(`SELECT * FROM "userJobs" WHERE "id" = $1`, [jobId]);
+		return rows[0] || null;
+	},
 
-    const result = await pool.query(query, params);
-    return parseInt(result.rows[0].count);
-  },
-
-  async getJob(jobId: string): Promise<UserJob | null> {
-    const result = await pool.query(
-      `SELECT * FROM "userJobs" WHERE "id" = $1`,
-      [jobId]
-    );
-    
-    if (result.rows.length === 0) return null;
-    
-    const row = result.rows[0];
-    return {
-      id: row.id,
-      userId: row.userId,
-      company: row.company,
-      title: row.title,
-      description: row.description,
-      salary: row.salary,
-      responsibilities: row.responsibilities,
-      qualifications: row.qualifications,
-      logistics: row.logistics,
-      location: row.location,
-      additionalInfo: row.additionalInfo,
-      link: row.link,
-      status: row.status,
-      notes: row.notes,
-      appliedAt: row.appliedAt,
-      createdAt: row.createdAt,
-      updatedAt: row.updatedAt
-    };
-  },
-
-  async createUserJob(userId: string, jobData: Partial<Omit<UserJob, 'id' | 'userId' | 'createdAt' | 'updatedAt'>>): Promise<UserJob> {
-    const result = await pool.query(
-      `INSERT INTO "userJobs" 
-       ("userId", "company", "title", "description", "salary", "responsibilities", 
+	async create(userId: string, data: any): Promise<UserJob> {
+		const { rows } = await pool.query(
+			`INSERT INTO "userJobs"
+       ("userId", "company", "title", "description", "salary", "responsibilities",
         "qualifications", "logistics", "location", "additionalInfo", "link", "status", "notes")
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
        RETURNING *`,
-      [
-        userId,
-        jobData.company || '',
-        jobData.title || '',
-        jobData.description || '',
-        jobData.salary || null,
-        jobData.responsibilities || null,
-        jobData.qualifications || null,
-        jobData.logistics || null,
-        jobData.location || null,
-        jobData.additionalInfo || null,
-        jobData.link || null,
-        jobData.status || 'tracked',
-        jobData.notes || null
-      ]
-    );
-    
-    const row = result.rows[0];
-    return {
-      id: row.id,
-      userId: row.userId,
-      company: row.company,
-      title: row.title,
-      description: row.description,
-      salary: row.salary,
-      responsibilities: row.responsibilities,
-      qualifications: row.qualifications,
-      logistics: row.logistics,
-      location: row.location,
-      additionalInfo: row.additionalInfo,
-      link: row.link,
-      status: row.status,
-      notes: row.notes,
-      appliedAt: row.appliedAt,
-      createdAt: row.createdAt,
-      updatedAt: row.updatedAt
-    };
-  },
+			[
+				userId,
+				data.company || '',
+				data.title || '',
+				data.description || '',
+				data.salary,
+				data.responsibilities,
+				data.qualifications,
+				data.logistics,
+				data.location,
+				data.additionalInfo,
+				data.link,
+				data.status || 'tracked',
+				data.notes
+			]
+		);
+		return rows[0];
+	},
 
-  async updateJobStatus(jobId: string, status: JobStatus, appliedAt?: string | Date): Promise<void> {
-    const fields = [`"status" = $2`];
-    const values: any[] = [jobId, status];
-    
-    if (appliedAt) {
-      fields.push(`"appliedAt" = $3`);
-      values.push(appliedAt instanceof Date ? appliedAt.toISOString() : appliedAt);
-    }
+	async updateStatus(jobId: string, status: JobStatus, appliedAt?: Date | string): Promise<void> {
+		const params: any[] = [jobId, status];
+		let query = `UPDATE "userJobs" SET "status" = $2`;
 
-    await pool.query(
-      `UPDATE "userJobs" SET ${fields.join(', ')} WHERE "id" = $1`,
-      values
-    );
-  },
+		if (appliedAt) {
+			query += `, "appliedAt" = $3`;
+			params.push(appliedAt instanceof Date ? appliedAt.toISOString() : appliedAt);
+		}
 
-  async updateJobNotes(jobId: string, notes: string): Promise<void> {
-    await pool.query(
-      `UPDATE "userJobs" SET "notes" = $2 WHERE "id" = $1`,
-      [jobId, notes]
-    );
-  },
+		await pool.query(`${query} WHERE "id" = $1`, params);
+	},
 
-  async deleteJob(jobId: string): Promise<void> {
-    await pool.query(`DELETE FROM "userJobs" WHERE "id" = $1`, [jobId]);
-  },
+	async updateNotes(jobId: string, notes: string): Promise<void> {
+		await pool.query(`UPDATE "userJobs" SET "notes" = $2 WHERE "id" = $1`, [jobId, notes]);
+	},
 
-  // Document Functions
-  async getJobDocuments(jobId: string): Promise<JobDocument[]> {
-    const result = await pool.query(
-      `SELECT * FROM "jobDocuments" WHERE "jobId" = $1 ORDER BY "createdAt" DESC`,
-      [jobId]
-    );
-    
-    return result.rows.map(row => ({
-      id: row.id,
-      jobId: row.jobId,
-      type: row.type as JobDocument['type'],
-      content: row.content,
-      version: row.version,
-      isActive: row.isActive,
-      metadata: row.metadata,
-      createdAt: row.createdAt,
-      updatedAt: row.updatedAt
-    }));
-  },
-
-  async getDocument(documentId: string): Promise<JobDocument | null> {
-    const result = await pool.query(
-      `SELECT * FROM "jobDocuments" WHERE "id" = $1`,
-      [documentId]
-    );
-    
-    if (result.rows.length === 0) return null;
-    
-    const row = result.rows[0];
-    return {
-      id: row.id,
-      jobId: row.jobId,
-      type: row.type as JobDocument['type'],
-      content: row.content,
-      version: row.version,
-      isActive: row.isActive,
-      metadata: row.metadata,
-      createdAt: row.createdAt,
-      updatedAt: row.updatedAt
-    };
-  },
-
-  async createJobDocument(
-    jobId: string, 
-    type: JobDocument['type'], 
-    content: string,
-    metadata?: any
-  ): Promise<JobDocument> {
-    // Get the next version number
-    const versionResult = await pool.query(
-      `SELECT COALESCE(MAX("version"), 0) + 1 as next_version 
-       FROM "jobDocuments" WHERE "jobId" = $1 AND "type" = $2`,
-      [jobId, type]
-    );
-    const version = versionResult.rows[0].next_version;
-
-    // Deactivate previous versions
-    await pool.query(
-      `UPDATE "jobDocuments" SET "isActive" = false 
-       WHERE "jobId" = $1 AND "type" = $2`,
-      [jobId, type]
-    );
-
-    // Create new document
-    const result = await pool.query(
-      `INSERT INTO "jobDocuments" 
-       ("jobId", "type", "content", "version", "isActive", "metadata")
-       VALUES ($1, $2, $3, $4, true, $5)
-       RETURNING *`,
-      [jobId, type, content, version, metadata ? JSON.stringify(metadata) : null]
-    );
-    
-    const row = result.rows[0];
-    return {
-      id: row.id,
-      jobId: row.jobId,
-      type: row.type as JobDocument['type'],
-      content: row.content,
-      version: row.version,
-      isActive: row.isActive,
-      metadata: row.metadata,
-      createdAt: row.createdAt,
-      updatedAt: row.updatedAt
-    };
-  },
-
-  // Activity Functions
-  async getJobActivities(
-    jobId: string,
-    options: { limit?: number; offset?: number } = {}
-  ): Promise<JobActivity[]> {
-    const { limit = 50, offset = 0 } = options;
-    
-    const result = await pool.query(
-      `SELECT * FROM "jobActivity" 
-       WHERE "jobId" = $1 
-       ORDER BY "createdAt" DESC
-       LIMIT $2 OFFSET $3`,
-      [jobId, limit, offset]
-    );
-    
-    return result.rows.map(row => ({
-      id: row.id,
-      jobId: row.jobId,
-      type: row.type,
-      description: row.description,
-      metadata: row.metadata,
-      createdAt: row.createdAt
-    }));
-  },
-
-  async getJobActivityCount(jobId: string): Promise<number> {
-    const result = await pool.query(
-      `SELECT COUNT(*) FROM "jobActivity" WHERE "jobId" = $1`,
-      [jobId]
-    );
-    return parseInt(result.rows[0].count);
-  },
-
-  async createActivity(
-    jobId: string,
-    type: JobActivityType,
-    metadata?: any,
-    description?: string
-  ): Promise<JobActivity> {
-    const desc = description || generateActivityDescription(type, metadata);
-    
-    const result = await pool.query(
-      `INSERT INTO "jobActivity" ("jobId", "type", "description", "metadata")
-       VALUES ($1, $2, $3, $4)
-       RETURNING *`,
-      [jobId, type, desc, metadata ? JSON.stringify(metadata) : null]
-    );
-    
-    return {
-      id: result.rows[0].id,
-      jobId: result.rows[0].jobId,
-      type: result.rows[0].type,
-      description: result.rows[0].description,
-      metadata: result.rows[0].metadata,
-      createdAt: result.rows[0].createdAt
-    };
-  }
+	async delete(jobId: string): Promise<void> {
+		await pool.query(`DELETE FROM "userJobs" WHERE "id" = $1`, [jobId]);
+	}
 };
 
-// Helper function to generate activity descriptions
+// Document operations
+export const documents = {
+	async list(jobId: string): Promise<JobDocument[]> {
+		const { rows } = await pool.query(
+			`SELECT * FROM "jobDocuments" WHERE "jobId" = $1 ORDER BY "createdAt" DESC`,
+			[jobId]
+		);
+		return rows;
+	},
+
+	async get(documentId: string): Promise<JobDocument | null> {
+		const { rows } = await pool.query(`SELECT * FROM "jobDocuments" WHERE "id" = $1`, [documentId]);
+		return rows[0] || null;
+	},
+
+	async create(
+		jobId: string,
+		type: JobDocument['type'],
+		content: string,
+		metadata?: any
+	): Promise<JobDocument> {
+		// Get next version
+		const { rows: versionRows } = await pool.query(
+			`SELECT COALESCE(MAX("version"), 0) + 1 as version
+       FROM "jobDocuments" WHERE "jobId" = $1 AND "type" = $2`,
+			[jobId, type]
+		);
+
+		// Deactivate old versions
+		await pool.query(
+			`UPDATE "jobDocuments" SET "isActive" = false WHERE "jobId" = $1 AND "type" = $2`,
+			[jobId, type]
+		);
+
+		// Create new document
+		const { rows } = await pool.query(
+			`INSERT INTO "jobDocuments" ("jobId", "type", "content", "version", "metadata")
+       VALUES ($1, $2, $3, $4, $5)
+       RETURNING *`,
+			[jobId, type, content, versionRows[0].version, metadata ? JSON.stringify(metadata) : null]
+		);
+
+		return rows[0];
+	}
+};
+
+// Activity tracking
+export const activity = {
+	async list(
+		jobId: string,
+		limit = 50,
+		offset = 0
+	): Promise<{ items: JobActivity[]; total: number }> {
+		const [itemsResult, countResult] = await Promise.all([
+			pool.query(
+				`SELECT * FROM "jobActivity" WHERE "jobId" = $1 ORDER BY "createdAt" DESC LIMIT $2 OFFSET $3`,
+				[jobId, limit, offset]
+			),
+			pool.query(`SELECT COUNT(*) FROM "jobActivity" WHERE "jobId" = $1`, [jobId])
+		]);
+
+		return {
+			items: itemsResult.rows,
+			total: parseInt(countResult.rows[0].count)
+		};
+	},
+
+	async create(jobId: string, type: JobActivityType, metadata?: any): Promise<JobActivity> {
+		const description = generateActivityDescription(type, metadata);
+
+		const { rows } = await pool.query(
+			`INSERT INTO "jobActivity" ("jobId", "type", "description", "metadata")
+       VALUES ($1, $2, $3, $4)
+       RETURNING *`,
+			[jobId, type, description, metadata ? JSON.stringify(metadata) : null]
+		);
+
+		return rows[0];
+	}
+};
+
+// Helper function for activity descriptions
 function generateActivityDescription(type: JobActivityType, metadata?: any): string {
-  switch (type) {
-    case 'status_change':
-      return `Status changed from ${metadata?.previousStatus || 'unknown'} to ${metadata?.newStatus || 'unknown'}`;
-    case 'document_generated':
-      return `Generated ${metadata?.type || 'document'}`;
-    case 'note_added':
-      return 'Added notes';
-    case 'applied':
-      return 'Applied to position';
-    case 'interview_scheduled':
-      return `Interview scheduled for ${metadata?.date || 'TBD'}`;
-    case 'offer_received':
-      return 'Received offer';
-    default:
-      return `Activity: ${type}`;
-  }
+	const descriptions: Record<JobActivityType, string> = {
+		status_change: `Status changed${metadata ? ` to ${metadata.newStatus}` : ''}`,
+		document_generated: `Generated ${metadata?.type || 'document'}`,
+		note_added: 'Added notes',
+		applied: 'Applied to position',
+		interview_scheduled: `Interview scheduled${metadata?.date ? ` for ${metadata.date}` : ''}`,
+		offer_received: 'Received offer'
+	};
+
+	return descriptions[type] || `Activity: ${type}`;
 }
+
+// Export all as db object for compatibility
+export const db = {
+	getUserResume: resume.get,
+	createUserResume: resume.create,
+	updateUserResume: resume.update,
+	getUserJobs: async (userId: string, options?: any) => {
+		const result = await jobs.list(userId, options);
+		return result.jobs;
+	},
+	getUserJobsCount: async (userId: string, options?: any) => {
+		const result = await jobs.list(userId, { ...options, limit: 0 });
+		return result.total;
+	},
+	getJob: jobs.get,
+	createUserJob: jobs.create,
+	updateJobStatus: jobs.updateStatus,
+	updateJobNotes: jobs.updateNotes,
+	deleteJob: jobs.delete,
+	getJobDocuments: documents.list,
+	getDocument: documents.get,
+	createJobDocument: documents.create,
+	getJobActivities: async (jobId: string, options?: any) => {
+		const result = await activity.list(jobId, options?.limit, options?.offset);
+		return result.items;
+	},
+	getJobActivityCount: async (jobId: string) => {
+		const result = await activity.list(jobId, 0, 0);
+		return result.total;
+	},
+	createActivity: activity.create
+};
 
 export default db;
