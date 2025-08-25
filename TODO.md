@@ -14,13 +14,16 @@
 - [x] Build main app views
 
 ## Phase 2.5: API Scaffolding
-- [ ] Analyze data model, api-spec & all routes in `src/routes/`, check for consistency between data model and page data. Update data model / spec docs as needed.
-- [ ] Implement API scaffolding using `docs/api-spec.md`. Write a
+- [x] Analyze data model, api-spec & all routes in `src/routes/`, check for consistency between data model and page data. Update data model / spec docs as needed.
+- [x] Add missing fields to data model (notes, jobActivity)
+- [ ] Create API route structure in `/src/routes/api/`
+- [ ] Implement type-safe API client using SvelteKit conventions (Remote Functions)
 
 ## Phase 3: API & Database Updates
 - [ ] Apply data model changes to DB
-- [ ] Build API endpoints using Agents SDK & Sveltekit Remote Functions
-- [ ] Confirm data submitting to DB
+- [ ] Add API business logic using Agents SDK
+- [ ] Connect Better-Auth session to layouts and pages
+- [ ] Add server-side load functions to all routes
 
 ## Phase 4: Service Architecture
 

@@ -21,6 +21,7 @@ export interface UserJob {
 	additionalInfo?: string[] | null;
 	link?: string | null;
 	status: JobStatus;
+	notes?: string | null;
 	appliedAt?: Date | null;
 	createdAt: Date;
 	updatedAt: Date;
@@ -38,10 +39,19 @@ export interface JobDocument {
 	updatedAt: Date;
 }
 
+export type JobActivityType =
+	| 'status_change'
+	| 'document_generated'
+	| 'note_added'
+	| 'applied'
+	| 'interview_scheduled'
+	| 'offer_received';
+
 export interface JobActivity {
 	id: string;
 	jobId: string;
-	action: string;
+	type: JobActivityType;
 	description: string;
+	metadata?: Record<string, any> | null;
 	createdAt: Date;
 }

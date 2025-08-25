@@ -2,6 +2,7 @@
 	import '$lib/app.css';
 	import favicon from '$lib/assets/favicon.svg';
 	import { goto } from '$app/navigation';
+	import { preventDefault } from 'svelte/legacy';
 	import { Button } from '$lib/components/ui/button';
 	import { Separator } from '$lib/components/ui/separator';
 	import {
@@ -16,6 +17,14 @@
 	} from 'lucide-svelte';
 
 	let { children } = $props();
+
+	function scrollIntoView({ target }: { target: HTMLAnchorElement }) {
+		const el = document.querySelector(target.getAttribute('href')!);
+		if (!el) return;
+		el.scrollIntoView({
+			behavior: 'smooth'
+		});
+	}
 </script>
 
 <svelte:head>
@@ -41,24 +50,28 @@
 				<nav class="hidden items-center gap-6 md:flex">
 					<a
 						href="#features"
+						onclick={preventDefault(scrollIntoView)}
 						class="text-muted-foreground hover:text-foreground text-sm font-medium transition-colors"
 					>
 						Features
 					</a>
 					<a
 						href="#how-it-works"
+						onclick={preventDefault(scrollIntoView)}
 						class="text-muted-foreground hover:text-foreground text-sm font-medium transition-colors"
 					>
 						How It Works
 					</a>
 					<a
 						href="#pricing"
+						onclick={preventDefault(scrollIntoView)}
 						class="text-muted-foreground hover:text-foreground text-sm font-medium transition-colors"
 					>
 						Pricing
 					</a>
 					<a
 						href="#about"
+						onclick={preventDefault(scrollIntoView)}
 						class="text-muted-foreground hover:text-foreground text-sm font-medium transition-colors"
 					>
 						About
@@ -113,9 +126,9 @@
 					<h3 class="font-semibold">Product</h3>
 					<ul class="text-muted-foreground space-y-2 text-sm">
 						<li>
-							<a href="#features" class="hover:text-foreground transition-colors">Features</a>
+							<a href="#features" onclick={preventDefault(scrollIntoView)} class="hover:text-foreground transition-colors">Features</a>
 						</li>
-						<li><a href="#pricing" class="hover:text-foreground transition-colors">Pricing</a></li>
+						<li><a href="#pricing" onclick={preventDefault(scrollIntoView)} class="hover:text-foreground transition-colors">Pricing</a></li>
 						<li>
 							<a href="#" class="hover:text-foreground transition-colors">API Documentation</a>
 						</li>
@@ -127,7 +140,7 @@
 				<div class="space-y-4">
 					<h3 class="font-semibold">Company</h3>
 					<ul class="text-muted-foreground space-y-2 text-sm">
-						<li><a href="#about" class="hover:text-foreground transition-colors">About Us</a></li>
+						<li><a href="#about" onclick={preventDefault(scrollIntoView)} class="hover:text-foreground transition-colors">About Us</a></li>
 						<li><a href="#" class="hover:text-foreground transition-colors">Blog</a></li>
 						<li><a href="#" class="hover:text-foreground transition-colors">Careers</a></li>
 						<li><a href="#" class="hover:text-foreground transition-colors">Contact</a></li>

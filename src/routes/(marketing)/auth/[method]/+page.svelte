@@ -116,16 +116,6 @@
 
 <div class="flex min-h-screen items-center justify-center px-4 py-12">
 	<div class="w-full max-w-md space-y-6">
-		<!-- Logo/Brand -->
-		<div class="flex flex-col items-center space-y-2">
-			<div
-				class="bg-primary text-primary-foreground flex h-12 w-12 items-center justify-center rounded-lg"
-			>
-				<span class="text-xl font-bold">A</span>
-			</div>
-			<h1 class="text-2xl font-bold">ATSPro</h1>
-		</div>
-
 		<!-- Auth Card -->
 		<Card>
 			<CardHeader class="space-y-1">

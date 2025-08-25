@@ -535,6 +535,78 @@ Deletes a job and all associated documents.
 
 ---
 
+### 13. Update Job Notes
+
+**PATCH** `/api/jobs/:id/notes`
+
+Updates the notes field for a specific job.
+
+#### Request
+
+```typescript
+{
+  notes: string
+}
+```
+
+#### Response
+
+```json
+{
+	"success": true,
+	"data": {
+		"id": "uuid-here",
+		"notes": "Updated notes content",
+		"updatedAt": "2025-01-15T10:00:00Z"
+	},
+	"message": "Notes updated successfully"
+}
+```
+
+---
+
+### 14. Get Job Activity
+
+**GET** `/api/jobs/:id/activity`
+
+Retrieves the activity timeline for a specific job.
+
+#### Query Parameters
+
+- `limit` (optional): Number of activities to return (default: 50)
+- `offset` (optional): Pagination offset (default: 0)
+
+#### Response
+
+```json
+{
+	"success": true,
+	"data": {
+		"activities": [
+			{
+				"id": "uuid-here",
+				"jobId": "job-uuid",
+				"type": "status_change",
+				"description": "Status changed from tracked to applied",
+				"metadata": {
+					"previousStatus": "tracked",
+					"newStatus": "applied"
+				},
+				"createdAt": "2025-01-15T10:00:00Z"
+			}
+		],
+		"pagination": {
+			"total": 15,
+			"limit": 50,
+			"offset": 0,
+			"hasMore": false
+		}
+	}
+}
+```
+
+---
+
 ## Rate Limiting
 
 To prevent abuse and ensure fair usage:

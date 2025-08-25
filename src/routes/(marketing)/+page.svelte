@@ -1,10 +1,6 @@
-<svelte:head>
-	<title>ATSPro - AI-Powered Resume Optimization for Job Success</title>
-	<meta name="description" content="Optimize your resume with AI to pass ATS filters and land more interviews. Get personalized feedback and tailored resumes for each job application." />
-</svelte:head>
-
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { preventDefault } from 'svelte/legacy';
 	import { Button } from '$lib/components/ui/button';
 	import {
 		Card,
@@ -40,7 +36,25 @@
 		Rocket,
 		BarChart3
 	} from 'lucide-svelte';
+
+	function scrollIntoView({ target }: { target: HTMLElement }) {
+		const href = target.getAttribute('href');
+		if (!href) return;
+		const el = document.querySelector(href);
+		if (!el) return;
+		el.scrollIntoView({
+			behavior: 'smooth'
+		});
+	}
 </script>
+
+<svelte:head>
+	<title>ATSPro - AI-Powered Resume Optimization for Job Success</title>
+	<meta
+		name="description"
+		content="Optimize your resume with AI to pass ATS filters and land more interviews. Get personalized feedback and tailored resumes for each job application."
+	/>
+</svelte:head>
 
 <!-- Hero Section -->
 <section
@@ -68,12 +82,17 @@
 				</div>
 
 				<div class="flex flex-col gap-4 sm:flex-row">
-					<Button size="lg" onclick={() => goto('/auth/signup')} class="group">
+					<Button size="lg" onclick={() => goto('/auth/sign-up')} class="group">
 						<Rocket class="mr-2 h-5 w-5" />
 						Start Free Trial
 						<ArrowRight class="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
 					</Button>
-					<Button size="lg" variant="outline" onclick={() => document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' })}>
+					<Button
+						size="lg"
+						variant="outline"
+						onclick={() =>
+							document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' })}
+					>
 						<BookOpen class="mr-2 h-5 w-5" />
 						Learn More
 					</Button>
@@ -546,7 +565,9 @@
 							<span>Email support</span>
 						</li>
 					</ul>
-					<Button variant="outline" class="w-full" onclick={() => goto('/auth/signup')}>Get Started Free</Button>
+					<Button variant="outline" class="w-full" onclick={() => goto('/auth/signup')}
+						>Get Started Free</Button
+					>
 				</CardContent>
 			</Card>
 
@@ -625,7 +646,9 @@
 							<span>Dedicated account manager</span>
 						</li>
 					</ul>
-					<Button variant="outline" class="w-full" onclick={() => goto('/contact')}>Contact Sales</Button>
+					<Button variant="outline" class="w-full" onclick={() => goto('/contact')}
+						>Contact Sales</Button
+					>
 				</CardContent>
 			</Card>
 		</div>
@@ -649,7 +672,13 @@
 					Start Free Trial
 					<ArrowRight class="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
 				</Button>
-				<Button size="lg" variant="outline" onclick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}>View All Features</Button>
+				<Button
+					size="lg"
+					variant="outline"
+					href="#features"
+					onclick={preventDefault(scrollIntoView)}
+					>View All Features</Button
+				>
 			</div>
 			<p class="text-muted-foreground text-sm">
 				No credit card required " Free forever plan available " Cancel anytime

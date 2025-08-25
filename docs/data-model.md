@@ -107,6 +107,8 @@ Stores job postings that users are tracking/applying to
 - `link` (text, nullable)
 - `status` (text, not null, default 'tracked')
   - Enum: 'tracked', 'applied', 'interviewing', 'offered', 'rejected', 'withdrawn'
+- `notes` (text, nullable)
+  - User's personal notes about the job
 - `appliedAt` (timestamp, nullable)
 - `createdAt` (timestamp, default CURRENT_TIMESTAMP, not null)
 - `updatedAt` (timestamp, default CURRENT_TIMESTAMP, not null)
@@ -141,6 +143,27 @@ Stores generated documents for specific jobs (resumes, cover letters, etc.)
 - Index on `type`
 - Composite index on `(jobId, type, isActive)`
 - Index on `createdAt`
+
+#### `jobActivity`
+
+Stores activity timeline for job applications
+
+- `id` (uuid, primary key, generated)
+- `jobId` (uuid, not null, foreign key → userJobs.id, cascade delete)
+- `type` (text, not null)
+  - Enum: 'status_change', 'document_generated', 'note_added', 'applied', 'interview_scheduled', 'offer_received'
+- `description` (text, not null)
+  - Human-readable description of the activity
+- `metadata` (jsonb, nullable)
+  - Additional context (e.g., previous status, document type, interview details)
+- `createdAt` (timestamp, default CURRENT_TIMESTAMP, not null)
+
+**Indexes:**
+
+- Index on `jobId`
+- Index on `type`
+- Index on `createdAt`
+- Composite index on `(jobId, createdAt)`
 
 ## JSONB Field Structures
 
