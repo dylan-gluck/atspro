@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
+	import { goto } from '$app/navigation';
 	import { Button } from '$lib/components/ui/button';
 	import { Badge } from '$lib/components/ui/badge';
 	import * as Card from '$lib/components/ui/card';
@@ -28,7 +29,7 @@
 	import type { UserJob, JobStatus, JobDocument, JobActivity } from '$lib/types/user-job';
 
 	// Get job ID from URL
-	let jobId = $derived($page.params.id);
+	let jobId = $derived(page.params.id);
 
 	// Placeholder job data - in real app, this would come from a load function
 	let job = $state<UserJob>({
@@ -259,11 +260,15 @@ You'll be working on cutting-edge web applications that make AI accessible to mi
 	}
 </script>
 
-<div class="container mx-auto space-y-6 py-6">
+<svelte:head>
+	<title>{job.title} at {job.company} - ATSPro</title>
+</svelte:head>
+
+<div class="container mx-auto space-y-6 p-6">
 	<!-- Header -->
 	<div class="flex flex-col items-start justify-between gap-4 sm:flex-row">
 		<div class="flex items-start gap-4">
-			<Button href="/app/jobs" variant="ghost" size="icon">
+			<Button onclick={() => goto('/app/jobs')} variant="ghost" size="icon">
 				<ArrowLeft class="h-4 w-4" />
 			</Button>
 			<div>
@@ -298,7 +303,7 @@ You'll be working on cutting-edge web applications that make AI accessible to mi
 		</div>
 
 		<div class="flex gap-2">
-			<Button href="/app/jobs/{jobId}/edit" variant="outline" class="gap-2">
+			<Button onclick={() => goto(`/app/jobs/${jobId}/edit`)} variant="outline" class="gap-2">
 				<Edit class="h-4 w-4" />
 				Edit
 			</Button>
@@ -352,7 +357,7 @@ You'll be working on cutting-edge web applications that make AI accessible to mi
 				</div>
 
 				{#if job.link}
-					<Button href={job.link} target="_blank" variant="outline" class="gap-2">
+					<Button onclick={() => window.open(job.link, '_blank')} variant="outline" class="gap-2">
 						<ExternalLink class="h-4 w-4" />
 						View Posting
 					</Button>

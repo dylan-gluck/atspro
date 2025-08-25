@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
 	import { Badge } from '$lib/components/ui/badge';
@@ -173,14 +174,18 @@
 	}
 </script>
 
-<div class="container mx-auto space-y-6 py-6">
+<svelte:head>
+	<title>Job Applications - ATSPro</title>
+</svelte:head>
+
+<div class="container mx-auto space-y-6 p-6">
 	<!-- Header -->
 	<div class="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
 		<div>
 			<h1 class="text-3xl font-bold">Job Applications</h1>
 			<p class="text-muted-foreground mt-1">Track and manage your job applications</p>
 		</div>
-		<Button href="/app/jobs/new" class="gap-2">
+		<Button onclick={() => goto('/app/jobs/new')} class="gap-2">
 			<Plus class="h-4 w-4" />
 			Add New Job
 		</Button>
@@ -271,12 +276,17 @@
 									</Table.Cell>
 									<Table.Cell>
 										<div class="flex justify-end gap-1">
-											<Button href="/app/jobs/{job.id}" variant="ghost" size="icon" class="h-8 w-8">
+											<Button
+												onclick={() => goto(`/app/jobs/${job.id}`)}
+												variant="ghost"
+												size="icon"
+												class="h-8 w-8"
+											>
 												<Eye class="h-4 w-4" />
 												<span class="sr-only">View job</span>
 											</Button>
 											<Button
-												href="/app/jobs/{job.id}/edit"
+												onclick={() => goto(`/app/jobs/${job.id}/edit`)}
 												variant="ghost"
 												size="icon"
 												class="h-8 w-8"

@@ -145,6 +145,10 @@
 	}
 </script>
 
+<svelte:head>
+	<title>Dashboard - ATSPro</title>
+</svelte:head>
+
 <div class="container mx-auto space-y-6 p-6">
 	<!-- Page Header -->
 	<div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -165,7 +169,7 @@
 	</div>
 
 	<!-- Stats Cards -->
-	<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+	<div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
 		{#each stats as stat}
 			<Card.Root>
 				<Card.Header class="flex flex-row items-center justify-between space-y-0 pb-2">

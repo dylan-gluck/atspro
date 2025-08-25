@@ -169,6 +169,10 @@
 	}
 </script>
 
+<svelte:head>
+	<title>Get Started - ATSPro</title>
+</svelte:head>
+
 <!-- Step content snippets -->
 {#snippet stepIndicator()}
 	<div class="mb-8 flex items-center justify-center gap-2">
@@ -510,7 +514,7 @@
 	</div>
 {/snippet}
 
-<div class="bg-background flex min-h-screen items-center justify-center p-4">
+<div class="bg-background flex min-h-screen items-center justify-center p-6">
 	<div class="w-full max-w-2xl">
 		<!-- Progress bar -->
 		<div class="mb-8">

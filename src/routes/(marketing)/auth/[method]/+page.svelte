@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { Button } from '$lib/components/ui/button';
 	import {
 		Card,
@@ -17,7 +17,7 @@
 	import MailIcon from '@lucide/svelte/icons/mail';
 
 	// Get the auth method from the URL parameter
-	let method = $derived($page.params.method);
+	let method = $derived(page.params.method);
 
 	// Form state
 	let email = $state('');
@@ -107,6 +107,12 @@
 		console.log('GitHub login clicked');
 	}
 </script>
+
+<svelte:head>
+	<title
+		>{method === 'sign-in' ? 'Sign In' : method === 'sign-up' ? 'Sign Up' : 'Forgot Password'} - ATSPro</title
+	>
+</svelte:head>
 
 <div class="flex min-h-screen items-center justify-center px-4 py-12">
 	<div class="w-full max-w-md space-y-6">

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import '$lib/app.css';
 	import favicon from '$lib/assets/favicon.svg';
+	import { goto } from '$app/navigation';
 	import { Button } from '$lib/components/ui/button';
 	import { Separator } from '$lib/components/ui/separator';
 	import {
@@ -66,8 +67,8 @@
 
 				<!-- Auth Buttons -->
 				<div class="flex items-center gap-2">
-					<Button variant="ghost" href="/auth/sign-in">Sign In</Button>
-					<Button href="/auth/sign-up">
+					<Button variant="ghost" onclick={() => goto('/auth/sign-in')}>Sign In</Button>
+					<Button onclick={() => goto('/auth/sign-up')}>
 						<Sparkles class="mr-2 h-4 w-4" />
 						Get Started
 					</Button>

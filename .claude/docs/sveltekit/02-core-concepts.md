@@ -385,7 +385,7 @@ Without arguments, `enhance` provides:
 ```svelte
 <!-- src/routes/blog/[slug]/+error.svelte -->
 <script>
-	import { page } from '$app/state';
+	import { page } from '$app/store';
 </script>
 
 <h1>{page.status}: {page.error.message}</h1>

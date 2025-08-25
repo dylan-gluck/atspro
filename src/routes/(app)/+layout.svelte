@@ -1,12 +1,14 @@
 <script lang="ts">
 	import '$lib/app.css';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
+	import { goto } from '$app/navigation';
+	import { ModeWatcher } from 'mode-watcher';
 	import * as Sidebar from '$lib/components/ui/sidebar';
 	import { Button } from '$lib/components/ui/button';
 	import * as Avatar from '$lib/components/ui/avatar';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
 	import {
-		Home,
+		House,
 		FileText,
 		Briefcase,
 		Settings,
@@ -16,12 +18,13 @@
 		User,
 		Menu
 	} from 'lucide-svelte';
+	import ModeToggle from '@/components/mode-toggle.svelte';
 
 	let { children } = $props();
 
 	// Navigation items with their routes
 	const navItems = [
-		{ title: 'Dashboard', href: '/app', icon: Home },
+		{ title: 'Dashboard', href: '/app', icon: House },
 		{ title: 'Resume', href: '/app/resume', icon: FileText },
 		{ title: 'Jobs', href: '/app/jobs', icon: Briefcase },
 		{ title: 'Settings', href: '/app/settings', icon: Settings }
@@ -35,6 +38,7 @@
 	};
 </script>
 
+<ModeWatcher />
 <Sidebar.Provider>
 	<div class="flex h-screen w-full">
 		<!-- Sidebar -->
@@ -67,8 +71,8 @@
 							{#each navItems as item}
 								<Sidebar.MenuItem>
 									<Sidebar.MenuButton
-										href={item.href}
-										class={$page.url.pathname === item.href ? 'bg-accent' : ''}
+										onclick={() => goto(item.href)}
+										class={page.url.pathname === item.href ? 'bg-accent' : ''}
 									>
 										<item.icon class="size-4" />
 										<span>{item.title}</span>
@@ -85,7 +89,7 @@
 				<Sidebar.Menu>
 					<Sidebar.MenuItem>
 						<DropdownMenu.Root>
-							<DropdownMenu.Trigger asChild>
+							<DropdownMenu.Trigger>
 								{#snippet child({ props })}
 									<Sidebar.MenuButton
 										size="lg"
@@ -140,7 +144,10 @@
 					<h1 class="text-lg font-semibold">ATSPro</h1>
 				</div>
 
-				<div class="flex items-center gap-4">
+				<div class="flex items-center gap-2">
+					<!-- Light/Dark Mode Toggle -->
+					<ModeToggle />
+
 					<!-- Notifications -->
 					<Button variant="ghost" size="icon" class="relative">
 						<Bell class="size-5" />
@@ -155,7 +162,7 @@
 					<!-- User Avatar (Mobile) -->
 					<div class="md:hidden">
 						<DropdownMenu.Root>
-							<DropdownMenu.Trigger asChild>
+							<DropdownMenu.Trigger>
 								{#snippet child({ props })}
 									<Button variant="ghost" size="icon" {...props}>
 										<Avatar.Root class="size-8">

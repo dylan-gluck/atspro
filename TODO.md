@@ -13,8 +13,11 @@
 - [x] Build core components
 - [x] Build main app views
 
-## Phase 3: API & Database Updates
+## Phase 2.5: API Scaffolding
+- [ ] Analyze data model, api-spec & all routes in `src/routes/`, check for consistency between data model and page data. Update data model / spec docs as needed.
+- [ ] Implement API scaffolding using `docs/api-spec.md`. Write a
 
+## Phase 3: API & Database Updates
 - [ ] Apply data model changes to DB
 - [ ] Build API endpoints using Agents SDK & Sveltekit Remote Functions
 - [ ] Confirm data submitting to DB
