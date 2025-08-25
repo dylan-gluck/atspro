@@ -10,3 +10,8 @@ export interface Job {
 	additional_info?: string[] | null;
 	link?: string | null;
 }
+
+export interface JobDocument {
+	type: 'resume' | 'cover' | 'research' | 'prep';
+	content: string;
+}
