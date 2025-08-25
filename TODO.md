@@ -18,10 +18,10 @@
 
 ## Phase 3: Enable Remote Functions & Database Setup
 
-- [ ] Enable experimental remote functions in svelte.config.js
-- [ ] Apply data model changes to DB (migrations)
-- [ ] Create database utility functions
-- [ ] Set up AI SDK integration helpers
+- [x] Enable experimental remote functions in svelte.config.js
+- [x] Apply data model changes to DB (migrations)
+- [x] Create database utility functions
+- [x] Set up AI SDK integration helpers
 
 ## Phase 4: Service Implementation (Remote Functions)
 
