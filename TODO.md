@@ -12,37 +12,52 @@
 
 - [x] Build core components
 - [x] Build main app views
-
-@.claude/docs/sveltekit/05-remote-functions.md
-@docs/api-spec.md
-@docs/data-model.md
-
-## Phase 2.5: API Scaffolding
-- [x] Analyze data model, api-spec & all routes in `src/routes/`, check for consistency between data model and page data. Update data model / spec docs as needed.
+- [x] Analyze data model, api-spec & all routes for consistency
 - [x] Add missing fields to data model (notes, jobActivity)
-- [ ] Create API route structure in `/src/routes/api/`, all endpoints
-  - Type-safe API client using SvelteKit conventions (Remote Functions).
-  - DO NOT add business logic, just console.log() form data & return success.
+- [x] Document Remote Functions architecture (docs/remote-functions-architecture.md)
 
-## Phase 3: API & Database Updates
-- [ ] Apply data model changes to DB
-- [ ] Add API business logic using Agents SDK
-- [ ] Connect Better-Auth session to layouts and pages
-- [ ] Add server-side load functions to all routes
+## Phase 3: Enable Remote Functions & Database Setup
 
-## Phase 4: Service Architecture
+- [ ] Enable experimental remote functions in svelte.config.js
+- [ ] Apply data model changes to DB (migrations)
+- [ ] Create database utility functions
+- [ ] Set up AI SDK integration helpers
 
-- [ ] UserService for interacting with User db tables
-- [ ] ResumeService for interacting with Resume db tables
-- [ ] JobService for interacting with Job db tables
+## Phase 4: Service Implementation (Remote Functions)
 
-## Phase 5: Front-end/Back-end Integration
+- [ ] Create base utilities (auth helpers, rate limiting, error handling)
+- [ ] Implement `resume.remote.ts` service
+  - [ ] getResume query
+  - [ ] extractResume form (file upload)
+  - [ ] updateResume command
+- [ ] Implement `job.remote.ts` service
+  - [ ] getJobs query (with filtering/pagination)
+  - [ ] getJob query (single job)
+  - [ ] extractJob form
+  - [ ] updateJobStatus command
+  - [ ] deleteJob command
+  - [ ] updateJobNotes command
+- [ ] Implement `document.remote.ts` service
+  - [ ] getDocument query
+  - [ ] optimizeResume command
+  - [ ] generateCoverLetter form
+  - [ ] generateCompanyResearch command
+- [ ] Implement `activity.remote.ts` service
+  - [ ] getJobActivity query
 
-- [ ] Integrate the UserService
-- [ ] Integrate the ResumeService
-- [ ] Integrate the JobService
+## Phase 5: Front-end Integration
 
-## Phase 6: End-to-end Testing
+- [ ] Update onboarding flow to use remote functions
+- [ ] Update job tracker dashboard to use remote functions
+- [ ] Update job details page to use remote functions
+- [ ] Update resume editor to use remote functions
+- [ ] Implement optimistic UI with withOverride
+- [ ] Add loading states and error boundaries
 
-- [ ] Write user stories using `.test-data`
-- [ ] Run end-to-end tests
+## Phase 6: Testing & Polish
+
+- [ ] Write unit tests for remote functions
+- [ ] Write integration tests for service flows
+- [ ] Implement rate limiting and monitoring
+- [ ] Performance optimization (query caching, prerendering)
+- [ ] Error tracking and logging setup
