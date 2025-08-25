@@ -719,7 +719,8 @@ async def get_current_user_resume(
         logger.info(f"Getting resume for user: {user_id}")
 
         # Get user's profile to extract resume_id
-        async with job_service.task_service.postgres_pool.connection() as conn:
+        from ..database import get_postgres_connection
+        async with get_postgres_connection() as conn:
             async with conn.cursor() as cursor:
                 await cursor.execute(
                     """
@@ -736,7 +737,7 @@ async def get_current_user_resume(
         resume_id = row[0]
         logger.info(f"Found resume_id: {resume_id}")
 
-        # Get resume from ArangoDB
+        # Get resume from PostgreSQL
         resume = await job_service.get_resume(resume_id, user_id)
 
         if not resume:
@@ -756,7 +757,7 @@ async def get_current_user_resume(
                 "content": resume.get("content"),
                 "parsed_data": resume.get(
                     "resume_data"
-                ),  # Fixed: use resume_data from ArangoDB
+                ),  # Using resume data from PostgreSQL
                 "created_at": resume.get("created_at"),
                 "updated_at": resume.get("updated_at"),
             },
@@ -798,7 +799,7 @@ async def get_resume(
                 "content": resume.get("content"),
                 "parsed_data": resume.get(
                     "resume_data"
-                ),  # Fixed: use resume_data from ArangoDB
+                ),  # Using resume data from PostgreSQL
                 "created_at": resume.get("created_at"),
                 "updated_at": resume.get("updated_at"),
             },
@@ -850,7 +851,7 @@ async def update_resume(
                 "content": resume.get("content"),
                 "parsed_data": resume.get(
                     "resume_data"
-                ),  # Fixed: use resume_data from ArangoDB
+                ),  # Using resume data from PostgreSQL
                 "created_at": resume.get("created_at"),
                 "updated_at": resume.get("updated_at"),
             },

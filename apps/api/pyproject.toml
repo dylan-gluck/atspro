@@ -14,11 +14,11 @@ dependencies = [
     "unstructured[doc,docx,md,pdf,rtf]>=0.16.23",
     "vlmrun-hub>=0.1.30",
     "psycopg[binary,pool]>=3.1.0",
-    "python-arango>=7.5.0",
     "sse-starlette>=1.6.0",
     "alembic>=1.12.0",
     "pydantic-settings>=2.0.0",
     "psycopg-pool>=3.2.6",
+    "asyncpg>=0.30.0",
 ]
 
 [dependency-groups]
@@ -29,6 +29,7 @@ dev = [
     "pytest-mock>=3.14.0",
     "pytest-asyncio>=1.1.0",
     "playwright>=1.54.0",
+    "psycopg2-binary>=2.9.10",
 ]
 
 [build-system]

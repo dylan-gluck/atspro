@@ -36,17 +36,17 @@ async def get_user_profile(
         from ..database.connections import get_postgres_connection
         async with get_postgres_connection() as conn:
             # Query user profile
-            async with conn.cursor() as cursor:
-                await cursor.execute(
-                    """
-                    SELECT user_id, phone, location, title, bio, resume_id, 
-                           created_at, updated_at
-                    FROM user_profiles 
-                    WHERE user_id = %s
-                    """,
-                    (user_id,),
-                )
-                row = await cursor.fetchone()
+            cursor = conn.cursor()
+            await cursor.execute(
+                """
+                SELECT user_id, phone, location, title, bio, resume_id, 
+                       created_at, updated_at
+                FROM user_profiles 
+                WHERE user_id = %s
+                """,
+                (user_id,),
+            )
+            row = await cursor.fetchone()
 
             if not row:
                 # Return success with null data if no profile exists
@@ -90,31 +90,36 @@ async def update_user_profile(
         UserProfileResponse: Updated user profile data
     """
     user_id = current_user["id"]
+    
+    # Log the incoming request for debugging
+    logger.info(f"Received profile update request for user {user_id}")
+    logger.info(f"Raw profile_update: {profile_update}")
 
     # Get only the fields that were actually provided (not None)
     update_data = profile_update.model_dump(exclude_unset=True)
+    logger.info(f"Parsed update_data: {update_data}")
 
     if not update_data:
+        logger.error(f"Empty update_data for user {user_id}, raising 422")
         raise HTTPException(status_code=422, detail="No fields provided for update")
-
     try:
         from ..database.connections import get_postgres_connection
         async with get_postgres_connection() as conn:
             async with conn.transaction():
                 # First, check if profile exists, if not create it
-                async with conn.cursor() as cursor:
+                cursor = conn.cursor()
+                await cursor.execute(
+                    "SELECT user_id FROM user_profiles WHERE user_id = %s",
+                    (user_id,),
+                )
+                profile_exists = await cursor.fetchone()
+
+                if not profile_exists:
                     await cursor.execute(
-                        "SELECT user_id FROM user_profiles WHERE user_id = %s",
+                        "INSERT INTO user_profiles (user_id) VALUES (%s)",
                         (user_id,),
                     )
-                    profile_exists = await cursor.fetchone()
-
-                    if not profile_exists:
-                        await cursor.execute(
-                            "INSERT INTO user_profiles (user_id) VALUES (%s)",
-                            (user_id,),
-                        )
-                        logger.info(f"Created new profile for user {user_id}")
+                    logger.info(f"Created new profile for user {user_id}")
 
                 # Build dynamic UPDATE query based on provided fields
                 if update_data:
@@ -132,23 +137,22 @@ async def update_user_profile(
                         SET {", ".join(set_clauses)}
                         WHERE user_id = %s
                     """
-
-                    async with conn.cursor() as cursor:
-                        await cursor.execute(update_query, values)
+                    cursor = conn.cursor()
+                    await cursor.execute(update_query, values)
 
                 # Fetch the updated profile
                 # Fetch the updated profile
-                async with conn.cursor() as cursor:
-                    await cursor.execute(
-                        """
-                        SELECT user_id, phone, location, title, bio, resume_id, 
-                               created_at, updated_at
-                        FROM user_profiles 
-                        WHERE user_id = %s
-                        """,
-                        (user_id,),
-                    )
-                    row = await cursor.fetchone()
+                cursor = conn.cursor()
+                await cursor.execute(
+                    """
+                    SELECT user_id, phone, location, title, bio, resume_id, 
+                           created_at, updated_at
+                    FROM user_profiles 
+                    WHERE user_id = %s
+                    """,
+                    (user_id,),
+                )
+                row = await cursor.fetchone()
 
                 if not row:
                     raise HTTPException(
@@ -197,21 +201,19 @@ async def delete_user_profile(
         from ..database.connections import get_postgres_connection
         async with get_postgres_connection() as conn:
             # Delete user profile
-            async with conn.cursor() as cursor:
-                await cursor.execute(
-                    """
-                    DELETE FROM user_profiles 
-                    WHERE user_id = %s
-                    """,
-                    (user_id,),
+            cursor = conn.cursor()
+            await cursor.execute(
+                """
+                DELETE FROM user_profiles 
+                WHERE user_id = %s
+                """,
+                (user_id,),
+            )
+
+            if cursor.rowcount == 0:
+                raise HTTPException(
+                    status_code=404, detail="User profile not found"
                 )
-
-                # Check if profile was actually deleted
-                if cursor.rowcount == 0:
-                    raise HTTPException(
-                        status_code=404, detail="User profile not found"
-                    )
-
             logger.info(f"Deleted profile for user {user_id}")
             return UserProfileDeleteResponse(
                 success=True, message="Profile deleted successfully"

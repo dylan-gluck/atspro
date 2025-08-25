@@ -41,12 +41,8 @@ class ResearchRequest(BaseModel):
 # Service dependencies
 async def get_optimization_service():
     """Get optimization service instance"""
-    from ..database.connections import get_arango_client
-    
-    # Get ArangoDB directly
-    arango_db = get_arango_client()
-
-    return OptimizationService(arango_db, None)
+    # No longer needs database connection - service uses utility functions
+    return OptimizationService(task_service=None)
 
 
 @router.post("/optimize", response_model=ApiResponse[dict])  # TODO: Update to OptimizationApiResponse when converted to sync

@@ -17,31 +17,9 @@ from app.services.optimization_processor import (
 
 
 @pytest.fixture
-def mock_arango_db():
-    """Create a mock ArangoDB instance."""
-    mock_db = MagicMock()
-    
-    # Mock collections
-    mock_resumes_collection = MagicMock()
-    mock_jobs_collection = MagicMock()
-    mock_documents_collection = MagicMock()
-    
-    # Configure collection returns
-    collection_map = {
-        "resumes": mock_resumes_collection,
-        "jobs": mock_jobs_collection,
-        "documents": mock_documents_collection
-    }
-    
-    mock_db.collection.side_effect = lambda name: collection_map.get(name, MagicMock())
-    
-    return mock_db
-
-
-@pytest.fixture
-def optimization_service(mock_arango_db):
+def optimization_service():
     """Create an OptimizationProcessorService instance for testing."""
-    return OptimizationProcessorService(mock_arango_db)
+    return OptimizationProcessorService()
 
 
 @pytest.fixture

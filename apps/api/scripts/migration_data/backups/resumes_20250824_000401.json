@@ -1,0 +1,3358 @@
+[
+  {
+    "user_id": "user_gV1wS2Jw",
+    "file_metadata": {
+      "filename": "dylan_cv.pdf",
+      "content_type": "application/pdf",
+      "size": 2781566,
+      "processed_at": "2025-08-16T21:54:43.160344"
+    },
+    "resume_data": {
+      "contact_info": {
+        "full_name": "Dylan Navajas Gluck",
+        "email": "dylan@dylangluck.com",
+        "phone": "347-764-5550",
+        "address": "Red Hook, NY",
+        "links": []
+      },
+      "summary": "Full-stack engineer with over 14 years hands-on experience delivering scalable & performant apps on the Web Platform.",
+      "work_experience": [
+        {
+          "company": "Unqork",
+          "position": "Lead Software Engineer \u2013 User Experience",
+          "start_date": "2019",
+          "end_date": null,
+          "is_current": true,
+          "description": null,
+          "responsibilities": [
+            "Designed & implemented core developer tools, base themes & design system architecture.",
+            "Developed a component library enabling token-based theming for enterprise customers.",
+            "Technical lead influencing front-end strategy.",
+            "Improved performance and accessibility through targeted refactors.",
+            "Advised on platform features to improve developer experience for internal and external teams.",
+            "Inclusive leader working close with direct reports to identify + track goals, inspire creative problem solving & maintain consistency across projects."
+          ],
+          "skills": [
+            "HTML",
+            "CSS",
+            "Javascript",
+            "React",
+            "Angular",
+            "Webpack",
+            "NodeJs"
+          ]
+        },
+        {
+          "company": "Visiondeck",
+          "position": "SASS: Product MVP + Ai Agent",
+          "start_date": "2022",
+          "end_date": "2023",
+          "is_current": false,
+          "description": "Worked with founders through full SLDC to strategize, design & build a new Sass product: No-code page builder + AI Agent with function calling for content generation and editing.",
+          "responsibilities": [
+            "Structured PostgreSQL backend, multi-region edge hosting with load-balancing & process for up/down-scaling.",
+            "Developed full-stack Sveltekit app with SSR and client hydration.",
+            "Integrated Stripe payment and webhooks.",
+            "Separated backend business logic and APIs from front-end state & display logic."
+          ],
+          "skills": [
+            "HTML",
+            "CSS",
+            "Javascript",
+            "Sveltekit",
+            "Vite",
+            "NodeJs",
+            "Docker",
+            "AWS"
+          ]
+        },
+        {
+          "company": "Aaptiv",
+          "position": "Sr. Software Engineer - Growth",
+          "start_date": "2017",
+          "end_date": "2019",
+          "is_current": false,
+          "description": null,
+          "responsibilities": [
+            "Developed micro-services for authentication and payment.",
+            "Worked with marketing & design teams to implement A/B tests, user segments & automated reports.",
+            "Defined front-end architecture strategy and led efforts on a unified asset & component library shared between digital properties."
+          ],
+          "skills": [
+            "HTML",
+            "CSS",
+            "Javascript",
+            "React",
+            "Redis",
+            "Webpack",
+            "NodeJs",
+            "Docker"
+          ]
+        },
+        {
+          "company": "Ready Set Rocket",
+          "position": "Full-stack Engineer",
+          "start_date": "2013",
+          "end_date": "2017",
+          "is_current": false,
+          "description": "End-to-end solutions for enterprise clients; marketing sites, web apps, email campaigns, A/B & CRO.",
+          "responsibilities": [
+            "Client-facing lead engineer on large-scale app development using early MVCC frameworks (Angular, Knockout, React).",
+            "Implemented animations and data visualization with GSAP, Three.js.",
+            "Wordpress specialist involving backend logic and templating in PHP.",
+            "Managed multi-region i18n, custom fields & API routes.",
+            "Pushed platform capabilities beyond original limits with modern patterns."
+          ],
+          "skills": [
+            "HTML",
+            "CSS",
+            "Javascript",
+            "Wordpress",
+            "Linux",
+            "Apache",
+            "MySQL",
+            "PHP"
+          ]
+        },
+        {
+          "company": "Mars Design",
+          "position": "Jr. Front-end Engineer",
+          "start_date": "2009",
+          "end_date": "2013",
+          "is_current": false,
+          "description": "Developed immersive experiences, branded micro-sites and corporate landing pages during HTML5 transition.",
+          "responsibilities": [
+            "Focused on accessibility, web standards, animations & class-based architecture.",
+            "Wrote wordpress plugins and PHP scripts to extend platform capabilities.",
+            "Learned problem definition, research, solution finding.",
+            "Managed client relationships and expectations.",
+            "Experienced in engineering basics, version control, rolling-back, refactors."
+          ],
+          "skills": [
+            "HTML",
+            "CSS",
+            "Javascript",
+            "Wordpress",
+            "Linux",
+            "Apache",
+            "MySQL",
+            "PHP"
+          ]
+        }
+      ],
+      "education": [
+        {
+          "institution": "Savannah College of Art & Design",
+          "degree": "BA",
+          "field_of_study": "Graphic Design",
+          "graduation_date": "2013",
+          "gpa": null,
+          "honors": [],
+          "relevant_courses": [],
+          "skills": []
+        }
+      ],
+      "certifications": [
+        {
+          "name": "Unqork Associates Configurator",
+          "issuer": "Unqork",
+          "date_obtained": "2021",
+          "expiration_date": null,
+          "credential_id": null
+        },
+        {
+          "name": "Unqork Associates Configurator",
+          "issuer": "Unqork",
+          "date_obtained": "2022",
+          "expiration_date": null,
+          "credential_id": null
+        },
+        {
+          "name": "Unqork Associates Configurator",
+          "issuer": "Unqork",
+          "date_obtained": "2023",
+          "expiration_date": null,
+          "credential_id": null
+        },
+        {
+          "name": "Neo4j Fundamentals",
+          "issuer": "Neo4j",
+          "date_obtained": "2023",
+          "expiration_date": null,
+          "credential_id": null
+        },
+        {
+          "name": "Cypher Fundamentals",
+          "issuer": "Neo4j",
+          "date_obtained": "2023",
+          "expiration_date": null,
+          "credential_id": null
+        }
+      ],
+      "skills": [
+        "HTML",
+        "CSS",
+        "Javascript",
+        "React",
+        "Angular",
+        "Webpack",
+        "NodeJs",
+        "Sveltekit",
+        "Vite",
+        "Docker",
+        "AWS",
+        "Redis",
+        "Wordpress",
+        "Linux",
+        "Apache",
+        "MySQL",
+        "PHP"
+      ]
+    },
+    "status": "parsed",
+    "task_id": "0d5a9ac3-d60f-4bbe-8855-3ffd98a28a91",
+    "arango_id": "a3a432c8-59f0-4957-ad6b-72b43b1a2806",
+    "arango_rev": "_kJRfC3K---",
+    "id": "6229e4fb-4668-42d8-b577-3906ae4d15f7",
+    "filename": "unknown.pdf",
+    "content_type": "application/pdf",
+    "file_size": 0,
+    "source": "upload",
+    "parsed_data": {
+      "contact_info": {},
+      "summary": "",
+      "experience": [],
+      "education": [],
+      "skills": [],
+      "certifications": [],
+      "projects": []
+    },
+    "created_at": "2025-08-24T00:04:01.040908",
+    "updated_at": "2025-08-24T00:04:01.040912"
+  },
+  {
+    "user_id": "user_jeeqiUAi",
+    "file_metadata": {
+      "filename": "resume.txt",
+      "content_type": "text/plain",
+      "size": 80,
+      "processed_at": "2025-08-16T22:09:10.929574"
+    },
+    "resume_data": {
+      "contact_info": {
+        "full_name": "John Doe",
+        "email": null,
+        "phone": null,
+        "address": null,
+        "links": []
+      },
+      "summary": "Software Engineer with 5 years of experience.",
+      "work_experience": [],
+      "education": [],
+      "certifications": [],
+      "skills": [
+        "JavaScript",
+        "Python",
+        "React"
+      ]
+    },
+    "status": "parsed",
+    "task_id": "36a94eb3-6f16-464a-ad7e-880ac8ecf36a",
+    "arango_id": "886548b9-2203-4d81-a121-a83fac7a1ca2",
+    "arango_rev": "_kJRr9sK---",
+    "id": "e180ca0f-c957-4995-910b-2a344674611b",
+    "filename": "unknown.pdf",
+    "content_type": "application/pdf",
+    "file_size": 0,
+    "source": "upload",
+    "parsed_data": {
+      "contact_info": {},
+      "summary": "",
+      "experience": [],
+      "education": [],
+      "skills": [],
+      "certifications": [],
+      "projects": []
+    },
+    "created_at": "2025-08-24T00:04:01.040920",
+    "updated_at": "2025-08-24T00:04:01.040921"
+  },
+  {
+    "user_id": "user_vbSegVy4",
+    "file_metadata": {
+      "filename": "resume.pdf",
+      "content_type": "application/pdf",
+      "size": 4,
+      "processed_at": "2025-08-16T22:18:26.702985"
+    },
+    "resume_data": {
+      "contact_info": {
+        "full_name": "",
+        "email": null,
+        "phone": null,
+        "address": null,
+        "links": []
+      },
+      "summary": null,
+      "work_experience": [],
+      "education": [],
+      "certifications": [],
+      "skills": []
+    },
+    "status": "parsed",
+    "task_id": "a4bdec7f-1a24-4362-85cd-98a37283fada",
+    "arango_id": "46885e82-2549-4fa7-9b3f-3169619522d2",
+    "arango_rev": "_kJR0eVO---",
+    "id": "8f6c6c13-42f0-4344-8b04-650b45303e1f",
+    "filename": "unknown.pdf",
+    "content_type": "application/pdf",
+    "file_size": 0,
+    "source": "upload",
+    "parsed_data": {
+      "contact_info": {},
+      "summary": "",
+      "experience": [],
+      "education": [],
+      "skills": [],
+      "certifications": [],
+      "projects": []
+    },
+    "created_at": "2025-08-24T00:04:01.040927",
+    "updated_at": "2025-08-24T00:04:01.040927"
+  },
+  {
+    "user_id": "user_gV1wS2Jw",
+    "file_metadata": {
+      "filename": "dylan_cv.pdf",
+      "content_type": "application/pdf",
+      "size": 2781566,
+      "processed_at": "2025-08-16T22:18:47.755069"
+    },
+    "resume_data": {
+      "contact_info": {
+        "full_name": "Dylan Navajas Gluck",
+        "email": "dylan@dylangluck.com",
+        "phone": "347-764-5550",
+        "address": "Red Hook, NY",
+        "links": []
+      },
+      "summary": "Full-stack engineer with over 14 years hands-on experience delivering scalable & performant apps on the Web Platform.",
+      "work_experience": [
+        {
+          "company": "Unqork",
+          "position": "Lead Software Engineer \u2013 User Experience",
+          "start_date": "2019",
+          "end_date": null,
+          "is_current": true,
+          "description": null,
+          "responsibilities": [
+            "Designed & implemented core developer tools, base themes & design system architecture",
+            "Developed a component library enabling token-based theming for enterprise customers",
+            "Technical lead influencing front-end strategy",
+            "Improved performance and accessibility through targeted refactors",
+            "Advise on platform features to improve developer experience for internal and external teams",
+            "Inclusive leader working closely with direct reports to identify + track goals, inspire creative problem solving & maintain consistency across projects"
+          ],
+          "skills": [
+            "HTML",
+            "CSS",
+            "Javascript",
+            "React",
+            "Angular",
+            "Webpack",
+            "NodeJs"
+          ]
+        },
+        {
+          "company": "Visiondeck",
+          "position": "SASS: Product MVP + Ai Agent",
+          "start_date": "2022",
+          "end_date": "2023",
+          "is_current": false,
+          "description": "Worked with founders through full SDLC to strategize, design & build a new SaaS product: No-code page builder + AI Agent with function calling to generate/edit content inline, add/modify sections, find stock imagery or generate novel images. Multi-model routing based on prompt & capabilities.",
+          "responsibilities": [
+            "Structured PostgreSQL backend, multi-region edge hosting with load-balancing & process for up/down-scaling",
+            "Full-stack Sveltekit app with SSR and client hydration",
+            "Stripe payment integration + webhooks",
+            "Backend business logic and APIs separate from front-end state & display logic"
+          ],
+          "skills": [
+            "HTML",
+            "CSS",
+            "Javascript",
+            "Sveltekit",
+            "Vite",
+            "NodeJs",
+            "Docker",
+            "AWS"
+          ]
+        },
+        {
+          "company": "Aaptiv",
+          "position": "Sr. Software Engineer - Growth",
+          "start_date": "2017",
+          "end_date": "2019",
+          "is_current": false,
+          "description": null,
+          "responsibilities": [
+            "Developed micro-services for authentication and payment",
+            "Worked with marketing & design teams to implement A/B tests, user segments & automated reports",
+            "Defined front-end architecture strategy and lead efforts on a unified asset & component library shared between digital properties"
+          ],
+          "skills": [
+            "HTML",
+            "CSS",
+            "Javascript",
+            "React",
+            "Redis",
+            "Webpack",
+            "NodeJs",
+            "Docker"
+          ]
+        },
+        {
+          "company": "Ready Set Rocket",
+          "position": "Full-stack Engineer",
+          "start_date": "2013",
+          "end_date": "2017",
+          "is_current": false,
+          "description": "End-to-end solutions for enterprise clients; marketing sites, web apps, email campaigns, A/B & CRO.",
+          "responsibilities": [
+            "Client-facing, Lead engineer on large-scale app development using early MVCC frameworks (Angular, Knockout, React)",
+            "Animations and data visualization with GSAP, Three.js but mostly vanilla JS & CSS",
+            "Wordpress specialist, backend logic and templating in PHP",
+            "Multi-region i18n, custom fields & API routes",
+            "Successfully pushed the platform further than it was supposed to go before modern patterns"
+          ],
+          "skills": [
+            "HTML",
+            "CSS",
+            "Javascript",
+            "Wordpress",
+            "Linux",
+            "Apache",
+            "MySQL",
+            "PHP"
+          ]
+        },
+        {
+          "company": "Mars Design",
+          "position": "Jr. Front-end Engineer",
+          "start_date": "2009",
+          "end_date": "2013",
+          "is_current": false,
+          "description": "Developed immersive experiences, branded micro-sites and corporate landing pages on the early Web Platform during the transition to HTML5.",
+          "responsibilities": [
+            "Focused on accessibility, web standards, animations & class-based architecture",
+            "Wrote wordpress plugins and PHP scripts to extend the platform capabilities",
+            "Learned how to define a problem, research and find a solution",
+            "Managed client relationships & expectations, knowing when to push-back",
+            "Gained engineering team basics, version control, rolling-back, refactors"
+          ],
+          "skills": [
+            "HTML",
+            "CSS",
+            "Javascript",
+            "Wordpress",
+            "Linux",
+            "Apache",
+            "MySQL",
+            "PHP"
+          ]
+        }
+      ],
+      "education": [
+        {
+          "institution": "Savannah College of Art & Design",
+          "degree": "BA",
+          "field_of_study": "Graphic Design",
+          "graduation_date": "2013",
+          "gpa": null,
+          "honors": [],
+          "relevant_courses": [],
+          "skills": []
+        }
+      ],
+      "certifications": [
+        {
+          "name": "Unqork Associates Configurator",
+          "issuer": "Unqork",
+          "date_obtained": "2021",
+          "expiration_date": "2023",
+          "credential_id": null
+        },
+        {
+          "name": "Unqork Associates Configurator",
+          "issuer": "Unqork",
+          "date_obtained": "2022",
+          "expiration_date": "2023",
+          "credential_id": null
+        },
+        {
+          "name": "Unqork Associates Configurator",
+          "issuer": "Unqork",
+          "date_obtained": "2023",
+          "expiration_date": "2023",
+          "credential_id": null
+        },
+        {
+          "name": "Neo4j Fundamentals",
+          "issuer": "Neo4j",
+          "date_obtained": "2023",
+          "expiration_date": null,
+          "credential_id": null
+        },
+        {
+          "name": "Cypher Fundamentals",
+          "issuer": "Neo4j",
+          "date_obtained": "2023",
+          "expiration_date": null,
+          "credential_id": null
+        }
+      ],
+      "skills": [
+        "HTML",
+        "CSS",
+        "Javascript",
+        "React",
+        "Angular",
+        "Webpack",
+        "NodeJs",
+        "Sveltekit",
+        "Vite",
+        "Docker",
+        "AWS",
+        "Redis",
+        "Wordpress",
+        "Linux",
+        "Apache",
+        "MySQL",
+        "PHP",
+        "GSAP",
+        "Three.js"
+      ]
+    },
+    "status": "parsed",
+    "task_id": "a80cf71e-d3a4-4d17-ad44-82f375bea3bd",
+    "arango_id": "9f15feb1-c0ba-43aa-a13c-5851f169a57d",
+    "arango_rev": "_kJR1BKO---",
+    "id": "1884c84c-7be6-4392-aaa2-4e19d5a169d2",
+    "filename": "unknown.pdf",
+    "content_type": "application/pdf",
+    "file_size": 0,
+    "source": "upload",
+    "parsed_data": {
+      "contact_info": {},
+      "summary": "",
+      "experience": [],
+      "education": [],
+      "skills": [],
+      "certifications": [],
+      "projects": []
+    },
+    "created_at": "2025-08-24T00:04:01.040935",
+    "updated_at": "2025-08-24T00:04:01.040935"
+  },
+  {
+    "user_id": "user_gV1wS2Jw",
+    "file_metadata": {
+      "filename": "dylan_cv.pdf",
+      "content_type": "application/pdf",
+      "size": 2781566,
+      "processed_at": "2025-08-16T22:22:27.016967"
+    },
+    "resume_data": {
+      "contact_info": {
+        "full_name": "Dylan Navajas Gluck",
+        "email": "dylan@dylangluck.com",
+        "phone": "347-764-5550",
+        "address": "Red Hook, NY",
+        "links": []
+      },
+      "summary": "Full-stack engineer with over 14 years hands-on experience delivering scalable & performant apps on the Web Platform.",
+      "work_experience": [
+        {
+          "company": "Unqork",
+          "position": "Lead Software Engineer \u2013 User Experience",
+          "start_date": "2019",
+          "end_date": null,
+          "is_current": true,
+          "description": "Designed & implemented core developer tools, base themes & design system architecture. Developed a component library enabling token-based theming for our enterprise customers. Technical lead influencing front-end strategy. Improved performance and accessibility through targeted refactors. Advise on platform features to improve developer experience for internal and external teams. Inclusive leader working close with direct reports to identify + track goals, inspire creative problem solving & maintain consistency across projects.",
+          "responsibilities": [
+            "Designed & implemented core developer tools, base themes & design system architecture",
+            "Developed a component library enabling token-based theming for enterprise customers",
+            "Technical lead influencing front-end strategy",
+            "Improved performance and accessibility through targeted refactors",
+            "Advised on platform features to improve developer experience",
+            "Inclusive leadership working with direct reports to identify and track goals, inspire creative problem solving, maintain consistency"
+          ],
+          "skills": [
+            "HTML",
+            "CSS",
+            "Javascript",
+            "React",
+            "Angular",
+            "Webpack",
+            "NodeJs"
+          ]
+        },
+        {
+          "company": "Visiondeck",
+          "position": "SASS: Product MVP + Ai Agent",
+          "start_date": "2022",
+          "end_date": "2023",
+          "is_current": false,
+          "description": "Worked with founders through full SLDC to strategize, design & build a new Sass product: No-code page builder + AI Agent with function calling to generate/edit content inline, add/modify sections, find stock imagery or generate novel images. Multi-model routing based on prompt & capabilities. Structured PostgreSQL backend, multi-region edge hosting with load-balancing & process for up/down-scaling. Full-stack Sveltekit app with SSR and client hydration. Stripe payment integration + webhooks. Backend business logic and APIs separate from front-end state & display logic.",
+          "responsibilities": [
+            "Strategized, designed & built a no-code page builder and AI Agent product",
+            "Implemented function calling to generate/edit content inline",
+            "Handled multi-model routing based on prompt and capabilities",
+            "Structured PostgreSQL backend",
+            "Managed multi-region edge hosting with load balancing and scaling",
+            "Built full-stack Sveltekit app with SSR and client hydration",
+            "Integrated Stripe payments and webhooks",
+            "Developed backend business logic and APIs separated from front-end display logic"
+          ],
+          "skills": [
+            "HTML",
+            "CSS",
+            "Javascript",
+            "Sveltekit",
+            "Vite",
+            "NodeJs",
+            "Docker",
+            "AWS"
+          ]
+        },
+        {
+          "company": "Aaptiv",
+          "position": "Sr. Software Engineer - Growth",
+          "start_date": "2017",
+          "end_date": "2019",
+          "is_current": false,
+          "description": "Developed micro-services for authentication and payment. Worked with marketing & design teams to implement A/B tests, user segments & automated reports. Defined front-end architecture strategy and led efforts on a unified asset & component library shared between digital properties.",
+          "responsibilities": [
+            "Developed micro-services for authentication and payment",
+            "Collaborated with marketing & design teams to implement A/B tests, user segments & automated reports",
+            "Defined front-end architecture strategy",
+            "Led efforts on a unified asset & component library shared across digital properties"
+          ],
+          "skills": [
+            "HTML",
+            "CSS",
+            "Javascript",
+            "React",
+            "Redis",
+            "Webpack",
+            "NodeJs",
+            "Docker"
+          ]
+        },
+        {
+          "company": "Ready Set Rocket",
+          "position": "Full-stack Engineer",
+          "start_date": "2013",
+          "end_date": "2017",
+          "is_current": false,
+          "description": "End-to-end solutions for enterprise clients; marketing sites, web apps, email campaigns, A/B & CRO. Client-facing, Lead engineer on large-scale app development using early MVCC frameworks (Angular, Knockout, React). Animations and data visualization with GSAP, Three.js but mostly vanilla JS & CSS. Wordpress specialist, backend logic and templating in PHP. Multi-region i18n, custom fields & API routes. Successfully pushed the platform further than it was supposed to go before modern patterns.",
+          "responsibilities": [
+            "Delivered end-to-end solutions for marketing sites, web apps, email campaigns, A/B & CRO",
+            "Lead engineer on large-scale app development using Angular, Knockout, React",
+            "Implemented animations and data visualization with GSAP, Three.js, vanilla JS & CSS",
+            "Specialized in Wordpress backend logic and templating in PHP",
+            "Handled multi-region i18n, custom fields & API routes",
+            "Advanced platform capabilities beyond standard patterns"
+          ],
+          "skills": [
+            "HTML",
+            "CSS",
+            "Javascript",
+            "Wordpress",
+            "Linux",
+            "Apache",
+            "MySQL",
+            "PHP"
+          ]
+        },
+        {
+          "company": "Mars Design",
+          "position": "Jr. Front-end Engineer",
+          "start_date": "2009",
+          "end_date": "2013",
+          "is_current": false,
+          "description": "Developed immersive experiences, branded micro-sites and corporate landing pages on the early Web Platform during the transition to HTML5. Focused on accessibility, web standards, animations & class-based architecture. Wrote wordpress plugins and PHP scripts to extend the platform capabilities. Learned how to define a problem, research and find a solution. Client relationships & expectations, how and when to push-back. Engineering team basics, version control, rolling-back, refactors.",
+          "responsibilities": [
+            "Developed immersive experiences, branded micro-sites and corporate landing pages",
+            "Focused on accessibility, web standards, animations, class-based architecture",
+            "Wrote wordpress plugins and PHP scripts to extend platform capabilities",
+            "Learned problem definition, research, and solutions",
+            "Managed client relationships and expectations",
+            "Applied engineering best practices including version control, rollbacks, refactoring"
+          ],
+          "skills": [
+            "HTML",
+            "CSS",
+            "Javascript",
+            "Wordpress",
+            "Linux",
+            "Apache",
+            "MySQL",
+            "PHP"
+          ]
+        }
+      ],
+      "education": [
+        {
+          "institution": "Savannah College of Art & Design",
+          "degree": "BA",
+          "field_of_study": "Graphic Design",
+          "graduation_date": "2013",
+          "gpa": null,
+          "honors": [],
+          "relevant_courses": [],
+          "skills": []
+        }
+      ],
+      "certifications": [
+        {
+          "name": "Unqork Associates Configurator",
+          "issuer": "Unqork",
+          "date_obtained": "2021",
+          "expiration_date": null,
+          "credential_id": null
+        },
+        {
+          "name": "Unqork Associates Configurator",
+          "issuer": "Unqork",
+          "date_obtained": "2022",
+          "expiration_date": null,
+          "credential_id": null
+        },
+        {
+          "name": "Unqork Associates Configurator",
+          "issuer": "Unqork",
+          "date_obtained": "2023",
+          "expiration_date": null,
+          "credential_id": null
+        },
+        {
+          "name": "Neo4j Fundamentals",
+          "issuer": "Neo4j",
+          "date_obtained": "2023",
+          "expiration_date": null,
+          "credential_id": null
+        },
+        {
+          "name": "Cypher Fundamentals",
+          "issuer": "Neo4j",
+          "date_obtained": "2023",
+          "expiration_date": null,
+          "credential_id": null
+        }
+      ],
+      "skills": [
+        "HTML",
+        "CSS",
+        "Javascript",
+        "React",
+        "Angular",
+        "Webpack",
+        "NodeJs",
+        "Sveltekit",
+        "Vite",
+        "Docker",
+        "AWS",
+        "Redis",
+        "Wordpress",
+        "Linux",
+        "Apache",
+        "MySQL",
+        "PHP",
+        "GSAP",
+        "Three.js"
+      ]
+    },
+    "status": "parsed",
+    "task_id": "6aca6b7b-ea89-4ac0-abce-8226f078d32f",
+    "arango_id": "8452d2ff-a2b7-48a8-98d3-4d4d8c894803",
+    "arango_rev": "_kJR4iDm---",
+    "id": "3257692e-fd6e-4b05-86b3-6d014f8f3891",
+    "filename": "unknown.pdf",
+    "content_type": "application/pdf",
+    "file_size": 0,
+    "source": "upload",
+    "parsed_data": {
+      "contact_info": {},
+      "summary": "",
+      "experience": [],
+      "education": [],
+      "skills": [],
+      "certifications": [],
+      "projects": []
+    },
+    "created_at": "2025-08-24T00:04:01.040940",
+    "updated_at": "2025-08-24T00:04:01.040941"
+  },
+  {
+    "user_id": "user_vbSegVy4",
+    "file_metadata": {
+      "filename": "resume.pdf",
+      "content_type": "application/pdf",
+      "size": 28,
+      "processed_at": "2025-08-16T22:24:20.897801"
+    },
+    "resume_data": {
+      "contact_info": {
+        "full_name": "Fake PDF Content",
+        "email": null,
+        "phone": null,
+        "address": null,
+        "links": []
+      },
+      "summary": null,
+      "work_experience": [],
+      "education": [],
+      "certifications": [],
+      "skills": []
+    },
+    "status": "parsed",
+    "task_id": "1011af00-7be7-4238-a593-1bfea179e7bc",
+    "arango_id": "9736b967-48f0-421f-81a4-97e519f9be2f",
+    "arango_rev": "_kJR51mm---",
+    "id": "13038727-215d-48be-b195-129d69c901ca",
+    "filename": "unknown.pdf",
+    "content_type": "application/pdf",
+    "file_size": 0,
+    "source": "upload",
+    "parsed_data": {
+      "contact_info": {},
+      "summary": "",
+      "experience": [],
+      "education": [],
+      "skills": [],
+      "certifications": [],
+      "projects": []
+    },
+    "created_at": "2025-08-24T00:04:01.040945",
+    "updated_at": "2025-08-24T00:04:01.040945"
+  },
+  {
+    "user_id": "7Pc1Sm63oPyTn1rYcWg20wVObccKGsGd",
+    "file_metadata": {
+      "filename": "dylan_cv.pdf",
+      "content_type": "application/pdf",
+      "size": 2781566,
+      "processed_at": "2025-08-17T20:57:28.566078"
+    },
+    "resume_data": {
+      "contact_info": {
+        "full_name": "Dylan Navajas Gluck",
+        "email": "dylan@dylangluck.com",
+        "phone": "347-764-5550",
+        "address": "Red Hook, NY",
+        "links": []
+      },
+      "summary": "Full-stack engineer with over 14 years hands-on experience delivering scalable & performant apps on the Web Platform.",
+      "work_experience": [
+        {
+          "company": "Unqork",
+          "position": "Lead Software Engineer \u2013 User Experience",
+          "start_date": "2019",
+          "end_date": null,
+          "is_current": true,
+          "description": "Designed & implemented core developer tools, base themes & design system architecture. Developed a component library enabling token-based theming for our enterprise customers. Technical lead influencing front-end strategy. Improved performance and accessibility through targeted refactors. Advise on platform features to improve developer experience for internal and external teams. Inclusive leader working close with direct reports to identify + track goals, inspire creative problem solving & maintain consistency across projects.",
+          "responsibilities": [
+            "Designed and implemented core developer tools",
+            "Developed base themes & design system architecture",
+            "Developed component library enabling token-based theming",
+            "Led front-end strategy improvements",
+            "Improved performance and accessibility through refactors",
+            "Advised on platform features for developer experience",
+            "Led and inspired direct reports to track goals and problem solve"
+          ],
+          "skills": [
+            "HTML",
+            "CSS",
+            "Javascript",
+            "React",
+            "Angular",
+            "Webpack",
+            "NodeJs"
+          ]
+        },
+        {
+          "company": "Visiondeck",
+          "position": "SASS: Product MVP + Ai Agent",
+          "start_date": "2022",
+          "end_date": "2023",
+          "is_current": false,
+          "description": "Worked with founders through full SLDC to strategize, design & build a new SaaS product: No-code page builder + AI Agent with function calling to generate/edit content inline, add/modify sections, find stock imagery or generate novel images. Multi-model routing based on prompt & capabilities. Structured PostgreSQL backend, multi-region edge hosting with load-balancing & process for up/down-scaling. Full-stack Sveltekit app with SSR and client hydration. Stripe payment integration + webhooks. Backend business logic and APIs separate from front-end state & display logic.",
+          "responsibilities": [
+            "Strategized, designed, and built SaaS product with founders",
+            "Developed no-code page builder and AI Agent with function calling",
+            "Implemented multi-model routing",
+            "Built PostgreSQL backend and multi-region edge hosting with load balancing",
+            "Developed full-stack Sveltekit app with SSR and client hydration",
+            "Integrated Stripe payments and webhooks",
+            "Separated backend business logic from front-end state and display logic"
+          ],
+          "skills": [
+            "HTML",
+            "CSS",
+            "Javascript",
+            "Sveltekit",
+            "Vite",
+            "NodeJs",
+            "Docker",
+            "AWS"
+          ]
+        },
+        {
+          "company": "Aaptiv",
+          "position": "Sr. Software Engineer - Growth",
+          "start_date": "2017",
+          "end_date": "2019",
+          "is_current": false,
+          "description": "Developed micro-services for authentication and payment. Worked with marketing & design teams to implement A/B tests, user segments & automated reports. Defined front-end architecture strategy and lead efforts on a unified asset & component library shared between digital properties.",
+          "responsibilities": [
+            "Developed micro-services for authentication and payment",
+            "Collaborated with marketing and design teams to implement A/B tests",
+            "Implemented user segmentation and automated reporting",
+            "Defined front-end architecture strategy",
+            "Led efforts on unified asset and component library"
+          ],
+          "skills": [
+            "HTML",
+            "CSS",
+            "Javascript",
+            "React",
+            "Redis",
+            "Webpack",
+            "NodeJs",
+            "Docker"
+          ]
+        },
+        {
+          "company": "Ready Set Rocket",
+          "position": "Full-stack Engineer",
+          "start_date": "2013",
+          "end_date": "2017",
+          "is_current": false,
+          "description": "End-to-end solutions for enterprise clients; marketing sites, web apps, email campaigns, A/B & CRO. Client-facing, Lead engineer on large-scale app development using early MVCC frameworks (Angular, Knockout, React). Animations and data visualization with GSAP, Three.js but mostly vanilla JS & CSS. Wordpress specialist, backend logic and templating in PHP. Multi-region i18n, custom fields & API routes. Successfully pushed the platform further than it was supposed to go before modern patterns.",
+          "responsibilities": [
+            "Delivered end-to-end solutions for enterprise clients",
+            "Led large-scale app development using MVCC frameworks",
+            "Implemented animations and data visualization",
+            "Specialized in Wordpress backend logic and templating",
+            "Implemented multi-region i18n, custom fields, and API routes"
+          ],
+          "skills": [
+            "HTML",
+            "CSS",
+            "Javascript",
+            "Wordpress",
+            "Linux",
+            "Apache",
+            "MySQL",
+            "PHP"
+          ]
+        },
+        {
+          "company": "Mars Design",
+          "position": "Jr. Front-end Engineer",
+          "start_date": "2009",
+          "end_date": "2013",
+          "is_current": false,
+          "description": "Developed immersive experiences, branded micro-sites and corporate landing pages on the early Web Platform during the transition to HTML5. Focused on accessibility, web standards, animations & class-based architecture. Wrote wordpress plugins and PHP scripts to extend the platform capabilities. Learned how to define a problem, research and find a solution. Client relationships & expectations, how and when to push-back. Engineering team basics, version control, rolling-back, refactors.",
+          "responsibilities": [
+            "Developed immersive web experiences and branded microsites",
+            "Focused on accessibility, web standards, and animations",
+            "Wrote Wordpress plugins and PHP scripts",
+            "Managed client relationships and expectations",
+            "Learned engineering basics including version control and refactors"
+          ],
+          "skills": [
+            "HTML",
+            "CSS",
+            "Javascript",
+            "Wordpress",
+            "Linux",
+            "Apache",
+            "MySQL",
+            "PHP"
+          ]
+        }
+      ],
+      "education": [
+        {
+          "institution": "Savannah College of Art & Design",
+          "degree": "BA",
+          "field_of_study": "Graphic Design",
+          "graduation_date": "2013",
+          "gpa": null,
+          "honors": [],
+          "relevant_courses": [],
+          "skills": []
+        }
+      ],
+      "certifications": [
+        {
+          "name": "Unqork Associates Configurator",
+          "issuer": "Unqork",
+          "date_obtained": "2021",
+          "expiration_date": "2023",
+          "credential_id": null
+        },
+        {
+          "name": "Neo4j Fundamentals",
+          "issuer": "Neo4j",
+          "date_obtained": "2023",
+          "expiration_date": null,
+          "credential_id": null
+        },
+        {
+          "name": "Cypher Fundamentals",
+          "issuer": "Neo4j",
+          "date_obtained": "2023",
+          "expiration_date": null,
+          "credential_id": null
+        }
+      ],
+      "skills": [
+        "HTML",
+        "CSS",
+        "Javascript",
+        "React",
+        "Angular",
+        "Webpack",
+        "NodeJs",
+        "Sveltekit",
+        "Vite",
+        "Docker",
+        "AWS",
+        "Redis",
+        "Linux",
+        "Apache",
+        "MySQL",
+        "PHP",
+        "Wordpress",
+        "Stripe",
+        "GSAP",
+        "Three.js"
+      ]
+    },
+    "status": "parsed",
+    "task_id": "9a8bda3f-feb2-4ac8-abab-130355e2677a",
+    "arango_id": "f34eab4a-6e38-4490-9233-8a3548a5c792",
+    "arango_rev": "_kJlRNLC---",
+    "id": "5ed17ceb-9ea5-4023-8bc0-4df438bdcb89",
+    "filename": "unknown.pdf",
+    "content_type": "application/pdf",
+    "file_size": 0,
+    "source": "upload",
+    "parsed_data": {
+      "contact_info": {},
+      "summary": "",
+      "experience": [],
+      "education": [],
+      "skills": [],
+      "certifications": [],
+      "projects": []
+    },
+    "created_at": "2025-08-24T00:04:01.040949",
+    "updated_at": "2025-08-24T00:04:01.040950"
+  },
+  {
+    "user_id": "7Pc1Sm63oPyTn1rYcWg20wVObccKGsGd",
+    "file_metadata": {
+      "filename": "dylan_cv.pdf",
+      "content_type": "application/pdf",
+      "size": 2781566,
+      "processed_at": "2025-08-17T21:01:03.512364"
+    },
+    "resume_data": {
+      "contact_info": {
+        "full_name": "Dylan Navajas Gluck",
+        "email": "dylan@dylangluck.com",
+        "phone": "347-764-5550",
+        "address": "Red Hook, NY",
+        "links": []
+      },
+      "summary": "Full-stack engineer with over 14 years hands-on experience delivering scalable & performant apps on the Web Platform.",
+      "work_experience": [
+        {
+          "company": "Unqork",
+          "position": "Lead Software Engineer \u2013 User Experience",
+          "start_date": "2019",
+          "end_date": null,
+          "is_current": true,
+          "description": "Designed & implemented core developer tools, base themes & design system architecture. Developed a component library enabling token-based theming for our enterprise customers. Technical lead influencing front-end strategy. Improved performance and accessibility through targeted refactors. Advise on platform features to improve developer experience for internal and external teams. Inclusive leader working close with direct reports to identify + track goals, inspire creative problem solving & maintain consistency across projects.",
+          "responsibilities": [
+            "Design & implement core developer tools, base themes & design system architecture",
+            "Develop component library enabling token-based theming",
+            "Technical lead influencing front-end strategy",
+            "Improve performance and accessibility through targeted refactors",
+            "Advise on platform features to improve developer experience",
+            "Lead and mentor direct reports to identify and track goals, inspire problem solving, maintain consistency"
+          ],
+          "skills": [
+            "HTML",
+            "CSS",
+            "Javascript",
+            "React",
+            "Angular",
+            "Webpack",
+            "NodeJs"
+          ]
+        },
+        {
+          "company": "Visiondeck",
+          "position": "SASS: Product MVP + Ai Agent",
+          "start_date": "2022",
+          "end_date": "2023",
+          "is_current": false,
+          "description": "Worked with founders through full SLDC to strategize, design & build a new SaaS product: No-code page builder + AI Agent with function calling to generate/edit content inline, add/modify sections, find stock imagery or generate novel images. Multi-model routing based on prompt & capabilities. Structured PostgreSQL backend, multi-region edge hosting with load-balancing & process for scaling. Full-stack Sveltekit app with SSR and client hydration. Stripe payment integration + webhooks. Backend business logic and APIs separate from front-end state & display logic.",
+          "responsibilities": [
+            "Strategize, design and build SaaS product with no-code page builder and AI Agent",
+            "Implement multi-model routing based on prompts",
+            "Build PostgreSQL backend with multi-region edge hosting and load balancing",
+            "Develop full-stack Sveltekit app with SSR and client hydration",
+            "Integrate Stripe payments and webhooks",
+            "Separate backend business logic and APIs from front-end logic"
+          ],
+          "skills": [
+            "HTML",
+            "CSS",
+            "Javascript",
+            "Sveltekit",
+            "Vite",
+            "NodeJs",
+            "Docker",
+            "AWS"
+          ]
+        },
+        {
+          "company": "Aaptiv",
+          "position": "Sr. Software Engineer - Growth",
+          "start_date": "2017",
+          "end_date": "2019",
+          "is_current": false,
+          "description": "Developed micro-services for authentication and payment. Worked with marketing & design teams to implement A/B tests, user segments & automated reports. Defined front-end architecture strategy and lead efforts on a unified asset & component library shared between digital properties.",
+          "responsibilities": [
+            "Develop micro-services for authentication and payment",
+            "Collaborate with marketing and design teams on A/B tests, user segments, and automated reports",
+            "Define front-end architecture strategy",
+            "Lead efforts on unified asset & component library"
+          ],
+          "skills": [
+            "HTML",
+            "CSS",
+            "Javascript",
+            "React",
+            "Redis",
+            "Webpack",
+            "NodeJs",
+            "Docker"
+          ]
+        },
+        {
+          "company": "Ready Set Rocket",
+          "position": "Full-stack Engineer",
+          "start_date": "2013",
+          "end_date": "2017",
+          "is_current": false,
+          "description": "End-to-end solutions for enterprise clients including marketing sites, web apps, email campaigns, A/B and CRO. Client-facing, lead engineer on large-scale app development using early MVCC frameworks (Angular, Knockout, React). Animations and data visualization with GSAP, Three.js and vanilla JS & CSS. Wordpress specialist, backend logic and templating in PHP. Multi-region internationalization, custom fields & API routes. Extended platform beyond typical limits before modern patterns.",
+          "responsibilities": [
+            "Deliver end-to-end solutions for enterprise clients",
+            "Lead large-scale app development using Angular, Knockout, React",
+            "Create animations and data visualizations with GSAP, Three.js",
+            "Develop Wordpress backend logic and templating in PHP",
+            "Implement multi-region internationalization, custom fields and API routes"
+          ],
+          "skills": [
+            "HTML",
+            "CSS",
+            "Javascript",
+            "Wordpress",
+            "Linux",
+            "Apache",
+            "MySQL",
+            "PHP"
+          ]
+        },
+        {
+          "company": "Mars Design",
+          "position": "Jr. Front-end Engineer",
+          "start_date": "2009",
+          "end_date": "2013",
+          "is_current": false,
+          "description": "Developed immersive experiences, branded micro-sites and corporate landing pages during the transition to HTML5. Focused on accessibility, web standards, animations & class-based architecture. Wrote Wordpress plugins and PHP scripts to extend platform capabilities. Learned problem definition, research, client relationships, version control and code refactoring.",
+          "responsibilities": [
+            "Develop immersive experiences and branded micro-sites",
+            "Focus on accessibility and web standards",
+            "Write Wordpress plugins and PHP scripts",
+            "Engage in client relationships and expectations management",
+            "Practice version control, rollback and refactor"
+          ],
+          "skills": [
+            "HTML",
+            "CSS",
+            "Javascript",
+            "Wordpress",
+            "Linux",
+            "Apache",
+            "MySQL",
+            "PHP"
+          ]
+        }
+      ],
+      "education": [
+        {
+          "institution": "Savannah College of Art & Design",
+          "degree": "BA",
+          "field_of_study": "Graphic Design",
+          "graduation_date": "2013",
+          "gpa": null,
+          "honors": [],
+          "relevant_courses": [],
+          "skills": []
+        }
+      ],
+      "certifications": [
+        {
+          "name": "Unqork Associates Configurator",
+          "issuer": "Unqork",
+          "date_obtained": "2021",
+          "expiration_date": "2023",
+          "credential_id": null
+        },
+        {
+          "name": "Neo4j Fundamentals",
+          "issuer": "Neo4j",
+          "date_obtained": "2023",
+          "expiration_date": null,
+          "credential_id": null
+        },
+        {
+          "name": "Cypher Fundamentals",
+          "issuer": "Neo4j",
+          "date_obtained": "2023",
+          "expiration_date": null,
+          "credential_id": null
+        }
+      ],
+      "skills": [
+        "Full-stack development",
+        "Frontend architecture",
+        "React",
+        "Angular",
+        "Javascript",
+        "NodeJs",
+        "Webpack",
+        "CSS",
+        "HTML",
+        "Sveltekit",
+        "Vite",
+        "Docker",
+        "AWS",
+        "PostgreSQL",
+        "Stripe integration",
+        "Redis",
+        "Wordpress",
+        "PHP",
+        "Linux",
+        "Apache",
+        "MySQL",
+        "Animation",
+        "Accessibility",
+        "A/B Testing",
+        "Design systems"
+      ]
+    },
+    "status": "parsed",
+    "task_id": "1a63e23c-9d81-4901-a431-9c7d582957c6",
+    "arango_id": "695018c1-c233-4558-810f-28479c481cc9",
+    "arango_rev": "_kJlUaHa---",
+    "id": "691f1060-69a1-442d-be72-7f8ca1bf5385",
+    "filename": "unknown.pdf",
+    "content_type": "application/pdf",
+    "file_size": 0,
+    "source": "upload",
+    "parsed_data": {
+      "contact_info": {},
+      "summary": "",
+      "experience": [],
+      "education": [],
+      "skills": [],
+      "certifications": [],
+      "projects": []
+    },
+    "created_at": "2025-08-24T00:04:01.040959",
+    "updated_at": "2025-08-24T00:04:01.040959"
+  },
+  {
+    "user_id": "7Pc1Sm63oPyTn1rYcWg20wVObccKGsGd",
+    "file_metadata": {
+      "filename": "resume.txt",
+      "content_type": "text/plain",
+      "size": 567,
+      "processed_at": "2025-08-17T22:00:17.620553"
+    },
+    "resume_data": {
+      "contact_info": {
+        "full_name": "Dylan Navajas Gluck",
+        "email": "dylan@dylangluck.com",
+        "phone": "347 764 5550",
+        "address": "Red Hook, NY",
+        "links": []
+      },
+      "summary": "Full-stack engineer with over 14 years hands-on experience delivering scalable & performant apps on the Web Platform.",
+      "work_experience": [
+        {
+          "company": "Unqork",
+          "position": "Lead Software Engineer \u2013 User Experience",
+          "start_date": "2019",
+          "end_date": null,
+          "is_current": true,
+          "description": null,
+          "responsibilities": [],
+          "skills": []
+        },
+        {
+          "company": "Visiondeck",
+          "position": "SASS: Product MVP + AI Agent",
+          "start_date": "2022",
+          "end_date": "2023",
+          "is_current": false,
+          "description": null,
+          "responsibilities": [],
+          "skills": []
+        },
+        {
+          "company": "Aaptiv",
+          "position": "Sr. Software Engineer Growth",
+          "start_date": "2017",
+          "end_date": "2019",
+          "is_current": false,
+          "description": null,
+          "responsibilities": [],
+          "skills": []
+        },
+        {
+          "company": "Ready Set Rocket",
+          "position": "Full-stack Engineer",
+          "start_date": "2013",
+          "end_date": "2017",
+          "is_current": false,
+          "description": null,
+          "responsibilities": [],
+          "skills": []
+        },
+        {
+          "company": "Mars Design",
+          "position": "Jr. Front end Engineer",
+          "start_date": "2009",
+          "end_date": "2013",
+          "is_current": false,
+          "description": null,
+          "responsibilities": [],
+          "skills": []
+        }
+      ],
+      "education": [
+        {
+          "institution": "Savannah College of Art & Design",
+          "degree": "BA",
+          "field_of_study": "Graphic Design",
+          "graduation_date": "2013",
+          "gpa": null,
+          "honors": [],
+          "relevant_courses": [],
+          "skills": []
+        }
+      ],
+      "certifications": [],
+      "skills": []
+    },
+    "status": "parsed",
+    "task_id": "21178fdc-ddbd-4dd4-8ee6-a6bd2bd6e344",
+    "arango_id": "b45f879d-6a01-43f2-99d4-3651f16a899b",
+    "arango_rev": "_kJmKPBu---",
+    "id": "24ec2187-1665-4963-979a-fbf55fc2368d",
+    "filename": "unknown.pdf",
+    "content_type": "application/pdf",
+    "file_size": 0,
+    "source": "upload",
+    "parsed_data": {
+      "contact_info": {},
+      "summary": "",
+      "experience": [],
+      "education": [],
+      "skills": [],
+      "certifications": [],
+      "projects": []
+    },
+    "created_at": "2025-08-24T00:04:01.040964",
+    "updated_at": "2025-08-24T00:04:01.040965"
+  },
+  {
+    "user_id": "0ZVgryIHIEK6tElyUFhkqCF8kVTB36rO",
+    "file_metadata": {
+      "filename": "dylan_cv.pdf",
+      "content_type": "application/pdf",
+      "size": 2781566,
+      "processed_at": "2025-08-17T22:08:35.080863"
+    },
+    "resume_data": {
+      "contact_info": {
+        "full_name": "Dylan Navajas Gluck",
+        "email": "dylan@dylangluck.com",
+        "phone": "347-764-5550",
+        "address": "Red Hook, NY",
+        "links": []
+      },
+      "summary": "Full-stack engineer with over 14 years hands-on experience delivering scalable & performant apps on the Web Platform.",
+      "work_experience": [
+        {
+          "company": "Unqork",
+          "position": "Lead Software Engineer \u2013 User Experience",
+          "start_date": "2019",
+          "end_date": null,
+          "is_current": true,
+          "description": "Designed & implemented core developer tools, base themes & design system architecture. Developed a component library enabling token-based theming for our enterprise customers. Technical lead influencing front-end strategy. Improved performance and accessibility through targeted refactors. Advise on platform features to improve developer experience for internal and external teams. Inclusive leader working close with direct reports to identify + track goals, inspire creative problem solving & maintain consistency across projects.",
+          "responsibilities": [
+            "Designed & implemented core developer tools, base themes & design system architecture",
+            "Developed a component library enabling token-based theming",
+            "Influenced front-end strategy as technical lead",
+            "Improved performance and accessibility through targeted refactors",
+            "Advised on platform features to improve developer experience",
+            "Led inclusive leadership efforts with direct reports",
+            "Identified and tracked goals, inspired creative problem solving, maintained consistency across projects"
+          ],
+          "skills": [
+            "HTML",
+            "CSS",
+            "Javascript",
+            "React",
+            "Angular",
+            "Webpack",
+            "NodeJs"
+          ]
+        },
+        {
+          "company": "Visiondeck",
+          "position": "SASS: Product MVP + Ai Agent",
+          "start_date": "2022",
+          "end_date": "2023",
+          "is_current": false,
+          "description": "Worked with founders through full SLDC to strategize, design & build a new SaaS product: No-code page builder + AI Agent with function calling to generate/edit content inline, add/modify sections, find stock imagery or generate novel images. Multi-model routing based on prompt & capabilities. Structured PostgreSQL backend, multi-region edge hosting with load-balancing & process for up/down-scaling. Full-stack Sveltekit app with SSR and client hydration. Stripe payment integration + webhooks. Backend business logic and APIs separate from front-end state & display logic.",
+          "responsibilities": [
+            "Strategized, designed & built a new SaaS product including a no-code page builder and AI Agent",
+            "Implemented multi-model routing based on prompt & capabilities",
+            "Structured PostgreSQL backend with multi-region edge hosting",
+            "Implemented load-balancing and up/down-scaling processes",
+            "Developed full-stack Sveltekit app with SSR and client hydration",
+            "Integrated Stripe payments and webhooks",
+            "Separated backend business logic and APIs from front-end logic"
+          ],
+          "skills": [
+            "HTML",
+            "CSS",
+            "Javascript",
+            "Sveltekit",
+            "Vite",
+            "NodeJs",
+            "Docker",
+            "AWS"
+          ]
+        },
+        {
+          "company": "Aaptiv",
+          "position": "Sr. Software Engineer - Growth",
+          "start_date": "2017",
+          "end_date": "2019",
+          "is_current": false,
+          "description": "Developed micro-services for authentication and payment. Worked with marketing & design teams to implement A/B tests, user segments & automated reports. Defined front-end architecture strategy and lead efforts on a unified asset & component library shared between digital properties.",
+          "responsibilities": [
+            "Developed micro-services for authentication and payment",
+            "Collaborated with marketing & design teams on A/B tests and user segments",
+            "Implemented automated reports",
+            "Defined front-end architecture strategy",
+            "Led efforts on unified asset & component library"
+          ],
+          "skills": [
+            "HTML",
+            "CSS",
+            "Javascript",
+            "React",
+            "Redis",
+            "Webpack",
+            "NodeJs",
+            "Docker"
+          ]
+        },
+        {
+          "company": "Ready Set Rocket",
+          "position": "Full-stack Engineer",
+          "start_date": "2013",
+          "end_date": "2017",
+          "is_current": false,
+          "description": "End-to-end solutions for enterprise clients; marketing sites, web apps, email campaigns, A/B & CRO. Client-facing, Lead engineer on large-scale app development using early MVCC frameworks (Angular, Knockout, React). Animations and data visualization with GSAP, Three.js but mostly vanilla JS & CSS. Wordpress specialist, backend logic and templating in PHP. Multi-region i18n, custom fields & API routes. Successfully pushed the platform further than it was supposed to go before modern patterns.",
+          "responsibilities": [
+            "Delivered end-to-end solutions for enterprise clients",
+            "Lead engineer on large-scale app development using Angular, Knockout, React",
+            "Created animations and data visualizations with GSAP and Three.js",
+            "Worked as Wordpress specialist handling backend logic and templating in PHP",
+            "Implemented multi-region i18n, custom fields & API routes",
+            "Advanced the platform capabilities beyond intended limits"
+          ],
+          "skills": [
+            "HTML",
+            "CSS",
+            "Javascript",
+            "Wordpress",
+            "Linux",
+            "Apache",
+            "MySQL",
+            "PHP"
+          ]
+        },
+        {
+          "company": "Mars Design",
+          "position": "Jr. Front-end Engineer",
+          "start_date": "2009",
+          "end_date": "2013",
+          "is_current": false,
+          "description": "Developed immersive experiences, branded micro-sites and corporate landing pages on the early Web Platform during the transition to HTML5. Focused on accessibility, web standards, animations & class-based architecture. Wrote wordpress plugins and PHP scripts to extend the platform capabilities. Learned how to define a problem, research and find a solution. Client relationships & expectations, how and when to push-back. Engineering team basics, version control, rolling-back, refactors.",
+          "responsibilities": [
+            "Developed immersive experiences, branded micro-sites & corporate landing pages",
+            "Focused on accessibility, web standards, animations & class-based architecture",
+            "Developed Wordpress plugins and PHP scripts to extend capabilities",
+            "Handled client relationships and expectations",
+            "Applied engineering best practices including version control and refactors"
+          ],
+          "skills": [
+            "HTML",
+            "CSS",
+            "Javascript",
+            "Wordpress",
+            "Linux",
+            "Apache",
+            "MySQL",
+            "PHP"
+          ]
+        }
+      ],
+      "education": [
+        {
+          "institution": "Savannah College of Art & Design",
+          "degree": "BA",
+          "field_of_study": "Graphic Design",
+          "graduation_date": "2013",
+          "gpa": null,
+          "honors": [],
+          "relevant_courses": [],
+          "skills": []
+        }
+      ],
+      "certifications": [
+        {
+          "name": "Unqork Associates Configurator",
+          "issuer": "Unqork",
+          "date_obtained": "2021",
+          "expiration_date": null,
+          "credential_id": null
+        },
+        {
+          "name": "Unqork Associates Configurator",
+          "issuer": "Unqork",
+          "date_obtained": "2022",
+          "expiration_date": null,
+          "credential_id": null
+        },
+        {
+          "name": "Unqork Associates Configurator",
+          "issuer": "Unqork",
+          "date_obtained": "2023",
+          "expiration_date": null,
+          "credential_id": null
+        },
+        {
+          "name": "Neo4j Fundamentals",
+          "issuer": "Neo4j",
+          "date_obtained": "2023",
+          "expiration_date": null,
+          "credential_id": null
+        },
+        {
+          "name": "Cypher Fundamentals",
+          "issuer": "Neo4j",
+          "date_obtained": "2023",
+          "expiration_date": null,
+          "credential_id": null
+        }
+      ],
+      "skills": [
+        "HTML",
+        "CSS",
+        "Javascript",
+        "React",
+        "Angular",
+        "Webpack",
+        "NodeJs",
+        "SASS",
+        "Sveltekit",
+        "Vite",
+        "Docker",
+        "AWS",
+        "Redis",
+        "Wordpress",
+        "Linux",
+        "Apache",
+        "MySQL",
+        "PHP",
+        "GSAP",
+        "Three.js"
+      ]
+    },
+    "status": "parsed",
+    "task_id": "facf47d2-e4ff-4d89-8348-db7c7f1d55c1",
+    "arango_id": "8e2fe799-fdfb-4e5b-b05c-da53df4a29b3",
+    "arango_rev": "_kJmSJ_e---",
+    "id": "87f73e3f-c139-45c9-b02b-0d39a79204a9",
+    "filename": "unknown.pdf",
+    "content_type": "application/pdf",
+    "file_size": 0,
+    "source": "upload",
+    "parsed_data": {
+      "contact_info": {},
+      "summary": "",
+      "experience": [],
+      "education": [],
+      "skills": [],
+      "certifications": [],
+      "projects": []
+    },
+    "created_at": "2025-08-24T00:04:01.040969",
+    "updated_at": "2025-08-24T00:04:01.040969"
+  },
+  {
+    "user_id": "0ZVgryIHIEK6tElyUFhkqCF8kVTB36rO",
+    "file_metadata": {
+      "filename": "dylan_cv.pdf",
+      "content_type": "application/pdf",
+      "size": 2781566,
+      "processed_at": "2025-08-17T22:08:54.679498"
+    },
+    "resume_data": {
+      "contact_info": {
+        "full_name": "Dylan Navajas Gluck",
+        "email": "dylan@dylangluck.com",
+        "phone": "347-764-5550",
+        "address": "Red Hook, NY",
+        "links": []
+      },
+      "summary": "Full-stack engineer with over 14 years hands-on experience delivering scalable & performant apps on the Web Platform.",
+      "work_experience": [
+        {
+          "company": "Unqork",
+          "position": "Lead Software Engineer \u2013 User Experience",
+          "start_date": "2019",
+          "end_date": null,
+          "is_current": true,
+          "description": null,
+          "responsibilities": [
+            "Designed & implemented core developer tools, base themes & design system architecture.",
+            "Developed a component library enabling token-based theming for our enterprise customers.",
+            "Technical lead influencing front-end strategy.",
+            "Improved performance and accessibility through targeted refactors.",
+            "Advise on platform features to improve developer experience for internal and external teams.",
+            "Inclusive leader working close with direct reports to identify + track goals, inspire creative problem solving & maintain consistency across projects."
+          ],
+          "skills": [
+            "HTML",
+            "CSS",
+            "Javascript",
+            "React",
+            "Angular",
+            "Webpack",
+            "NodeJs"
+          ]
+        },
+        {
+          "company": "Visiondeck",
+          "position": "SASS: Product MVP + Ai Agent",
+          "start_date": "2022",
+          "end_date": "2023",
+          "is_current": false,
+          "description": "Worked with founders through full SLDC to strategize, design & build a new Sass product: No-code page builder + AI Agent with function calling to generate/edit content inline, add/modify sections, find stock imagery or generate novel images. Multi-model routing based on prompt & capabilities.",
+          "responsibilities": [
+            "Structured PostgreSQL backend",
+            "Multi-region edge hosting with load-balancing & process for up/down-scaling",
+            "Full-stack Sveltekit app with SSR and client hydration",
+            "Stripe payment integration + webhooks",
+            "Backend business logic and APIs separate from front-end state & display logic"
+          ],
+          "skills": [
+            "HTML",
+            "CSS",
+            "Javascript",
+            "Sveltekit",
+            "Vite",
+            "NodeJs",
+            "Docker",
+            "AWS"
+          ]
+        },
+        {
+          "company": "Aaptiv",
+          "position": "Sr. Software Engineer - Growth",
+          "start_date": "2017",
+          "end_date": "2019",
+          "is_current": false,
+          "description": null,
+          "responsibilities": [
+            "Developed micro-services for authentication and payment",
+            "Worked with marketing & design teams to implement A/B tests, user segments & automated reports",
+            "Defined front-end architecture strategy and lead efforts on a unified asset & component library shared between digital properties"
+          ],
+          "skills": [
+            "HTML",
+            "CSS",
+            "Javascript",
+            "React",
+            "Redis",
+            "Webpack",
+            "NodeJs",
+            "Docker"
+          ]
+        },
+        {
+          "company": "Ready Set Rocket",
+          "position": "Full-stack Engineer",
+          "start_date": "2013",
+          "end_date": "2017",
+          "is_current": false,
+          "description": "End-to-end solutions for enterprise clients; marketing sites, web apps, email campaigns, A/B & CRO.",
+          "responsibilities": [
+            "Client-facing, Lead engineer on large-scale app development using early MVCC frameworks (Angular, Knockout, React)",
+            "Animations and data visualization with GSAP, Three.js but mostly vanilla JS & CSS",
+            "Wordpress specialist, backend logic and templating in PHP",
+            "Multi-region i18n, custom fields & API routes",
+            "Successfully pushed the platform further than it was supposed to go before modern patterns"
+          ],
+          "skills": [
+            "HTML",
+            "CSS",
+            "Javascript",
+            "Wordpress",
+            "Linux",
+            "Apache",
+            "MySQL",
+            "PHP"
+          ]
+        },
+        {
+          "company": "Mars Design",
+          "position": "Jr. Front-end Engineer",
+          "start_date": "2009",
+          "end_date": "2013",
+          "is_current": false,
+          "description": "Developed immersive experiences, branded micro-sites and corporate landing pages on the early Web Platform during the transition to HTML5.",
+          "responsibilities": [
+            "Focused on accessibility, web standards, animations & class-based architecture",
+            "Wrote wordpress plugins and PHP scripts to extend the platform capabilities",
+            "Learned how to define a problem, research and find a solution",
+            "Client relationships & expectations, how and when to push-back",
+            "Engineering team basics, version control, rolling-back, refactors"
+          ],
+          "skills": [
+            "HTML",
+            "CSS",
+            "Javascript",
+            "Wordpress",
+            "Linux",
+            "Apache",
+            "MySQL",
+            "PHP"
+          ]
+        }
+      ],
+      "education": [
+        {
+          "institution": "Savannah College of Art & Design",
+          "degree": "BA",
+          "field_of_study": "Graphic Design",
+          "graduation_date": "2013",
+          "gpa": null,
+          "honors": [],
+          "relevant_courses": [],
+          "skills": []
+        }
+      ],
+      "certifications": [
+        {
+          "name": "Unqork Associates Configurator",
+          "issuer": "Unqork",
+          "date_obtained": "2021",
+          "expiration_date": "2023",
+          "credential_id": null
+        },
+        {
+          "name": "Neo4j Fundamentals",
+          "issuer": "Neo4j",
+          "date_obtained": "2023",
+          "expiration_date": null,
+          "credential_id": null
+        },
+        {
+          "name": "Cypher Fundamentals",
+          "issuer": "Neo4j",
+          "date_obtained": "2023",
+          "expiration_date": null,
+          "credential_id": null
+        }
+      ],
+      "skills": [
+        "HTML",
+        "CSS",
+        "Javascript",
+        "React",
+        "Angular",
+        "Webpack",
+        "NodeJs",
+        "Sveltekit",
+        "Vite",
+        "Docker",
+        "AWS",
+        "Redis",
+        "Wordpress",
+        "Linux",
+        "Apache",
+        "MySQL",
+        "PHP",
+        "GSAP",
+        "Three.js"
+      ]
+    },
+    "status": "parsed",
+    "task_id": "624b476d-716f-4f8a-9821-57b1a6bde765",
+    "arango_id": "366fde36-b123-4def-9eea-3612ecbcfefc",
+    "arango_rev": "_kJmSfS2---",
+    "id": "bc22a08c-2e5a-4772-b0dc-8973abae1569",
+    "filename": "unknown.pdf",
+    "content_type": "application/pdf",
+    "file_size": 0,
+    "source": "upload",
+    "parsed_data": {
+      "contact_info": {},
+      "summary": "",
+      "experience": [],
+      "education": [],
+      "skills": [],
+      "certifications": [],
+      "projects": []
+    },
+    "created_at": "2025-08-24T00:04:01.040973",
+    "updated_at": "2025-08-24T00:04:01.040974"
+  },
+  {
+    "user_id": "7Pc1Sm63oPyTn1rYcWg20wVObccKGsGd",
+    "file_metadata": {
+      "filename": "dylan_cv.pdf",
+      "content_type": "application/pdf",
+      "size": 2781566,
+      "processed_at": "2025-08-17T22:12:17.479643"
+    },
+    "resume_data": {
+      "contact_info": {
+        "full_name": "Dylan Navajas Gluck",
+        "email": "dylan@dylangluck.com",
+        "phone": "347-764-5550",
+        "address": "Red Hook, NY",
+        "links": []
+      },
+      "summary": "Full-stack engineer with over 14 years hands-on experience delivering scalable & performant apps on the Web Platform.",
+      "work_experience": [
+        {
+          "company": "Unqork",
+          "position": "Lead Software Engineer \u2013 User Experience",
+          "start_date": "2019",
+          "end_date": null,
+          "is_current": true,
+          "description": null,
+          "responsibilities": [
+            "Designed & implemented core developer tools, base themes & design system architecture",
+            "Developed a component library enabling token-based theming for our enterprise customers",
+            "Technical lead influencing front-end strategy",
+            "Improved performance and accessibility through targeted refactors",
+            "Advise on platform features to improve developer experience for internal and external teams",
+            "Inclusive leader working close with direct reports to identify + track goals, inspire creative problem solving & maintain consistency across projects"
+          ],
+          "skills": [
+            "HTML",
+            "CSS",
+            "Javascript",
+            "React",
+            "Angular",
+            "Webpack",
+            "NodeJs"
+          ]
+        },
+        {
+          "company": "Visiondeck",
+          "position": "SASS: Product MVP + Ai Agent",
+          "start_date": "2022",
+          "end_date": "2023",
+          "is_current": false,
+          "description": "Worked with founders through full SLDC to strategize, design & build a new Sass product: No-code page builder + AI Agent with function calling to generate/edit content inline, add/modify sections, find stock imagery or generate novel images. Multi-model routing based on prompt & capabilities. Structured PostgreSQL backend, multi-region edge hosting with load-balancing & process for up/down-scaling. Full-stack Sveltekit app with SSR and client hydration. Stripe payment integration + webhooks. Backend business logic and APIs separate from front-end state & display logic.",
+          "responsibilities": [],
+          "skills": [
+            "HTML",
+            "CSS",
+            "Javascript",
+            "Sveltekit",
+            "Vite",
+            "NodeJs",
+            "Docker",
+            "AWS"
+          ]
+        },
+        {
+          "company": "Aaptiv",
+          "position": "Sr. Software Engineer - Growth",
+          "start_date": "2017",
+          "end_date": "2019",
+          "is_current": false,
+          "description": null,
+          "responsibilities": [
+            "Developed micro-services for authentication and payment",
+            "Worked with marketing & design teams to implement A/B tests, user segments & automated reports",
+            "Defined front-end architecture strategy and lead efforts on a unified asset & component library shared between digital properties"
+          ],
+          "skills": [
+            "HTML",
+            "CSS",
+            "Javascript",
+            "React",
+            "Redis",
+            "Webpack",
+            "NodeJs",
+            "Docker"
+          ]
+        },
+        {
+          "company": "Ready Set Rocket",
+          "position": "Full-stack Engineer",
+          "start_date": "2013",
+          "end_date": "2017",
+          "is_current": false,
+          "description": "End-to-end solutions for enterprise clients; marketing sites, web apps, email campaigns, A/B & CRO. Client-facing, Lead engineer on large-scale app development using early MVCC frameworks (Angular, Knockout, React). Animations and data visualization with GSAP, Three.js but mostly vanilla JS & CSS. Wordpress specialist, backend logic and templating in PHP. Multi-region i18n, custom fields & API routes. Successfully pushed the platform further than it was supposed to go before modern patterns.",
+          "responsibilities": [],
+          "skills": [
+            "HTML",
+            "CSS",
+            "Javascript",
+            "Wordpress",
+            "Linux",
+            "Apache",
+            "MySQL",
+            "PHP"
+          ]
+        },
+        {
+          "company": "Mars Design",
+          "position": "Jr. Front-end Engineer",
+          "start_date": "2009",
+          "end_date": "2013",
+          "is_current": false,
+          "description": "Developed immersive experiences, branded micro-sites and corporate landing pages on the early Web Platform during the transition to HTML5. Focused on accessibility, web standards, animations & class-based architecture. Wrote wordpress plugins and PHP scripts to extend the platform capabilities. Learned how to define a problem, research and find a solution. Client relationships & expectations, how and when to push-back. Engineering team basics, version control, rolling-back, refactors.",
+          "responsibilities": [],
+          "skills": [
+            "HTML",
+            "CSS",
+            "Javascript",
+            "Wordpress",
+            "Linux",
+            "Apache",
+            "MySQL",
+            "PHP"
+          ]
+        }
+      ],
+      "education": [
+        {
+          "institution": "Savannah College of Art & Design",
+          "degree": "BA",
+          "field_of_study": "Graphic Design",
+          "graduation_date": "2013",
+          "gpa": null,
+          "honors": [],
+          "relevant_courses": [],
+          "skills": []
+        }
+      ],
+      "certifications": [
+        {
+          "name": "Unqork Associates Configurator",
+          "issuer": "Unqork",
+          "date_obtained": "2021",
+          "expiration_date": null,
+          "credential_id": null
+        },
+        {
+          "name": "Unqork Associates Configurator",
+          "issuer": "Unqork",
+          "date_obtained": "2022",
+          "expiration_date": null,
+          "credential_id": null
+        },
+        {
+          "name": "Unqork Associates Configurator",
+          "issuer": "Unqork",
+          "date_obtained": "2023",
+          "expiration_date": null,
+          "credential_id": null
+        },
+        {
+          "name": "Neo4j Fundamentals",
+          "issuer": "Neo4j",
+          "date_obtained": "2023",
+          "expiration_date": null,
+          "credential_id": null
+        },
+        {
+          "name": "Cypher Fundamentals",
+          "issuer": "Cypher",
+          "date_obtained": "2023",
+          "expiration_date": null,
+          "credential_id": null
+        }
+      ],
+      "skills": [
+        "HTML",
+        "CSS",
+        "Javascript",
+        "React",
+        "Angular",
+        "Webpack",
+        "NodeJs",
+        "Sveltekit",
+        "Vite",
+        "Docker",
+        "AWS",
+        "Redis",
+        "Wordpress",
+        "Linux",
+        "Apache",
+        "MySQL",
+        "PHP",
+        "GSAP",
+        "Three.js"
+      ]
+    },
+    "status": "parsed",
+    "task_id": "73c8d108-8e78-43ee-8d45-a748eb4ed29b",
+    "arango_id": "caeaf89e-28db-44f1-a101-dc8a681bd589",
+    "arango_rev": "_kJmVWAe---",
+    "id": "07edcb45-3e2e-4f58-9f7f-742ae016e6e1",
+    "filename": "unknown.pdf",
+    "content_type": "application/pdf",
+    "file_size": 0,
+    "source": "upload",
+    "parsed_data": {
+      "contact_info": {},
+      "summary": "",
+      "experience": [],
+      "education": [],
+      "skills": [],
+      "certifications": [],
+      "projects": []
+    },
+    "created_at": "2025-08-24T00:04:01.040977",
+    "updated_at": "2025-08-24T00:04:01.040978"
+  },
+  {
+    "user_id": "dmCWKgLAPmcJr99oI6g4YXrJ2jG2p3S1",
+    "file_metadata": {
+      "filename": "resume.txt",
+      "content_type": "text/plain",
+      "size": 1558,
+      "processed_at": "2025-08-17T22:39:43.384175"
+    },
+    "resume_data": {
+      "contact_info": {
+        "full_name": "John Doe",
+        "email": "john.doe@example.com",
+        "phone": "+1 (123) 456 7890",
+        "address": null,
+        "links": [
+          {
+            "name": "LinkedIn",
+            "url": "https://www.linkedin.com/in/johndoe/"
+          },
+          {
+            "name": "GitHub",
+            "url": "https://github.com/johndoe"
+          },
+          {
+            "name": "Website",
+            "url": "https://www.johndoe.com"
+          },
+          {
+            "name": "Twitter",
+            "url": "https://twitter.com/johndoe"
+          }
+        ]
+      },
+      "summary": "Security Engineer with over 15 years experience catching bad-guys. Big nerd, no-grass-toucher, basically am a computer.",
+      "work_experience": [
+        {
+          "company": "Google",
+          "position": "Security Engineer",
+          "start_date": "2013",
+          "end_date": "2018",
+          "is_current": false,
+          "description": null,
+          "responsibilities": [],
+          "skills": []
+        },
+        {
+          "company": "Facebook",
+          "position": "Senior Security Engineer",
+          "start_date": "2019",
+          "end_date": "2022",
+          "is_current": false,
+          "description": null,
+          "responsibilities": [],
+          "skills": []
+        },
+        {
+          "company": "Amazon",
+          "position": "Principal Security Engineer",
+          "start_date": "2023",
+          "end_date": null,
+          "is_current": true,
+          "description": null,
+          "responsibilities": [],
+          "skills": []
+        }
+      ],
+      "education": [
+        {
+          "institution": "University of California, Berkeley",
+          "degree": "Bachelor of Science",
+          "field_of_study": "Computer Science",
+          "graduation_date": "2005",
+          "gpa": null,
+          "honors": [],
+          "relevant_courses": [],
+          "skills": []
+        },
+        {
+          "institution": "Stanford University",
+          "degree": "Master of Science",
+          "field_of_study": "Computer Science",
+          "graduation_date": "2010",
+          "gpa": null,
+          "honors": [],
+          "relevant_courses": [],
+          "skills": []
+        }
+      ],
+      "certifications": [],
+      "skills": [
+        "Python",
+        "Java",
+        "C++",
+        "JavaScript",
+        "Bash",
+        "SQL",
+        "Git",
+        "Docker",
+        "Kubernetes",
+        "AWS",
+        "Azure",
+        "GCP"
+      ]
+    },
+    "status": "parsed",
+    "task_id": "e1c6b3fd-8390-4726-aad3-c4df5ce50133",
+    "created_at": "2025-08-17T22:39:55.840619",
+    "updated_at": "2025-08-17T22:39:55.840619",
+    "arango_id": "64aaf1f8-067f-4a9a-a4ba-c936d7c538ff",
+    "arango_rev": "_kJmucaC---",
+    "id": "32a85344-2b8c-48ba-bea4-f7ad1aee9bd8",
+    "filename": "unknown.pdf",
+    "content_type": "application/pdf",
+    "file_size": 0,
+    "source": "upload",
+    "parsed_data": {
+      "contact_info": {},
+      "summary": "",
+      "experience": [],
+      "education": [],
+      "skills": [],
+      "certifications": [],
+      "projects": []
+    }
+  },
+  {
+    "user_id": "KkFiJ4CrNYU7hlboi78qR9Oq7um9hlrn",
+    "file_metadata": {
+      "filename": "resume.txt",
+      "content_type": "text/plain",
+      "size": 1558,
+      "processed_at": "2025-08-18T03:49:11.500647"
+    },
+    "resume_data": {
+      "contact_info": {
+        "full_name": "John Doe",
+        "email": "john.doe@example.com",
+        "phone": "+1 (123) 456 7890",
+        "address": null,
+        "links": [
+          {
+            "name": "LinkedIn",
+            "url": "https://www.linkedin.com/in/johndoe/"
+          },
+          {
+            "name": "GitHub",
+            "url": "https://github.com/johndoe"
+          },
+          {
+            "name": "Website",
+            "url": "https://www.johndoe.com"
+          },
+          {
+            "name": "Twitter",
+            "url": "https://twitter.com/johndoe"
+          }
+        ]
+      },
+      "summary": "Security Engineer with over 15 years experience catching bad-guys. Big nerd, no-grass-toucher, basically am a computer.",
+      "work_experience": [
+        {
+          "company": "Google",
+          "position": "Security Engineer",
+          "start_date": "2013",
+          "end_date": "2018",
+          "is_current": false,
+          "description": null,
+          "responsibilities": [
+            "Developed a Python based security tool for detecting malware in cloud environments.",
+            "Implemented a Java based security framework for securing web applications.",
+            "Created a C++ library for analyzing network traffic patterns.",
+            "Built a JavaScript based security dashboard for monitoring system health.",
+            "Wrote Bash scripts for automating security audits.",
+            "Designed and implemented SQL queries for data analysis.",
+            "Managed Git repositories for version control.",
+            "Deployed Docker containers for containerized applications.",
+            "Configured Kubernetes clusters for scalable deployments.",
+            "Managed AWS infrastructure for cloud based services.",
+            "Deployed Azure resources for scalable cloud solutions.",
+            "Managed GCP resources for cloud based services."
+          ],
+          "skills": [
+            "Python",
+            "Java",
+            "C++",
+            "JavaScript",
+            "Bash",
+            "SQL",
+            "Git",
+            "Docker",
+            "Kubernetes",
+            "AWS",
+            "Azure",
+            "GCP"
+          ]
+        },
+        {
+          "company": "Facebook",
+          "position": "Senior Security Engineer",
+          "start_date": "2019",
+          "end_date": "2022",
+          "is_current": false,
+          "description": null,
+          "responsibilities": [],
+          "skills": []
+        },
+        {
+          "company": "Amazon",
+          "position": "Principal Security Engineer",
+          "start_date": "2023",
+          "end_date": null,
+          "is_current": true,
+          "description": null,
+          "responsibilities": [],
+          "skills": []
+        }
+      ],
+      "education": [
+        {
+          "institution": "University of California, Berkeley",
+          "degree": "Bachelor of Science in Computer Science",
+          "field_of_study": null,
+          "graduation_date": "2005",
+          "gpa": null,
+          "honors": [],
+          "relevant_courses": [],
+          "skills": []
+        },
+        {
+          "institution": "Stanford University",
+          "degree": "Master of Science in Computer Science",
+          "field_of_study": null,
+          "graduation_date": "2010",
+          "gpa": null,
+          "honors": [],
+          "relevant_courses": [],
+          "skills": []
+        }
+      ],
+      "certifications": [],
+      "skills": [
+        "Python",
+        "Java",
+        "C++",
+        "JavaScript",
+        "Bash",
+        "SQL",
+        "Git",
+        "Docker",
+        "Kubernetes",
+        "AWS",
+        "Azure",
+        "GCP"
+      ]
+    },
+    "status": "parsed",
+    "task_id": "445896e1-8aeb-4f7f-9e1d-6c7d43364583",
+    "arango_id": "c040e540-4f68-4936-8c74-13c118176b1d",
+    "arango_rev": "_kJrJxyG---",
+    "id": "63b5268b-be0f-4240-8cef-6f98f3d5d67f",
+    "filename": "unknown.pdf",
+    "content_type": "application/pdf",
+    "file_size": 0,
+    "source": "upload",
+    "parsed_data": {
+      "contact_info": {},
+      "summary": "",
+      "experience": [],
+      "education": [],
+      "skills": [],
+      "certifications": [],
+      "projects": []
+    },
+    "created_at": "2025-08-24T00:04:01.040985",
+    "updated_at": "2025-08-24T00:04:01.040986"
+  },
+  {
+    "user_id": "7Pc1Sm63oPyTn1rYcWg20wVObccKGsGd",
+    "file_metadata": {
+      "content_type": "text/plain",
+      "filename": "resume.txt",
+      "processed_at": "2025-08-17T22:27:01.431210",
+      "size": 1558
+    },
+    "resume_data": {
+      "certifications": [],
+      "contact_info": {
+        "address": null,
+        "email": "john.doe@example.com",
+        "full_name": "John Doe",
+        "links": [
+          {
+            "name": "LinkedIn",
+            "url": "https://www.linkedin.com/in/johndoe/"
+          },
+          {
+            "name": "GitHub",
+            "url": "https://github.com/johndoe"
+          },
+          {
+            "name": "Website",
+            "url": "https://www.johndoe.com"
+          },
+          {
+            "name": "Twitter",
+            "url": "https://twitter.com/johndoe"
+          }
+        ],
+        "phone": "+1 (123) 456 7890"
+      },
+      "education": [
+        {
+          "institution": "University of California, Berkeley",
+          "degree": "Bachelor of Science",
+          "field_of_study": "Computer Science",
+          "graduation_date": "2005",
+          "gpa": null,
+          "honors": [],
+          "relevant_courses": [],
+          "skills": []
+        },
+        {
+          "institution": "Stanford University",
+          "degree": "Master of Science",
+          "field_of_study": "Computer Science",
+          "graduation_date": "2010",
+          "gpa": null,
+          "honors": [],
+          "relevant_courses": [],
+          "skills": []
+        }
+      ],
+      "skills": [
+        "Python",
+        "Java",
+        "C++",
+        "JavaScript",
+        "Bash",
+        "SQL",
+        "Git",
+        "Docker",
+        "Kubernetes",
+        "AWS",
+        "Azure",
+        "GCP"
+      ],
+      "summary": "Security Engineer with over 15 years experience catching bad-guys. Big nerd, no-grass-toucher, basically am a computer.",
+      "work_experience": [
+        {
+          "company": "Google",
+          "position": "Security Engineer",
+          "start_date": "2013",
+          "end_date": "2018",
+          "is_current": false,
+          "description": null,
+          "responsibilities": [
+            "Developed a Python based security tool for detecting malware in cloud environments.",
+            "Implemented a Java based security framework for securing web applications.",
+            "Created a C++ library for analyzing network traffic patterns.",
+            "Built a JavaScript based security dashboard for monitoring system health.",
+            "Wrote Bash scripts for automating security audits.",
+            "Designed and implemented SQL queries for data analysis.",
+            "Managed Git repositories for version control.",
+            "Deployed Docker containers for containerized applications.",
+            "Configured Kubernetes clusters for scalable deployments.",
+            "Managed AWS infrastructure for cloud based services.",
+            "Deployed Azure resources for scalable cloud solutions.",
+            "Managed GCP resources for cloud based services."
+          ],
+          "skills": [
+            "Python",
+            "Java",
+            "C++",
+            "JavaScript",
+            "Bash",
+            "SQL",
+            "Git",
+            "Docker",
+            "Kubernetes",
+            "AWS",
+            "Azure",
+            "GCP"
+          ]
+        },
+        {
+          "company": "Facebook",
+          "position": "Senior Security Engineer",
+          "start_date": "2019",
+          "end_date": "2022",
+          "is_current": false,
+          "description": null,
+          "responsibilities": [],
+          "skills": []
+        },
+        {
+          "company": "Amazon",
+          "position": "Principal Security Engineer",
+          "start_date": "2023",
+          "end_date": null,
+          "is_current": true,
+          "description": null,
+          "responsibilities": [],
+          "skills": []
+        }
+      ]
+    },
+    "status": "parsed",
+    "task_id": "062d02f4-7e92-48e1-a62f-9e4dd7174c2a",
+    "created_at": "2025-08-17T22:27:13.477228",
+    "updated_at": "2025-08-17T22:27:13.477228",
+    "arango_id": "61bcc037-659f-42dc-a771-a21e74d28859",
+    "arango_rev": "_kJst8Hy---",
+    "id": "827fb692-7117-40e8-bd4b-d69669268cfa",
+    "filename": "unknown.pdf",
+    "content_type": "application/pdf",
+    "file_size": 0,
+    "source": "upload",
+    "parsed_data": {
+      "contact_info": {},
+      "summary": "",
+      "experience": [],
+      "education": [],
+      "skills": [],
+      "certifications": [],
+      "projects": []
+    }
+  },
+  {
+    "user_id": "KkFiJ4CrNYU7hlboi78qR9Oq7um9hlrn",
+    "file_metadata": {
+      "content_type": "application/pdf",
+      "filename": "dylan_cv.pdf",
+      "processed_at": "2025-08-17T22:17:14.403762",
+      "size": 2781566
+    },
+    "resume_data": {
+      "certifications": [
+        {
+          "name": "Unqork Associates Configurator",
+          "issuer": "Unqork",
+          "date_obtained": "2021",
+          "expiration_date": null,
+          "credential_id": null
+        },
+        {
+          "name": "Unqork Associates Configurator",
+          "issuer": "Unqork",
+          "date_obtained": "2022",
+          "expiration_date": null,
+          "credential_id": null
+        },
+        {
+          "name": "Unqork Associates Configurator",
+          "issuer": "Unqork",
+          "date_obtained": "2023",
+          "expiration_date": null,
+          "credential_id": null
+        },
+        {
+          "name": "Neo4j Fundamentals",
+          "issuer": "Neo4j",
+          "date_obtained": "2023",
+          "expiration_date": null,
+          "credential_id": null
+        },
+        {
+          "name": "Cypher Fundamentals",
+          "issuer": "Neo4j",
+          "date_obtained": "2023",
+          "expiration_date": null,
+          "credential_id": null
+        }
+      ],
+      "contact_info": {
+        "address": "Red Hook, NY",
+        "email": "dylan@dylangluck.com",
+        "full_name": "Dylan Navajas Gluck",
+        "links": [],
+        "phone": "347-764-5550"
+      },
+      "education": [
+        {
+          "institution": "Savannah College of Art & Design",
+          "degree": "BA",
+          "field_of_study": "Graphic Design",
+          "graduation_date": "2013",
+          "gpa": null,
+          "honors": [],
+          "relevant_courses": [],
+          "skills": []
+        }
+      ],
+      "skills": [
+        "Full-stack development",
+        "Web Platform",
+        "HTML",
+        "CSS",
+        "Javascript",
+        "React",
+        "Angular",
+        "Webpack",
+        "NodeJs",
+        "Sveltekit",
+        "Vite",
+        "Docker",
+        "AWS",
+        "PostgreSQL",
+        "Stripe integration",
+        "Redis",
+        "Wordpress",
+        "Linux",
+        "Apache",
+        "MySQL",
+        "PHP",
+        "GSAP",
+        "Three.js",
+        "Accessibility",
+        "Performance optimization",
+        "Design systems",
+        "A/B testing",
+        "Micro-services"
+      ],
+      "summary": "Full-stack engineer with over 14 years hands-on experience delivering scalable & performant apps on the Web Platform.",
+      "work_experience": [
+        {
+          "company": "Unqork",
+          "position": "Lead Software Engineer \u2013 User Experience",
+          "start_date": "2019",
+          "end_date": null,
+          "is_current": true,
+          "description": null,
+          "responsibilities": [
+            "Designed & implemented core developer tools, base themes & design system architecture.",
+            "Developed a component library enabling token-based theming for our enterprise customers.",
+            "Technical lead influencing front-end strategy.",
+            "Improved performance and accessibility through targeted refactors.",
+            "Advise on platform features to improve developer experience for internal and external teams.",
+            "Inclusive leader working close with direct reports to identify + track goals, inspire creative problem solving & maintain consistency across projects."
+          ],
+          "skills": [
+            "HTML",
+            "CSS",
+            "Javascript",
+            "React",
+            "Angular",
+            "Webpack",
+            "NodeJs"
+          ]
+        },
+        {
+          "company": "Visiondeck",
+          "position": "SASS: Product MVP + Ai Agent",
+          "start_date": "2022",
+          "end_date": "2023",
+          "is_current": false,
+          "description": "Worked with founders through full SLDC to strategize, design & build a new Sass product: No-code page builder + AI Agent with function calling to generate/edit content inline, add/modify sections, find stock imagery or generate novel images. Multi-model routing based on prompt & capabilities.",
+          "responsibilities": [
+            "Structured PostgreSQL backend, multi-region edge hosting with load-balancing & process for up/down-scaling.",
+            "Full-stack Sveltekit app with SSR and client hydration.",
+            "Stripe payment integration + webhooks.",
+            "Backend business logic and APIs separate from front-end state & display logic."
+          ],
+          "skills": [
+            "HTML",
+            "CSS",
+            "Javascript",
+            "Sveltekit",
+            "Vite",
+            "NodeJs",
+            "Docker",
+            "AWS"
+          ]
+        },
+        {
+          "company": "Aaptiv",
+          "position": "Sr. Software Engineer - Growth",
+          "start_date": "2017",
+          "end_date": "2019",
+          "is_current": false,
+          "description": null,
+          "responsibilities": [
+            "Developed micro-services for authentication and payment.",
+            "Worked with marketing & design teams to implement A/B tests, user segments & automated reports.",
+            "Defined front-end architecture strategy and lead efforts on a unified asset & component library shared between digital properties."
+          ],
+          "skills": [
+            "HTML",
+            "CSS",
+            "Javascript",
+            "React",
+            "Redis",
+            "Webpack",
+            "NodeJs",
+            "Docker"
+          ]
+        },
+        {
+          "company": "Ready Set Rocket",
+          "position": "Full-stack Engineer",
+          "start_date": "2013",
+          "end_date": "2017",
+          "is_current": false,
+          "description": "End-to-end solutions for enterprise clients; marketing sites, web apps, email campaigns, A/B & CRO.",
+          "responsibilities": [
+            "Client-facing, Lead engineer on large-scale app development using early MVCC frameworks (Angular, Knockout, React).",
+            "Animations and data visualization with GSAP, Three.js but mostly vanilla JS & CSS.",
+            "Wordpress specialist, backend logic and templating in PHP.",
+            "Multi-region i18n, custom fields & API routes.",
+            "Successfully pushed the platform further than it was supposed to go before modern patterns."
+          ],
+          "skills": [
+            "HTML",
+            "CSS",
+            "Javascript",
+            "Wordpress",
+            "Linux",
+            "Apache",
+            "MySQL",
+            "PHP"
+          ]
+        },
+        {
+          "company": "Mars Design",
+          "position": "Jr. Front-end Engineer",
+          "start_date": "2009",
+          "end_date": "2013",
+          "is_current": false,
+          "description": "Developed immersive experiences, branded micro-sites and corporate landing pages on the early Web Platform during the transition to HTML5.",
+          "responsibilities": [
+            "Focused on accessibility, web standards, animations & class-based architecture.",
+            "Wrote wordpress plugins and PHP scripts to extend the platform capabilities.",
+            "Learned how to define a problem, research and find a solution.",
+            "Client relationships & expectations, how and when to push-back.",
+            "Engineering team basics, version control, rolling-back, refactors."
+          ],
+          "skills": [
+            "HTML",
+            "CSS",
+            "Javascript",
+            "Wordpress",
+            "Linux",
+            "Apache",
+            "MySQL",
+            "PHP"
+          ]
+        }
+      ]
+    },
+    "status": "parsed",
+    "task_id": "23d1e762-6cbd-4761-841d-a29b362f5613",
+    "created_at": "2025-08-17T22:17:41.179208",
+    "updated_at": "2025-08-17T22:17:41.179208",
+    "arango_id": "c5930ced-8734-40a6-8cdc-91e4b9ca34ae",
+    "arango_rev": "_kJtCmeC---",
+    "id": "9a8f2337-b0ca-4e99-9b41-1b00f8495bf7",
+    "filename": "unknown.pdf",
+    "content_type": "application/pdf",
+    "file_size": 0,
+    "source": "upload",
+    "parsed_data": {
+      "contact_info": {},
+      "summary": "",
+      "experience": [],
+      "education": [],
+      "skills": [],
+      "certifications": [],
+      "projects": []
+    }
+  },
+  {
+    "user_id": "test_user",
+    "status": "manual",
+    "source": "manual",
+    "created_at": "2025-08-18T06:05:25.646451",
+    "resume_data": {
+      "certifications": [],
+      "contact_info": {
+        "email": "test@example.com",
+        "full_name": "Test User",
+        "phone": "555-1234"
+      },
+      "education": [],
+      "skills": [
+        "Testing"
+      ],
+      "summary": "Original test summary for persistence testing",
+      "work_experience": []
+    },
+    "file_metadata": {
+      "created_by": "test_user",
+      "source": "persistence_test"
+    },
+    "arango_id": "test_persistence_resume",
+    "arango_rev": "_kJtHYM----",
+    "id": "60192fba-11ae-485b-a21b-ef5e4da8f92a",
+    "filename": "unknown.pdf",
+    "content_type": "application/pdf",
+    "file_size": 0,
+    "parsed_data": {
+      "contact_info": {},
+      "summary": "",
+      "experience": [],
+      "education": [],
+      "skills": [],
+      "certifications": [],
+      "projects": []
+    },
+    "updated_at": "2025-08-24T00:04:01.040996"
+  },
+  {
+    "user_id": "KkFiJ4CrNYU7hlboi78qR9Oq7um9hlrn",
+    "file_metadata": {
+      "filename": "resume.txt",
+      "content_type": "text/plain",
+      "size": 1558,
+      "processed_at": "2025-08-24T02:09:52.654425+00:00"
+    },
+    "resume_data": {
+      "contact_info": {
+        "full_name": "John Doe",
+        "email": "john.doe@example.com",
+        "phone": "+1 (123) 456 7890",
+        "address": null,
+        "links": [
+          {
+            "name": "LinkedIn",
+            "url": "https://www.linkedin.com/in/johndoe/"
+          },
+          {
+            "name": "GitHub",
+            "url": "https://github.com/johndoe"
+          },
+          {
+            "name": "Website",
+            "url": "https://www.johndoe.com"
+          },
+          {
+            "name": "Twitter",
+            "url": "https://twitter.com/johndoe"
+          }
+        ]
+      },
+      "summary": "Security Engineer with over 15 years experience catching bad-guys. Big nerd, no-grass-toucher, basically am a computer.",
+      "work_experience": [
+        {
+          "company": "Google",
+          "position": "Security Engineer",
+          "start_date": "2013",
+          "end_date": "2018",
+          "is_current": false,
+          "description": null,
+          "responsibilities": [],
+          "skills": [
+            "Python",
+            "Java",
+            "C++",
+            "JavaScript",
+            "Bash",
+            "SQL",
+            "Git",
+            "Docker",
+            "Kubernetes",
+            "AWS",
+            "Azure",
+            "GCP"
+          ]
+        },
+        {
+          "company": "Facebook",
+          "position": "Senior Security Engineer",
+          "start_date": "2019",
+          "end_date": "2022",
+          "is_current": false,
+          "description": null,
+          "responsibilities": [],
+          "skills": [
+            "Python",
+            "Java",
+            "C++",
+            "JavaScript",
+            "Bash",
+            "SQL",
+            "Git",
+            "Docker",
+            "Kubernetes",
+            "AWS",
+            "Azure",
+            "GCP"
+          ]
+        },
+        {
+          "company": "Amazon",
+          "position": "Principal Security Engineer",
+          "start_date": "2023",
+          "end_date": null,
+          "is_current": true,
+          "description": null,
+          "responsibilities": [],
+          "skills": [
+            "Python",
+            "Java",
+            "C++",
+            "JavaScript",
+            "Bash",
+            "SQL",
+            "Git",
+            "Docker",
+            "Kubernetes",
+            "AWS",
+            "Azure",
+            "GCP"
+          ]
+        }
+      ],
+      "education": [
+        {
+          "institution": "University of California, Berkeley",
+          "degree": "Bachelor of Science",
+          "field_of_study": "Computer Science",
+          "graduation_date": "2009",
+          "gpa": null,
+          "honors": [],
+          "relevant_courses": [],
+          "skills": [
+            "Python",
+            "Java",
+            "C++",
+            "JavaScript",
+            "Bash",
+            "SQL",
+            "Git",
+            "Docker",
+            "Kubernetes",
+            "AWS",
+            "Azure",
+            "GCP"
+          ]
+        },
+        {
+          "institution": "Stanford University",
+          "degree": "Master of Science",
+          "field_of_study": "Computer Science",
+          "graduation_date": "2012",
+          "gpa": null,
+          "honors": [],
+          "relevant_courses": [],
+          "skills": [
+            "Python",
+            "Java",
+            "C++",
+            "JavaScript",
+            "Bash",
+            "SQL",
+            "Git",
+            "Docker",
+            "Kubernetes",
+            "AWS",
+            "Azure",
+            "GCP"
+          ]
+        }
+      ],
+      "certifications": [],
+      "skills": [
+        "Python",
+        "Java",
+        "C++",
+        "JavaScript",
+        "Bash",
+        "SQL",
+        "Git",
+        "Docker",
+        "Kubernetes",
+        "AWS",
+        "Azure",
+        "GCP"
+      ]
+    },
+    "status": "parsed",
+    "created_at": "2025-08-24T02:09:52.654458+00:00",
+    "updated_at": "2025-08-24T02:09:52.654460+00:00",
+    "arango_id": "92731334-74cf-4131-89b6-4dd963ed9840",
+    "arango_rev": "_kLlU0-6---",
+    "id": "f158f916-d945-4fa2-ae55-cb577c1f990e",
+    "filename": "unknown.pdf",
+    "content_type": "application/pdf",
+    "file_size": 0,
+    "source": "upload",
+    "parsed_data": {
+      "contact_info": {},
+      "summary": "",
+      "experience": [],
+      "education": [],
+      "skills": [],
+      "certifications": [],
+      "projects": []
+    }
+  },
+  {
+    "user_id": "7Pc1Sm63oPyTn1rYcWg20wVObccKGsGd",
+    "file_metadata": {
+      "filename": "resume.pdf",
+      "content_type": "application/pdf",
+      "size": 2781566,
+      "processed_at": "2025-08-24T02:15:47.196298+00:00"
+    },
+    "resume_data": {
+      "contact_info": {
+        "full_name": "Dylan Navajas Gluck",
+        "email": "dylan@dylangluck.com",
+        "phone": "347-764-5550",
+        "address": "Red Hook, NY",
+        "links": []
+      },
+      "summary": "Full-stack engineer with over 14 years hands-on experience delivering scalable & performant apps on the Web Platform.",
+      "work_experience": [
+        {
+          "company": "Unqork",
+          "position": "Lead Software Engineer \u2013 User Experience",
+          "start_date": "2019",
+          "end_date": null,
+          "is_current": true,
+          "description": null,
+          "responsibilities": [
+            "Designed & implemented core developer tools, base themes & design system architecture.",
+            "Developed a component library enabling token-based theming for our enterprise customers.",
+            "Technical lead influencing front-end strategy.",
+            "Improved performance and accessibility through targeted refactors.",
+            "Advise on platform features to improve developer experience for internal and external teams.",
+            "Inclusive leader working close with direct reports to identify + track goals, inspire creative problem solving & maintain consistency across projects."
+          ],
+          "skills": [
+            "HTML",
+            "CSS",
+            "Javascript",
+            "React",
+            "Angular",
+            "Webpack",
+            "NodeJs"
+          ]
+        },
+        {
+          "company": "Visiondeck",
+          "position": "SASS: Product MVP + Ai Agent (Contract)",
+          "start_date": "2022",
+          "end_date": "2023",
+          "is_current": false,
+          "description": null,
+          "responsibilities": [
+            "Worked with founders through full SLDC to strategize, design & build a new Sass product: No-code page builder + AI Agent with function calling to generate/edit content inline, add/modify sections, find stock imagery or generate novel images.",
+            "Multi-model routing based on prompt & capabilities.",
+            "Structured PostgreSQL backend, multi-region edge hosting with load-balancing & process for up/down-scaling.",
+            "Full-stack Sveltekit app with SSR and client hydration.",
+            "Stripe payment integration + webhooks.",
+            "Backend business logic and APIs separate from front-end state & display logic."
+          ],
+          "skills": [
+            "HTML",
+            "CSS",
+            "Javascript",
+            "Sveltekit",
+            "Vite",
+            "NodeJs",
+            "Docker",
+            "AWS"
+          ]
+        },
+        {
+          "company": "Aaptiv",
+          "position": "Sr. Software Engineer - Growth",
+          "start_date": "2017",
+          "end_date": "2019",
+          "is_current": false,
+          "description": null,
+          "responsibilities": [
+            "Developed micro-services for authentication and payment.",
+            "Worked with marketing & design teams to implement A/B tests, user segments & automated reports.",
+            "Defined front-end architecture strategy and lead efforts on a unified asset & component library shared between digital properties."
+          ],
+          "skills": [
+            "HTML",
+            "CSS",
+            "Javascript",
+            "React",
+            "Redis",
+            "Webpack",
+            "NodeJs",
+            "Docker"
+          ]
+        },
+        {
+          "company": "Ready Set Rocket",
+          "position": "Full-stack Engineer",
+          "start_date": "2013",
+          "end_date": "2017",
+          "is_current": false,
+          "description": null,
+          "responsibilities": [
+            "End-to-end solutions for enterprise clients; marketing sites, web apps, email campaigns, A/B & CRO.",
+            "Client-facing, Lead engineer on large-scale app development using early MVCC frameworks (Angular, Knockout, React).",
+            "Animations and data visualization with GSAP, Three.js but mostly vanilla JS & CSS.",
+            "Wordpress specialist, backend logic and templating in PHP.",
+            "Multi-region i18n, custom fields & API routes.",
+            "Successfully pushed the platform further than it was supposed to go before modern patterns."
+          ],
+          "skills": [
+            "HTML",
+            "CSS",
+            "Javascript",
+            "Wordpress",
+            "Linux",
+            "Apache",
+            "MySQL",
+            "PHP"
+          ]
+        },
+        {
+          "company": "Mars Design",
+          "position": "Jr. Front-end Engineer",
+          "start_date": "2009",
+          "end_date": "2013",
+          "is_current": false,
+          "description": null,
+          "responsibilities": [
+            "Developed immersive experiences, branded micro-sites and corporate landing pages on the early Web Platform during the transition to HTML5.",
+            "Focused on accessibility, web standards, animations & class-based architecture.",
+            "Wrote wordpress plugins and PHP scripts to extend the platform capabilities.",
+            "Learned how to define a problem, research and find a solution.",
+            "Client relationships & expectations, how and when to push-back.",
+            "Engineering team basics, version control, rolling-back, refactors."
+          ],
+          "skills": [
+            "HTML",
+            "CSS",
+            "Javascript",
+            "Wordpress",
+            "Linux",
+            "Apache",
+            "MySQL",
+            "PHP"
+          ]
+        }
+      ],
+      "education": [
+        {
+          "institution": "Savannah College of Art & Design",
+          "degree": "BA",
+          "field_of_study": "Graphic Design",
+          "graduation_date": "2013",
+          "gpa": null,
+          "honors": [],
+          "relevant_courses": [],
+          "skills": []
+        }
+      ],
+      "certifications": [
+        {
+          "name": "Unqork Associates Configurator",
+          "issuer": "Unqork",
+          "date_obtained": "2021",
+          "expiration_date": "2023",
+          "credential_id": null
+        },
+        {
+          "name": "Neo4j Fundamentals",
+          "issuer": "Neo4j",
+          "date_obtained": "2023",
+          "expiration_date": null,
+          "credential_id": null
+        },
+        {
+          "name": "Cypher Fundamentals",
+          "issuer": "Neo4j",
+          "date_obtained": "2023",
+          "expiration_date": null,
+          "credential_id": null
+        }
+      ],
+      "skills": [
+        "HTML",
+        "CSS",
+        "Javascript",
+        "React",
+        "Angular",
+        "Webpack",
+        "NodeJs",
+        "Sveltekit",
+        "Vite",
+        "Docker",
+        "AWS",
+        "Redis",
+        "Wordpress",
+        "Linux",
+        "Apache",
+        "MySQL",
+        "PHP",
+        "GSAP",
+        "Three.js"
+      ]
+    },
+    "status": "parsed",
+    "created_at": "2025-08-24T02:15:47.196417+00:00",
+    "updated_at": "2025-08-24T02:15:47.196431+00:00",
+    "arango_id": "62e33ac9-aa77-40e3-9d9c-7ffe73452903",
+    "arango_rev": "_kLlaON2---",
+    "id": "3b4e1ec4-1c93-4b45-997f-b7e09cdd5139",
+    "filename": "unknown.pdf",
+    "content_type": "application/pdf",
+    "file_size": 0,
+    "source": "upload",
+    "parsed_data": {
+      "contact_info": {},
+      "summary": "",
+      "experience": [],
+      "education": [],
+      "skills": [],
+      "certifications": [],
+      "projects": []
+    }
+  },
+  {
+    "user_id": "7Pc1Sm63oPyTn1rYcWg20wVObccKGsGd",
+    "file_metadata": {
+      "filename": "resume.txt",
+      "content_type": "text/plain",
+      "size": 1558,
+      "processed_at": "2025-08-24T02:16:28.840730+00:00"
+    },
+    "resume_data": {
+      "contact_info": {
+        "full_name": "John Doe",
+        "email": "john.doe@example.com",
+        "phone": "+1 (123) 456 7890",
+        "address": null,
+        "links": [
+          {
+            "name": "LinkedIn",
+            "url": "https://www.linkedin.com/in/johndoe/"
+          },
+          {
+            "name": "GitHub",
+            "url": "https://github.com/johndoe"
+          },
+          {
+            "name": "Website",
+            "url": "https://www.johndoe.com"
+          },
+          {
+            "name": "Twitter",
+            "url": "https://twitter.com/johndoe"
+          }
+        ]
+      },
+      "summary": "Security Engineer with over 15 years experience catching bad-guys. Big nerd, no-grass-toucher, basically am a computer.",
+      "work_experience": [
+        {
+          "company": "Google",
+          "position": "Security Engineer",
+          "start_date": "2013",
+          "end_date": "2018",
+          "is_current": false,
+          "description": null,
+          "responsibilities": [],
+          "skills": [
+            "Python",
+            "Java",
+            "C++",
+            "JavaScript",
+            "Bash",
+            "SQL",
+            "Git",
+            "Docker",
+            "Kubernetes",
+            "AWS",
+            "Azure",
+            "GCP"
+          ]
+        },
+        {
+          "company": "Facebook",
+          "position": "Senior Security Engineer",
+          "start_date": "2019",
+          "end_date": "2022",
+          "is_current": false,
+          "description": null,
+          "responsibilities": [],
+          "skills": [
+            "Python",
+            "Java",
+            "C++",
+            "JavaScript",
+            "Bash",
+            "SQL",
+            "Git",
+            "Docker",
+            "Kubernetes",
+            "AWS",
+            "Azure",
+            "GCP"
+          ]
+        },
+        {
+          "company": "Amazon",
+          "position": "Principal Security Engineer",
+          "start_date": "2023",
+          "end_date": null,
+          "is_current": true,
+          "description": null,
+          "responsibilities": [],
+          "skills": [
+            "Python",
+            "Java",
+            "C++",
+            "JavaScript",
+            "Bash",
+            "SQL",
+            "Git",
+            "Docker",
+            "Kubernetes",
+            "AWS",
+            "Azure",
+            "GCP"
+          ]
+        }
+      ],
+      "education": [
+        {
+          "institution": "University of California, Berkeley",
+          "degree": "Bachelor of Science",
+          "field_of_study": "Computer Science",
+          "graduation_date": "2005",
+          "gpa": null,
+          "honors": [],
+          "relevant_courses": [],
+          "skills": []
+        },
+        {
+          "institution": "Stanford University",
+          "degree": "Master of Science",
+          "field_of_study": "Computer Science",
+          "graduation_date": "2010",
+          "gpa": null,
+          "honors": [],
+          "relevant_courses": [],
+          "skills": []
+        }
+      ],
+      "certifications": [],
+      "skills": [
+        "Python",
+        "Java",
+        "C++",
+        "JavaScript",
+        "Bash",
+        "SQL",
+        "Git",
+        "Docker",
+        "Kubernetes",
+        "AWS",
+        "Azure",
+        "GCP"
+      ]
+    },
+    "status": "parsed",
+    "created_at": "2025-08-24T02:16:28.840780+00:00",
+    "updated_at": "2025-08-24T02:16:28.840783+00:00",
+    "arango_id": "cf696ca8-299b-4227-88aa-83fe002496b5",
+    "arango_rev": "_kLla24m---",
+    "id": "0b75c74c-f43c-464f-8dbd-aea2fc392d4a",
+    "filename": "unknown.pdf",
+    "content_type": "application/pdf",
+    "file_size": 0,
+    "source": "upload",
+    "parsed_data": {
+      "contact_info": {},
+      "summary": "",
+      "experience": [],
+      "education": [],
+      "skills": [],
+      "certifications": [],
+      "projects": []
+    }
+  }
+]

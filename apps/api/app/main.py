@@ -1,26 +1,51 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
+from pydantic import ValidationError
 
 from .routers import job, linkedin, optimize, parse, resume, user
 from .dependencies import shutdown_services
 from .database.connections import (
     init_databases,
     close_databases,
-    check_all_databases_health,
+    check_database_health,
 )
+from .logger.logger import logger
 
 app = FastAPI()
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    """Custom handler for validation errors to log details."""
+    logger.error(f"Validation error on {request.method} {request.url.path}: {exc.errors()}")
+    logger.error(f"Request body: {await request.body()}")
+    return JSONResponse(
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        content={"detail": exc.errors()},
+    )
+
+
+@app.exception_handler(ValidationError)
+async def pydantic_validation_exception_handler(request: Request, exc: ValidationError):
+    """Custom handler for Pydantic validation errors."""
+    logger.error(f"Pydantic validation error on {request.method} {request.url.path}: {exc.errors()}")
+    return JSONResponse(
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        content={"detail": exc.errors()},
+    )
 
 
 @app.get("/health")
 async def health_check():
     """Health check endpoint with database health."""
-    database_health = await check_all_databases_health()
+    database_health = await check_database_health()
 
     return {
         "status": "healthy" if database_health["status"] == "up" else "degraded",
         "service": "atspro-api",
-        "databases": database_health["databases"],
+        "database": database_health,
     }
 
 

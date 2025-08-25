@@ -1,6 +1,7 @@
 """Synchronous resume processing service for ATSPro API."""
 
 import asyncio
+import json
 import logging
 import uuid
 from datetime import datetime, timezone
@@ -10,7 +11,7 @@ from typing import Any, Dict, Optional
 from agents import Runner
 from unstructured.partition.auto import partition
 
-from ..database.connections import get_arango_client, get_postgres_pool
+from ..database.connections import get_postgres_pool
 from ..lib.agent import resume_agent
 from ..schema.resume import Resume
 
@@ -106,7 +107,7 @@ class ResumeProcessorService:
             parsed_resume = self._validate_resume_data(resume_data, resume_id)
             logger.info(f"Resume data validation successful for resume {resume_id}")
 
-            # Step 4: Store in ArangoDB
+            # Step 4: Store in PostgreSQL
             await self._store_resume_data(
                 resume_id=resume_id,
                 user_id=user_id,
@@ -115,7 +116,7 @@ class ResumeProcessorService:
                 content_type=content_type,
                 file_size=file_size,
             )
-            logger.info(f"Resume data stored in ArangoDB for resume {resume_id}")
+            logger.info(f"Resume data stored in PostgreSQL for resume {resume_id}")
 
             # Step 5: Update user profile in PostgreSQL
             await self._update_user_profile(user_id, resume_id)
@@ -278,7 +279,7 @@ class ResumeProcessorService:
         content_type: Optional[str],
         file_size: int,
     ) -> None:
-        """Store resume data in ArangoDB.
+        """Store resume data in PostgreSQL with JSONB.
 
         Args:
             resume_id: Unique resume identifier
@@ -289,33 +290,56 @@ class ResumeProcessorService:
             file_size: File size in bytes
 
         Raises:
-            StorageError: When ArangoDB storage fails
+            StorageError: When PostgreSQL storage fails
         """
         try:
-            arango_db = get_arango_client()
-            resume_collection = arango_db.collection("resumes")
+            postgres_pool = get_postgres_pool()
+            async with postgres_pool.connection() as conn:
+                async with conn.transaction():
+                    async with conn.cursor() as cursor:
+                        # Prepare file metadata
+                        file_metadata = {
+                            "filename": filename,
+                            "content_type": content_type,
+                            "size": file_size,
+                            "processed_at": datetime.now(timezone.utc).isoformat(),
+                        }
 
-            # Prepare resume document for ArangoDB
-            resume_doc = {
-                "_key": resume_id,
-                "user_id": user_id,
-                "file_metadata": {
-                    "filename": filename,
-                    "content_type": content_type,
-                    "size": file_size,
-                    "processed_at": datetime.now(timezone.utc).isoformat(),
-                },
-                "resume_data": parsed_resume.model_dump(),
-                "status": "parsed",
-                "created_at": datetime.now(timezone.utc).isoformat(),
-                "updated_at": datetime.now(timezone.utc).isoformat(),
-            }
-
-            # Insert or update the resume document
-            resume_collection.insert(resume_doc, overwrite=True)
+                        # Insert resume document into PostgreSQL
+                        await cursor.execute(
+                            """
+                            INSERT INTO resume_documents (
+                                id, user_id, filename, content_type, file_size, 
+                                status, source, parsed_data, file_metadata,
+                                created_at, updated_at
+                            ) VALUES (
+                                %s::uuid, %s, %s, %s, %s, 
+                                %s, %s, %s::jsonb, %s::jsonb,
+                                %s, %s
+                            )
+                            ON CONFLICT (id) DO UPDATE SET
+                                parsed_data = EXCLUDED.parsed_data,
+                                file_metadata = EXCLUDED.file_metadata,
+                                status = EXCLUDED.status,
+                                updated_at = EXCLUDED.updated_at
+                            """,
+                            (
+                                resume_id,
+                                user_id,
+                                filename,
+                                content_type,
+                                file_size,
+                                "parsed",
+                                "upload",
+                                json.dumps(parsed_resume.model_dump()),
+                                json.dumps(file_metadata),
+                                datetime.now(timezone.utc),
+                                datetime.now(timezone.utc),
+                            ),
+                        )
 
         except Exception as e:
-            logger.error(f"ArangoDB storage failed for resume {resume_id}: {str(e)}")
+            logger.error(f"PostgreSQL storage failed for resume {resume_id}: {str(e)}")
             raise StorageError(f"Failed to store resume data: {str(e)}")
 
     async def _update_user_profile(self, user_id: str, resume_id: str) -> None:

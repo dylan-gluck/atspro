@@ -1,0 +1,22 @@
+{
+  "start_time": "2025-08-24T00:02:06.957786",
+  "end_time": "2025-08-24T00:02:06.968176",
+  "duration_seconds": 0.01039,
+  "collections_exported": {},
+  "collections_imported": {},
+  "total_documents_exported": 0,
+  "total_documents_imported": 0,
+  "errors": [],
+  "error_count": 0,
+  "warnings": [
+    "2025-08-24T00:02:06.963071: Collection 'resumes' not found",
+    "2025-08-24T00:02:06.964242: Collection 'resume_documents' not found",
+    "2025-08-24T00:02:06.965334: Collection 'jobs' not found",
+    "2025-08-24T00:02:06.966464: Collection 'job_documents' not found",
+    "2025-08-24T00:02:06.967230: Collection 'optimizations' not found",
+    "2025-08-24T00:02:06.968030: Collection 'optimization_results' not found"
+  ],
+  "warning_count": 6,
+  "validation_results": {},
+  "success": true
+}

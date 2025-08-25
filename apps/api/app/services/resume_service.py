@@ -1,10 +1,12 @@
 """Resume service layer for ATSPro API resume operations."""
 
+import json
 import logging
-from datetime import datetime
+import uuid
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
-from ..database.connections import get_arango_client, get_postgres_connection
+from ..database.connections import get_postgres_pool
 from ..schema.resume import Resume
 
 logger = logging.getLogger(__name__)
@@ -20,7 +22,7 @@ class ResumeService:
     async def create_resume_placeholder(
         self, resume_id: str, user_id: str, task_id: str
     ) -> str:
-        """Create a placeholder resume document in ArangoDB.
+        """Create a placeholder resume document in PostgreSQL.
 
         Args:
             resume_id: Unique resume identifier
@@ -31,23 +33,39 @@ class ResumeService:
             Resume document ID
         """
         try:
-            arango_db = get_arango_client()
-            resume_collection = arango_db.collection("resumes")
-
-            # Create placeholder document
-            placeholder_doc = {
-                "_key": resume_id,
-                "user_id": user_id,
-                "task_id": task_id,
-                "status": "parsing",
-                "created_at": datetime.utcnow().isoformat(),
-                "resume_data": None,
-                "file_metadata": None,
-            }
-
-            result = resume_collection.insert(placeholder_doc)
-            logger.info(f"Created resume placeholder {resume_id} for user {user_id}")
-            return result["_key"]
+            postgres_pool = get_postgres_pool()
+            async with postgres_pool.connection() as conn:
+                async with conn.transaction():
+                    async with conn.cursor() as cursor:
+                        # Create placeholder document
+                        await cursor.execute(
+                            """
+                            INSERT INTO resume_documents (
+                                id, user_id, task_id, status, filename,
+                                parsed_data, file_metadata,
+                                created_at, updated_at
+                            ) VALUES (
+                                %s::uuid, %s, %s, %s, %s,
+                                %s::jsonb, %s::jsonb,
+                                %s, %s
+                            )
+                            RETURNING id
+                            """,
+                            (
+                                resume_id,
+                                user_id,
+                                task_id,
+                                "parsing",
+                                "pending",  # Default filename
+                                json.dumps({}),
+                                json.dumps({}),
+                                datetime.now(timezone.utc),
+                                datetime.now(timezone.utc),
+                            ),
+                        )
+                        result = await cursor.fetchone()
+                        logger.info(f"Created resume placeholder {resume_id} for user {user_id}")
+                        return str(result[0])
 
         except Exception as e:
             logger.error(f"Error creating resume placeholder: {str(e)}")
@@ -66,21 +84,52 @@ class ResumeService:
             Resume document or None if not found
         """
         try:
-            arango_db = get_arango_client()
-            resume_collection = arango_db.collection("resumes")
-
-            doc = resume_collection.get(resume_id)
-            if not doc:
-                return None
-
-            # Verify user ownership if user_id provided
-            if user_id and doc.get("user_id") != user_id:
-                logger.warning(
-                    f"User {user_id} attempted to access resume {resume_id} owned by {doc.get('user_id')}"
-                )
-                return None
-
-            return doc
+            postgres_pool = get_postgres_pool()
+            async with postgres_pool.connection() as conn:
+                async with conn.cursor() as cursor:
+                    query = """
+                        SELECT id, user_id, filename, content_type, file_size,
+                               status, source, parsed_data, file_metadata,
+                               task_id, error_message, created_at, updated_at
+                        FROM resume_documents
+                        WHERE id = %s::uuid
+                    """
+                    
+                    params = [resume_id]
+                    
+                    # Add user verification if provided
+                    if user_id:
+                        query += " AND user_id = %s"
+                        params.append(user_id)
+                    
+                    await cursor.execute(query, params)
+                    row = await cursor.fetchone()
+                    
+                    if not row:
+                        if user_id:
+                            logger.warning(
+                                f"User {user_id} attempted to access resume {resume_id} without permission"
+                            )
+                        return None
+                    
+                    # Convert row to dictionary
+                    doc = {
+                        "id": str(row[0]),
+                        "user_id": row[1],
+                        "filename": row[2],
+                        "content_type": row[3],
+                        "file_size": row[4],
+                        "status": row[5],
+                        "source": row[6],
+                        "resume_data": row[7] if row[7] else {},
+                        "file_metadata": row[8] if row[8] else {},
+                        "task_id": row[9],
+                        "error_message": row[10],
+                        "created_at": row[11].isoformat() if row[11] else None,
+                        "updated_at": row[12].isoformat() if row[12] else None,
+                    }
+                    
+                    return doc
 
         except Exception as e:
             logger.error(f"Error retrieving resume {resume_id}: {str(e)}")
@@ -105,40 +154,62 @@ class ResumeService:
         try:
             logger.info(f"=== RESUME UPDATE: {resume_id} ===")
             
-            arango_db = get_arango_client()
-            resume_collection = arango_db.collection("resumes")
-
-            # Check if document exists
-            logger.info(f"Getting document...")
-            existing_doc = resume_collection.get(resume_id)
-            logger.info(f"Document retrieved")
-            
-            if not existing_doc:
-                logger.error(f"Resume {resume_id} not found")
-                return False
-
-            # Prepare minimal update data
-            logger.info(f"Preparing update data...")
-            update_data = {
-                "resume_data": resume_data,
-                "status": "manual",
-                "updated_at": datetime.utcnow().isoformat(),
-            }
-
-            if file_metadata:
-                update_data["file_metadata"] = file_metadata
-
-            # Execute the update
-            logger.info(f"Executing update...")
-            result = resume_collection.update(resume_id, update_data)
-            logger.info(f"Update completed")
-            
-            if result:
-                logger.info(f"✅ Success")
-                return True
-            else:
-                logger.error(f"❌ No result")
-                return False
+            postgres_pool = get_postgres_pool()
+            async with postgres_pool.connection() as conn:
+                async with conn.transaction():
+                    async with conn.cursor() as cursor:
+                        # Check if document exists
+                        logger.info(f"Checking if document exists...")
+                        await cursor.execute(
+                            "SELECT id FROM resume_documents WHERE id = %s::uuid",
+                            (resume_id,)
+                        )
+                        existing = await cursor.fetchone()
+                        
+                        if not existing:
+                            logger.error(f"Resume {resume_id} not found")
+                            return False
+                        
+                        # Prepare update query
+                        logger.info(f"Preparing update data...")
+                        if file_metadata:
+                            await cursor.execute(
+                                """
+                                UPDATE resume_documents 
+                                SET parsed_data = %s::jsonb,
+                                    file_metadata = %s::jsonb,
+                                    status = %s,
+                                    updated_at = %s
+                                WHERE id = %s::uuid
+                                """,
+                                (
+                                    json.dumps(resume_data),
+                                    json.dumps(file_metadata),
+                                    "manual",
+                                    datetime.now(timezone.utc),
+                                    resume_id,
+                                )
+                            )
+                        else:
+                            await cursor.execute(
+                                """
+                                UPDATE resume_documents 
+                                SET parsed_data = %s::jsonb,
+                                    status = %s,
+                                    updated_at = %s
+                                WHERE id = %s::uuid
+                                """,
+                                (
+                                    json.dumps(resume_data),
+                                    "manual",
+                                    datetime.now(timezone.utc),
+                                    resume_id,
+                                )
+                            )
+                        
+                        logger.info(f"Update completed")
+                        logger.info(f"✅ Success")
+                        return True
 
         except Exception as e:
             logger.error(f"❌ Update error: {str(e)}")
@@ -158,20 +229,34 @@ class ResumeService:
             True if update successful, False otherwise
         """
         try:
-            arango_db = get_arango_client()
-            resume_collection = arango_db.collection("resumes")
-
-            update_data = {
-                "status": status,
-                "updated_at": datetime.utcnow().isoformat(),
-            }
-
-            if error_message:
-                update_data["error_message"] = error_message
-
-            resume_collection.update(resume_id, update_data)
-            logger.info(f"Updated resume {resume_id} status to {status}")
-            return True
+            postgres_pool = get_postgres_pool()
+            async with postgres_pool.connection() as conn:
+                async with conn.transaction():
+                    async with conn.cursor() as cursor:
+                        if error_message:
+                            await cursor.execute(
+                                """
+                                UPDATE resume_documents 
+                                SET status = %s,
+                                    error_message = %s,
+                                    updated_at = %s
+                                WHERE id = %s::uuid
+                                """,
+                                (status, error_message, datetime.now(timezone.utc), resume_id)
+                            )
+                        else:
+                            await cursor.execute(
+                                """
+                                UPDATE resume_documents 
+                                SET status = %s,
+                                    updated_at = %s
+                                WHERE id = %s::uuid
+                                """,
+                                (status, datetime.now(timezone.utc), resume_id)
+                            )
+                        
+                        logger.info(f"Updated resume {resume_id} status to {status}")
+                        return True
 
         except Exception as e:
             logger.error(f"Error updating resume status for {resume_id}: {str(e)}")
@@ -196,35 +281,49 @@ class ResumeService:
             List of resume documents
         """
         try:
-            arango_db = get_arango_client()
-
-            # Build AQL query
-            bind_vars = {
-                "user_id": user_id,
-                "limit": limit,
-                "offset": offset,
-            }
-
-            aql_query = """
-                FOR resume IN resumes
-                    FILTER resume.user_id == @user_id
-            """
-
-            if status:
-                aql_query += " FILTER resume.status == @status"
-                bind_vars["status"] = status
-
-            aql_query += """
-                    SORT resume.created_at DESC
-                    LIMIT @offset, @limit
-                    RETURN resume
-            """
-
-            cursor = arango_db.aql.execute(aql_query, bind_vars=bind_vars)
-            resumes = list(cursor)
-
-            logger.info(f"Retrieved {len(resumes)} resumes for user {user_id}")
-            return resumes
+            postgres_pool = get_postgres_pool()
+            async with postgres_pool.connection() as conn:
+                async with conn.cursor() as cursor:
+                    query = """
+                        SELECT id, user_id, filename, content_type, file_size,
+                               status, source, parsed_data, file_metadata,
+                               task_id, error_message, created_at, updated_at
+                        FROM resume_documents
+                        WHERE user_id = %s
+                    """
+                    
+                    params = [user_id]
+                    
+                    if status:
+                        query += " AND status = %s"
+                        params.append(status)
+                    
+                    query += " ORDER BY created_at DESC LIMIT %s OFFSET %s"
+                    params.extend([limit, offset])
+                    
+                    await cursor.execute(query, params)
+                    rows = await cursor.fetchall()
+                    
+                    resumes = []
+                    for row in rows:
+                        resumes.append({
+                            "id": str(row[0]),
+                            "user_id": row[1],
+                            "filename": row[2],
+                            "content_type": row[3],
+                            "file_size": row[4],
+                            "status": row[5],
+                            "source": row[6],
+                            "resume_data": row[7] if row[7] else {},
+                            "file_metadata": row[8] if row[8] else {},
+                            "task_id": row[9],
+                            "error_message": row[10],
+                            "created_at": row[11].isoformat() if row[11] else None,
+                            "updated_at": row[12].isoformat() if row[12] else None,
+                        })
+                    
+                    logger.info(f"Retrieved {len(resumes)} resumes for user {user_id}")
+                    return resumes
 
         except Exception as e:
             logger.error(f"Error retrieving resumes for user {user_id}: {str(e)}")
@@ -243,22 +342,31 @@ class ResumeService:
             True if deletion successful, False otherwise
         """
         try:
-            arango_db = get_arango_client()
-            resume_collection = arango_db.collection("resumes")
-
-            # Check ownership if user_id provided
-            if user_id:
-                doc = resume_collection.get(resume_id)
-                if not doc or doc.get("user_id") != user_id:
-                    logger.warning(
-                        f"User {user_id} attempted to delete resume {resume_id} without permission"
-                    )
-                    return False
-
-            # Delete the document
-            resume_collection.delete(resume_id)
-            logger.info(f"Deleted resume {resume_id}")
-            return True
+            postgres_pool = get_postgres_pool()
+            async with postgres_pool.connection() as conn:
+                async with conn.transaction():
+                    async with conn.cursor() as cursor:
+                        # Check ownership if user_id provided
+                        if user_id:
+                            await cursor.execute(
+                                "SELECT user_id FROM resume_documents WHERE id = %s::uuid",
+                                (resume_id,)
+                            )
+                            row = await cursor.fetchone()
+                            if not row or row[0] != user_id:
+                                logger.warning(
+                                    f"User {user_id} attempted to delete resume {resume_id} without permission"
+                                )
+                                return False
+                        
+                        # Delete the document
+                        await cursor.execute(
+                            "DELETE FROM resume_documents WHERE id = %s::uuid",
+                            (resume_id,)
+                        )
+                        
+                        logger.info(f"Deleted resume {resume_id}")
+                        return True
 
         except Exception as e:
             logger.error(f"Error deleting resume {resume_id}: {str(e)}")
@@ -278,59 +386,77 @@ class ResumeService:
             List of matching resume documents
         """
         try:
-            arango_db = get_arango_client()
-
-            # AQL query for full-text search
-            aql_query = """
-                FOR resume IN resumes
-                    FILTER resume.user_id == @user_id
-                    FILTER resume.status == "parsed"
-                    FILTER (
-                        CONTAINS(LOWER(CONCAT_SEPARATOR(" ", 
-                            resume.resume_data.contact_info.full_name,
-                            resume.resume_data.summary,
-                            resume.resume_data.skills
-                        )), LOWER(@search_term)) OR
-                        (
-                            FOR exp IN resume.resume_data.work_experience
-                                FILTER CONTAINS(LOWER(CONCAT_SEPARATOR(" ",
-                                    exp.company,
-                                    exp.position,
-                                    exp.description,
-                                    exp.skills
-                                )), LOWER(@search_term))
-                                LIMIT 1
-                                RETURN 1
-                        )[0] == 1 OR
-                        (
-                            FOR edu IN resume.resume_data.education
-                                FILTER CONTAINS(LOWER(CONCAT_SEPARATOR(" ",
-                                    edu.institution,
-                                    edu.degree,
-                                    edu.field_of_study
-                                )), LOWER(@search_term))
-                                LIMIT 1
-                                RETURN 1
-                        )[0] == 1
+            postgres_pool = get_postgres_pool()
+            async with postgres_pool.connection() as conn:
+                async with conn.cursor() as cursor:
+                    # PostgreSQL JSONB search query
+                    query = """
+                        SELECT id, user_id, filename, content_type, file_size,
+                               status, source, parsed_data, file_metadata,
+                               task_id, error_message, created_at, updated_at
+                        FROM resume_documents
+                        WHERE user_id = %s
+                          AND status IN ('parsed', 'manual')
+                          AND (
+                            -- Search in contact info, summary, and skills
+                            LOWER(parsed_data->>'summary') LIKE LOWER(%s) OR
+                            LOWER(parsed_data->>'skills') LIKE LOWER(%s) OR
+                            LOWER(parsed_data->'contact_info'->>'full_name') LIKE LOWER(%s) OR
+                            -- Search in work experience array
+                            EXISTS (
+                                SELECT 1 FROM jsonb_array_elements(parsed_data->'work_experience') AS exp
+                                WHERE LOWER(exp->>'company') LIKE LOWER(%s) OR
+                                      LOWER(exp->>'position') LIKE LOWER(%s) OR
+                                      LOWER(exp->>'description') LIKE LOWER(%s) OR
+                                      LOWER(exp->>'skills') LIKE LOWER(%s)
+                            ) OR
+                            -- Search in education array
+                            EXISTS (
+                                SELECT 1 FROM jsonb_array_elements(parsed_data->'education') AS edu
+                                WHERE LOWER(edu->>'institution') LIKE LOWER(%s) OR
+                                      LOWER(edu->>'degree') LIKE LOWER(%s) OR
+                                      LOWER(edu->>'field_of_study') LIKE LOWER(%s)
+                            )
+                          )
+                        ORDER BY created_at DESC
+                        LIMIT %s
+                    """
+                    
+                    # Create search pattern with wildcards
+                    search_pattern = f"%{search_term}%"
+                    
+                    await cursor.execute(query, (
+                        user_id,
+                        search_pattern, search_pattern, search_pattern,  # Basic fields
+                        search_pattern, search_pattern, search_pattern, search_pattern,  # Work experience
+                        search_pattern, search_pattern, search_pattern,  # Education
+                        limit
+                    ))
+                    
+                    rows = await cursor.fetchall()
+                    
+                    results = []
+                    for row in rows:
+                        results.append({
+                            "id": str(row[0]),
+                            "user_id": row[1],
+                            "filename": row[2],
+                            "content_type": row[3],
+                            "file_size": row[4],
+                            "status": row[5],
+                            "source": row[6],
+                            "resume_data": row[7] if row[7] else {},
+                            "file_metadata": row[8] if row[8] else {},
+                            "task_id": row[9],
+                            "error_message": row[10],
+                            "created_at": row[11].isoformat() if row[11] else None,
+                            "updated_at": row[12].isoformat() if row[12] else None,
+                        })
+                    
+                    logger.info(
+                        f"Found {len(results)} resumes matching '{search_term}' for user {user_id}"
                     )
-                    SORT resume.created_at DESC
-                    LIMIT @limit
-                    RETURN resume
-            """
-
-            bind_vars = {
-                "user_id": user_id,
-                "search_term": search_term,
-                "limit": limit,
-            }
-
-            cursor = arango_db.aql.execute(aql_query, bind_vars=bind_vars)
-            results = list(cursor)
-
-            logger.info(
-                f"Found {len(results)} resumes matching '{search_term}' for user {user_id}"
-            )
-            return results
+                    return results
 
         except Exception as e:
             logger.error(f"Error searching resumes for user {user_id}: {str(e)}")
@@ -346,33 +472,36 @@ class ResumeService:
             Statistics dictionary
         """
         try:
-            arango_db = get_arango_client()
-
-            # AQL query for statistics
-            aql_query = """
-                FOR resume IN resumes
-                    FILTER resume.user_id == @user_id
-                    COLLECT status = resume.status WITH COUNT INTO count
-                    RETURN { status: status, count: count }
-            """
-
-            cursor = arango_db.aql.execute(aql_query, bind_vars={"user_id": user_id})
-            status_counts = list(cursor)
-
-            # Process results
-            stats = {
-                "total": 0,
-                "by_status": {},
-            }
-
-            for item in status_counts:
-                status = item["status"]
-                count = item["count"]
-                stats["by_status"][status] = count
-                stats["total"] += count
-
-            logger.info(f"Generated statistics for user {user_id}: {stats}")
-            return stats
+            postgres_pool = get_postgres_pool()
+            async with postgres_pool.connection() as conn:
+                async with conn.cursor() as cursor:
+                    # PostgreSQL query for statistics
+                    await cursor.execute(
+                        """
+                        SELECT status, COUNT(*) as count
+                        FROM resume_documents
+                        WHERE user_id = %s
+                        GROUP BY status
+                        """,
+                        (user_id,)
+                    )
+                    
+                    rows = await cursor.fetchall()
+                    
+                    # Process results
+                    stats = {
+                        "total": 0,
+                        "by_status": {},
+                    }
+                    
+                    for row in rows:
+                        status = row[0]
+                        count = row[1]
+                        stats["by_status"][status] = count
+                        stats["total"] += count
+                    
+                    logger.info(f"Generated statistics for user {user_id}: {stats}")
+                    return stats
 
         except Exception as e:
             logger.error(f"Error generating statistics for user {user_id}: {str(e)}")
@@ -411,28 +540,168 @@ class ResumeService:
             Resume document ID
         """
         try:
-            arango_db = get_arango_client()
-            resume_collection = arango_db.collection("resumes")
-
-            # Create manual resume document
-            manual_doc = {
-                "_key": resume_id,
-                "user_id": user_id,
-                "status": "manual",
-                "source": "manual",
-                "created_at": datetime.utcnow().isoformat(),
-                "resume_data": resume_data,
-                "file_metadata": {
-                    "source": "manual_entry",
-                    "created_by": user_id,
-                    "entry_method": "manual_form",
-                },
-            }
-
-            result = resume_collection.insert(manual_doc)
-            logger.info(f"Created manual resume {resume_id} for user {user_id}")
-            return result["_key"]
+            postgres_pool = get_postgres_pool()
+            async with postgres_pool.connection() as conn:
+                async with conn.transaction():
+                    async with conn.cursor() as cursor:
+                        # Create manual resume document
+                        file_metadata = {
+                            "source": "manual_entry",
+                            "created_by": user_id,
+                            "entry_method": "manual_form",
+                        }
+                        
+                        await cursor.execute(
+                            """
+                            INSERT INTO resume_documents (
+                                id, user_id, filename, status, source,
+                                parsed_data, file_metadata,
+                                created_at, updated_at
+                            ) VALUES (
+                                %s::uuid, %s, %s, %s, %s,
+                                %s::jsonb, %s::jsonb,
+                                %s, %s
+                            )
+                            RETURNING id
+                            """,
+                            (
+                                resume_id,
+                                user_id,
+                                "manual_entry",
+                                "manual",
+                                "manual",
+                                json.dumps(resume_data),
+                                json.dumps(file_metadata),
+                                datetime.now(timezone.utc),
+                                datetime.now(timezone.utc),
+                            ),
+                        )
+                        
+                        result = await cursor.fetchone()
+                        logger.info(f"Created manual resume {resume_id} for user {user_id}")
+                        return str(result[0])
 
         except Exception as e:
             logger.error(f"Error creating manual resume: {str(e)}")
             raise
+
+    async def search_by_skill(self, user_id: str, skill: str) -> List[Dict[str, Any]]:
+        """Search resumes by skill using JSONB containment.
+        
+        Args:
+            user_id: User identifier
+            skill: Skill to search for
+            
+        Returns:
+            List of resumes containing the skill
+        """
+        from ..database.connections import search_jsonb_field
+        
+        return await search_jsonb_field(
+            table="resume_documents",
+            field="parsed_data",
+            search_value={"skills": [skill]},
+            user_id=user_id
+        )
+    
+    async def find_by_email(self, user_id: str, email: str) -> List[Dict[str, Any]]:
+        """Find resumes by email address.
+        
+        Args:
+            user_id: User identifier
+            email: Email address to search for
+            
+        Returns:
+            List of resumes with matching email
+        """
+        try:
+            postgres_pool = get_postgres_pool()
+            async with postgres_pool.connection() as conn:
+                async with conn.cursor() as cursor:
+                    query = """
+                        SELECT id, user_id, filename, content_type, file_size,
+                               status, source, parsed_data, file_metadata,
+                               task_id, error_message, created_at, updated_at
+                        FROM resume_documents
+                        WHERE user_id = %s
+                        AND parsed_data->'contact_info'->>'email' = %s
+                    """
+                    
+                    await cursor.execute(query, (user_id, email))
+                    rows = await cursor.fetchall()
+                    
+                    resumes = []
+                    for row in rows:
+                        doc = {
+                            "id": str(row[0]),
+                            "user_id": row[1],
+                            "filename": row[2],
+                            "content_type": row[3],
+                            "file_size": row[4],
+                            "status": row[5],
+                            "source": row[6],
+                            "parsed_data": row[7] if row[7] else {},
+                            "file_metadata": row[8] if row[8] else {},
+                            "task_id": row[9],
+                            "error_message": row[10],
+                            "created_at": row[11].isoformat() if row[11] else None,
+                            "updated_at": row[12].isoformat() if row[12] else None,
+                        }
+                        resumes.append(doc)
+                    
+                    return resumes
+                    
+        except Exception as e:
+            logger.error(f"Error finding resumes by email: {str(e)}")
+            return []
+    
+    async def find_by_multiple_skills(self, user_id: str, skills: List[str]) -> List[Dict[str, Any]]:
+        """Find resumes containing multiple skills.
+        
+        Args:
+            user_id: User identifier
+            skills: List of skills to search for
+            
+        Returns:
+            List of resumes containing all specified skills
+        """
+        try:
+            postgres_pool = get_postgres_pool()
+            async with postgres_pool.connection() as conn:
+                async with conn.cursor() as cursor:
+                    query = """
+                        SELECT id, user_id, filename, content_type, file_size,
+                               status, source, parsed_data, file_metadata,
+                               task_id, error_message, created_at, updated_at
+                        FROM resume_documents
+                        WHERE user_id = %s
+                        AND parsed_data->'skills' @> %s::jsonb
+                    """
+                    
+                    await cursor.execute(query, (user_id, json.dumps(skills)))
+                    rows = await cursor.fetchall()
+                    
+                    resumes = []
+                    for row in rows:
+                        doc = {
+                            "id": str(row[0]),
+                            "user_id": row[1],
+                            "filename": row[2],
+                            "content_type": row[3],
+                            "file_size": row[4],
+                            "status": row[5],
+                            "source": row[6],
+                            "parsed_data": row[7] if row[7] else {},
+                            "file_metadata": row[8] if row[8] else {},
+                            "task_id": row[9],
+                            "error_message": row[10],
+                            "created_at": row[11].isoformat() if row[11] else None,
+                            "updated_at": row[12].isoformat() if row[12] else None,
+                        }
+                        resumes.append(doc)
+                    
+                    return resumes
+                    
+        except Exception as e:
+            logger.error(f"Error finding resumes by multiple skills: {str(e)}")
+            return []

@@ -1,0 +1,92 @@
+{
+  "start_time": "2025-08-24T00:04:22.773546",
+  "end_time": "2025-08-24T00:04:22.813633",
+  "duration_seconds": 0.040087,
+  "collections_exported": {},
+  "collections_imported": {
+    "resume_documents": 13,
+    "job_documents": 4,
+    "optimization_results": 0
+  },
+  "total_documents_exported": 0,
+  "total_documents_imported": 17,
+  "errors": [
+    {
+      "collection": "resume_documents",
+      "document_id": "6229e4fb-4668-42d8-b577-3906ae4d15f7",
+      "error": "insert or update on table \"resume_documents\" violates foreign key constraint \"resume_documents_user_id_fkey\"\nDETAIL:  Key (user_id)=(user_gV1wS2Jw) is not present in table \"user\".",
+      "timestamp": "2025-08-24T00:04:22.794144"
+    },
+    {
+      "collection": "resume_documents",
+      "document_id": "e180ca0f-c957-4995-910b-2a344674611b",
+      "error": "insert or update on table \"resume_documents\" violates foreign key constraint \"resume_documents_user_id_fkey\"\nDETAIL:  Key (user_id)=(user_jeeqiUAi) is not present in table \"user\".",
+      "timestamp": "2025-08-24T00:04:22.794897"
+    },
+    {
+      "collection": "resume_documents",
+      "document_id": "8f6c6c13-42f0-4344-8b04-650b45303e1f",
+      "error": "insert or update on table \"resume_documents\" violates foreign key constraint \"resume_documents_user_id_fkey\"\nDETAIL:  Key (user_id)=(user_vbSegVy4) is not present in table \"user\".",
+      "timestamp": "2025-08-24T00:04:22.795669"
+    },
+    {
+      "collection": "resume_documents",
+      "document_id": "1884c84c-7be6-4392-aaa2-4e19d5a169d2",
+      "error": "insert or update on table \"resume_documents\" violates foreign key constraint \"resume_documents_user_id_fkey\"\nDETAIL:  Key (user_id)=(user_gV1wS2Jw) is not present in table \"user\".",
+      "timestamp": "2025-08-24T00:04:22.796450"
+    },
+    {
+      "collection": "resume_documents",
+      "document_id": "3257692e-fd6e-4b05-86b3-6d014f8f3891",
+      "error": "insert or update on table \"resume_documents\" violates foreign key constraint \"resume_documents_user_id_fkey\"\nDETAIL:  Key (user_id)=(user_gV1wS2Jw) is not present in table \"user\".",
+      "timestamp": "2025-08-24T00:04:22.797199"
+    },
+    {
+      "collection": "resume_documents",
+      "document_id": "13038727-215d-48be-b195-129d69c901ca",
+      "error": "insert or update on table \"resume_documents\" violates foreign key constraint \"resume_documents_user_id_fkey\"\nDETAIL:  Key (user_id)=(user_vbSegVy4) is not present in table \"user\".",
+      "timestamp": "2025-08-24T00:04:22.798037"
+    },
+    {
+      "collection": "resume_documents",
+      "document_id": "60192fba-11ae-485b-a21b-ef5e4da8f92a",
+      "error": "insert or update on table \"resume_documents\" violates foreign key constraint \"resume_documents_user_id_fkey\"\nDETAIL:  Key (user_id)=(test_user) is not present in table \"user\".",
+      "timestamp": "2025-08-24T00:04:22.807181"
+    },
+    {
+      "collection": "job_documents",
+      "document_id": "f48decba-dfc4-4547-b7b3-f45d4a21e132",
+      "error": "insert or update on table \"job_documents\" violates foreign key constraint \"job_documents_user_id_fkey\"\nDETAIL:  Key (user_id)=(test_user) is not present in table \"user\".",
+      "timestamp": "2025-08-24T00:04:22.810076"
+    },
+    {
+      "collection": "job_documents",
+      "document_id": "79b27a99-4bf7-4b03-a3a2-0691db769d90",
+      "error": "insert or update on table \"job_documents\" violates foreign key constraint \"job_documents_user_id_fkey\"\nDETAIL:  Key (user_id)=(test_user) is not present in table \"user\".",
+      "timestamp": "2025-08-24T00:04:22.810498"
+    },
+    {
+      "collection": "job_documents",
+      "document_id": "5c9de588-ea91-4913-8a4a-990c81814f73",
+      "error": "insert or update on table \"job_documents\" violates foreign key constraint \"job_documents_user_id_fkey\"\nDETAIL:  Key (user_id)=(test_user) is not present in table \"user\".",
+      "timestamp": "2025-08-24T00:04:22.810881"
+    },
+    {
+      "collection": "job_documents",
+      "document_id": "01c24223-de65-43cd-a8b5-e14a3375fe1c",
+      "error": "insert or update on table \"job_documents\" violates foreign key constraint \"job_documents_user_id_fkey\"\nDETAIL:  Key (user_id)=(test_user) is not present in table \"user\".",
+      "timestamp": "2025-08-24T00:04:22.811224"
+    },
+    {
+      "collection": "job_documents",
+      "document_id": "2423904d-3237-459f-8352-a6d653cfd5c2",
+      "error": "insert or update on table \"job_documents\" violates foreign key constraint \"job_documents_user_id_fkey\"\nDETAIL:  Key (user_id)=(test_user) is not present in table \"user\".",
+      "timestamp": "2025-08-24T00:04:22.811654"
+    }
+  ],
+  "error_count": 12,
+  "warnings": [],
+  "warning_count": 0,
+  "validation_results": {},
+  "success": false
+}

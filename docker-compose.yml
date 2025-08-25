@@ -32,27 +32,6 @@ services:
       start_period: 60s
     restart: unless-stopped
 
-  # ArangoDB Document Database
-  arangodb:
-    image: arangodb:3.11
-    container_name: atspro-arangodb
-    environment:
-      ARANGO_ROOT_PASSWORD: ${ARANGO_ROOT_PASSWORD:-dev_arango_password_change_in_prod}
-    volumes:
-      - arangodb_data:/var/lib/arangodb3
-      - arangodb_apps:/var/lib/arangodb3-apps
-    ports:
-      - "8529:8529"
-    networks:
-      - atspro-network
-    healthcheck:
-      test: ["CMD", "arangosh", "--server.endpoint", "http+tcp://localhost:8529", "--server.password", "${ARANGO_ROOT_PASSWORD:-dev_arango_password_change_in_prod}", "--javascript.execute-string", "print('OK'); db._version();"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
-    restart: unless-stopped
-
   # API Service
   api:
     build:
@@ -62,18 +41,12 @@ services:
     environment:
       - NODE_ENV=production
       - DATABASE_URL=postgresql://atspro_user:${POSTGRES_PASSWORD:-dev_password_change_in_prod}@postgres:5432/atspro
-      - ARANGO_URL=http://arangodb:8529
-      - ARANGO_DATABASE=atspro
-      - ARANGO_USERNAME=atspro_user
-      - ARANGO_PASSWORD=atspro_pass
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - GEMINI_API_KEY=${GEMINI_API_KEY}
     ports:
       - "8000:8000"
     depends_on:
       postgres:
-        condition: service_healthy
-      arangodb:
         condition: service_healthy
     networks:
       - atspro-network
@@ -116,8 +89,4 @@ services:
 
 volumes:
   postgres_data:
-    driver: local
-  arangodb_data:
-    driver: local
-  arangodb_apps:
     driver: local

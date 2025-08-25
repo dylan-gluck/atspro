@@ -1,0 +1,49 @@
+{
+  "counts": {
+    "resumes": {
+      "arango_count": 20,
+      "postgres_count": 21,
+      "match": false,
+      "difference": 1
+    },
+    "jobs": {
+      "arango_count": 9,
+      "postgres_count": 10,
+      "match": false,
+      "difference": 1
+    },
+    "task_results": {
+      "arango_count": 0,
+      "postgres_count": 0,
+      "match": true,
+      "difference": 0
+    }
+  },
+  "samples": {
+    "resumes": {
+      "error": "column \"metadata\" does not exist"
+    },
+    "jobs": {
+      "samples_checked": 9,
+      "matches": 9,
+      "mismatches": 0,
+      "match_rate": 100.0
+    },
+    "task_results": {
+      "samples_checked": 0,
+      "matches": 0,
+      "mismatches": 0,
+      "match_rate": 0
+    }
+  },
+  "relationships": {
+    "orphaned_optimization_resume_refs": 0,
+    "orphaned_optimization_job_refs": 0,
+    "relationships_valid": true
+  },
+  "summary": {
+    "all_counts_match": false,
+    "relationships_valid": true,
+    "validation_timestamp": "2025-08-24T00:06:39.494057"
+  }
+}

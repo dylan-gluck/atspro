@@ -1,0 +1,19 @@
+{
+  "start_time": "2025-08-24T00:03:15.049147",
+  "end_time": "2025-08-24T00:03:15.058983",
+  "duration_seconds": 0.009836,
+  "collections_exported": {},
+  "collections_imported": {},
+  "total_documents_exported": 0,
+  "total_documents_imported": 0,
+  "errors": [],
+  "error_count": 0,
+  "warnings": [
+    "2025-08-24T00:03:15.056648: Collection 'resumes' not found",
+    "2025-08-24T00:03:15.057841: Collection 'jobs' not found",
+    "2025-08-24T00:03:15.058948: Collection 'task_results' not found"
+  ],
+  "warning_count": 3,
+  "validation_results": {},
+  "success": true
+}

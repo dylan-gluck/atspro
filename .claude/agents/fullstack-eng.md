@@ -2,7 +2,7 @@
 name: fullstack-eng
 description: Use this agent when you need comprehensive full-stack development work across both frontend (TypeScript/JavaScript) and backend (Python) codebases. This agent excels at implementing features that span multiple layers of the application stack, debugging cross-system issues, and ensuring seamless integration between services. Perfect for tasks requiring coordination between API endpoints and UI components, database schema changes with corresponding model updates, or investigating issues that cross service boundaries.
 tools: mcp__docker-mcp__get-logs, mcp__docker-mcp__list-containers, mcp__language-server-py__definition, mcp__language-server-py__diagnostics, mcp__language-server-py__edit_file, mcp__language-server-py__hover, mcp__language-server-py__references, mcp__language-server-py__rename_symbol, mcp__language-server-ts__definition, mcp__language-server-ts__diagnostics, mcp__language-server-ts__edit_file, mcp__language-server-ts__hover, mcp__language-server-ts__references, mcp__language-server-ts__rename_symbol, mcp__postgres__query, mcp__playwright__navigate, mcp__playwright__screenshot, mcp__playwright__click, mcp__playwright__fill, mcp__playwright__select, mcp__playwright__hover, mcp__playwright__evaluate, TodoWrite, Bash, LS, Write, BashOutput, KillBash, Edit, MultiEdit, Glob, Grep, Read
-model: sonnet
+model: opus
 color: green
 ---
 

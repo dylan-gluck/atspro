@@ -46,16 +46,14 @@ export default function OnboardingPage() {
       
       // Stage 2: Processing complete
       setProcessingStage('parsing');
-      setProgress(70);
+      setProgress(85);
       
-      // Stage 3: Updating profile
+      // Stage 3: Profile already updated by backend during parsing
       setProcessingStage('updating');
-      setProgress(90);
-      const updateResponse = await services.userService.updateResumeId(resume_id);
+      setProgress(95);
       
-      if (!updateResponse.success) {
-        throw new Error(updateResponse.message || 'Failed to update your profile. Please try again.');
-      }
+      // Note: The backend automatically updates the user profile with resume_id
+      // during the parsing process, so we don't need to call updateResumeId here
 
       // Stage 4: Success
       setProcessingStage('success');
@@ -121,15 +119,12 @@ export default function OnboardingPage() {
       const resumeVersion = createResponse.data;
       const resume_id = resumeVersion.id;
       
-      // Stage 2: Updating profile
+      // Stage 2: Profile already updated by backend during manual resume creation
       setProcessingStage('updating');
-      setProgress(75);
+      setProgress(85);
       
-      const updateResponse = await services.userService.updateResumeId(resume_id);
-      
-      if (!updateResponse.success) {
-        throw new Error(updateResponse.message || 'Failed to update your profile. Please try again.');
-      }
+      // Note: The backend automatically updates the user profile with resume_id
+      // during manual resume creation, so we don't need to call updateResumeId here
 
       // Stage 3: Success
       setProcessingStage('success');

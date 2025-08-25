@@ -6,6 +6,7 @@ from typing import Optional
 
 from fastapi import HTTPException, status
 from pydantic import BaseModel
+from psycopg.rows import dict_row
 
 from .database.connections import get_postgres_connection
 
@@ -63,7 +64,8 @@ async def validate_session_token(token: str) -> User:
 
     try:
         async with get_postgres_connection() as conn:
-            # Use the connection that has dict_row factory configured
+            # Configure dict_row factory for this connection
+            conn.row_factory = dict_row
             result = await conn.execute(
                 """
                 SELECT 

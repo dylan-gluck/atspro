@@ -39,7 +39,7 @@ class TestGetUserProfile:
     """Tests for GET /api/user/profile endpoint."""
 
     @patch("app.routers.user.get_current_user")
-    @patch("app.routers.user.get_postgres_connection")
+    @patch("app.database.connections.get_postgres_connection")
     def test_get_profile_success(
         self, mock_conn, mock_user_auth, client, mock_user, sample_profile_data
     ):
@@ -70,7 +70,7 @@ class TestGetUserProfile:
         assert data["data"]["resume_id"] == "resume_123"
 
     @patch("app.routers.user.get_current_user")
-    @patch("app.routers.user.get_postgres_connection")
+    @patch("app.database.connections.get_postgres_connection")
     def test_get_profile_not_found(self, mock_conn, mock_user_auth, client, mock_user):
         """Test profile retrieval when no profile exists."""
         # Setup mocks
@@ -92,7 +92,7 @@ class TestGetUserProfile:
         assert data["message"] == "No profile found"
 
     @patch("app.routers.user.get_current_user")
-    @patch("app.routers.user.get_postgres_connection")
+    @patch("app.database.connections.get_postgres_connection")
     def test_get_profile_database_error(
         self, mock_conn, mock_user_auth, client, mock_user
     ):
@@ -205,7 +205,7 @@ class TestDeleteUserProfile:
     """Tests for DELETE /api/user/profile endpoint."""
 
     @patch("app.routers.user.get_current_user")
-    @patch("app.routers.user.get_postgres_connection")
+    @patch("app.database.connections.get_postgres_connection")
     def test_delete_profile_success(self, mock_conn, mock_user_auth, client, mock_user):
         """Test successful profile deletion."""
         # Setup mocks
@@ -226,7 +226,7 @@ class TestDeleteUserProfile:
         assert data["message"] == "Profile deleted successfully"
 
     @patch("app.routers.user.get_current_user")
-    @patch("app.routers.user.get_postgres_connection")
+    @patch("app.database.connections.get_postgres_connection")
     def test_delete_profile_not_found(
         self, mock_conn, mock_user_auth, client, mock_user
     ):
@@ -248,7 +248,7 @@ class TestDeleteUserProfile:
         assert "User profile not found" in data["detail"]
 
     @patch("app.routers.user.get_current_user")
-    @patch("app.routers.user.get_postgres_connection")
+    @patch("app.database.connections.get_postgres_connection")
     def test_delete_profile_database_error(
         self, mock_conn, mock_user_auth, client, mock_user
     ):

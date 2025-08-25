@@ -1,10 +1,18 @@
 """Synchronous optimization processor service for direct resume optimization."""
 
 import asyncio
+import json
 import logging
 from datetime import datetime
 from typing import Any, Dict, Optional
+from uuid import UUID
 
+from ..database import (
+    get_document,
+    store_document,
+    update_document,
+    get_postgres_connection,
+)
 from ..lib.agent import optimize_agent
 from ..schema.job import Job
 from ..schema.resume import Resume
@@ -29,13 +37,8 @@ class OptimizationError(Exception):
 class OptimizationProcessorService:
     """Synchronous service for processing resume optimizations without queues."""
     
-    def __init__(self, arango_db):
-        """Initialize optimization processor service.
-        
-        Args:
-            arango_db: ArangoDB database instance
-        """
-        self.arango_db = arango_db
+    def __init__(self):
+        """Initialize optimization processor service."""
         self.timeout_seconds = 90  # 90-second timeout for complex documents
     
     async def optimize_resume_sync(
@@ -112,7 +115,7 @@ class OptimizationProcessorService:
         """
         try:
             logger.debug("Fetching resume and job data")
-            # Fetch resume and job data from ArangoDB
+            # Fetch resume and job data from PostgreSQL
             resume_data = await self._get_resume_data(resume_id, user_id)
             job_data = await self._get_job_data(job_id, user_id)
             
@@ -159,10 +162,10 @@ class OptimizationProcessorService:
             raise OptimizationError(f"Optimization process failed: {str(e)}")
     
     async def _get_resume_data(self, resume_id: str, user_id: str) -> Dict[str, Any]:
-        """Fetch resume data from ArangoDB with authorization check.
+        """Fetch resume data from PostgreSQL with authorization check.
         
         Args:
-            resume_id: Resume document ID
+            resume_id: Resume document ID (UUID)
             user_id: User ID for authorization
             
         Returns:
@@ -172,26 +175,24 @@ class OptimizationProcessorService:
             OptimizationError: If resume not found or unauthorized
         """
         try:
-            resumes_collection = self.arango_db.collection("resumes")
-            resume_doc = resumes_collection.get(resume_id)
+            # Fetch resume from PostgreSQL
+            resume_doc = await get_document(
+                table="resume_documents",
+                doc_id=resume_id,
+                user_id=user_id
+            )
             
             if not resume_doc:
                 raise OptimizationError(
-                    f"Resume {resume_id} not found",
+                    f"Resume {resume_id} not found or unauthorized",
                     "not_found_error"
                 )
             
-            # Verify ownership
-            if resume_doc.get("user_id") != user_id:
+            # Extract parsed data from JSONB column
+            resume_data = resume_doc.get("parsed_data", {})
+            if not resume_data or resume_data == {}:
                 raise OptimizationError(
-                    f"Unauthorized access to resume {resume_id}",
-                    "authorization_error"
-                )
-            
-            resume_data = resume_doc.get("data", {})
-            if not resume_data:
-                raise OptimizationError(
-                    f"Resume {resume_id} contains no data",
+                    f"Resume {resume_id} contains no parsed data",
                     "data_error"
                 )
             
@@ -204,10 +205,10 @@ class OptimizationProcessorService:
             raise OptimizationError(f"Failed to fetch resume data: {str(e)}", "data_fetch_error")
     
     async def _get_job_data(self, job_id: str, user_id: str) -> Dict[str, Any]:
-        """Fetch job data from ArangoDB with authorization check.
+        """Fetch job data from PostgreSQL with authorization check.
         
         Args:
-            job_id: Job document ID
+            job_id: Job document ID (UUID)
             user_id: User ID for authorization
             
         Returns:
@@ -217,26 +218,24 @@ class OptimizationProcessorService:
             OptimizationError: If job not found or unauthorized
         """
         try:
-            jobs_collection = self.arango_db.collection("jobs")
-            job_doc = jobs_collection.get(job_id)
+            # Fetch job from PostgreSQL
+            job_doc = await get_document(
+                table="job_documents",
+                doc_id=job_id,
+                user_id=user_id
+            )
             
             if not job_doc:
                 raise OptimizationError(
-                    f"Job {job_id} not found",
+                    f"Job {job_id} not found or unauthorized",
                     "not_found_error"
                 )
             
-            # Verify ownership
-            if job_doc.get("user_id") != user_id:
+            # Extract parsed data from JSONB column
+            job_data = job_doc.get("parsed_data", {})
+            if not job_data or job_data == {}:
                 raise OptimizationError(
-                    f"Unauthorized access to job {job_id}",
-                    "authorization_error"
-                )
-            
-            job_data = job_doc.get("data", {})
-            if not job_data:
-                raise OptimizationError(
-                    f"Job {job_id} contains no data",
+                    f"Job {job_id} contains no parsed data",
                     "data_error"
                 )
             
@@ -509,12 +508,12 @@ class OptimizationProcessorService:
         markdown_content: str,
         optimized_resume: Resume
     ) -> str:
-        """Store optimization result in ArangoDB documents collection.
+        """Store optimization result in PostgreSQL optimization_results table.
         
         Args:
             user_id: User ID
-            resume_id: Source resume ID
-            job_id: Target job ID
+            resume_id: Source resume ID (UUID)
+            job_id: Target job ID (UUID)
             markdown_content: Formatted markdown content
             optimized_resume: Optimized resume data
             
@@ -525,24 +524,84 @@ class OptimizationProcessorService:
             OptimizationError: If storage fails
         """
         try:
-            # Create document for the optimization result
-            result_doc = {
+            # Calculate ATS score and keyword match if possible
+            ats_score = None
+            keyword_match_score = None
+            
+            # Store ATS-related metrics in metadata
+            metadata = {
                 "type": "optimization",
-                "user_id": user_id,
-                "resume_id": resume_id,
-                "job_id": job_id,
-                "content": markdown_content,
-                "optimized_data": optimized_resume.model_dump(),
+                "status": "completed",
                 "created_at": datetime.utcnow().isoformat(),
-                "status": "completed"
+                "markdown_available": True,
             }
             
-            # Store in documents collection
-            documents_collection = self.arango_db.collection("documents")
-            result = documents_collection.insert(result_doc)
+            # Check for existing optimization to determine version
+            async with get_postgres_connection() as conn:
+                conn.row_factory = lambda cursor, row: dict(zip([col.name for col in cursor.description], row))
+                cursor = conn.cursor()
+                
+                # Get the latest version for this resume-job pair
+                await cursor.execute(
+                    """
+                    SELECT MAX(version) as max_version 
+                    FROM optimization_results 
+                    WHERE resume_id = %s AND job_id = %s
+                    """,
+                    (resume_id, job_id)
+                )
+                result = await cursor.fetchone()
+                version = (result["max_version"] or 0) + 1 if result else 1
             
-            document_id = result["_key"]
-            logger.info(f"Stored optimization result as document {document_id}")
+            # Prepare optimization data for JSONB storage
+            optimization_data = {
+                "resume_id": resume_id,
+                "job_id": job_id,
+                "optimization_type": "general",
+                "optimized_content": {
+                    "markdown": markdown_content,
+                    "structured_data": optimized_resume.model_dump(),
+                    "contact_info": optimized_resume.contact_info.model_dump(),
+                    "summary": optimized_resume.summary,
+                    "skills": optimized_resume.skills,
+                    "work_experience": [exp.model_dump() for exp in optimized_resume.work_experience] if optimized_resume.work_experience else [],
+                    "education": [edu.model_dump() for edu in optimized_resume.education] if optimized_resume.education else [],
+                    "certifications": [cert.model_dump() for cert in optimized_resume.certifications] if optimized_resume.certifications else [],
+                },
+                "version": version
+            }
+            
+            # Store in PostgreSQL using the store_document function
+            document_id = await store_document(
+                table="optimization_results",
+                user_id=user_id,
+                data=optimization_data,
+                metadata=metadata
+            )
+            
+            # Update with specific optimization columns using raw SQL for better control
+            async with get_postgres_connection() as conn:
+                cursor = conn.cursor()
+                await cursor.execute(
+                    """
+                    UPDATE optimization_results 
+                    SET 
+                        optimization_type = %s,
+                        version = %s,
+                        ats_score = %s,
+                        keyword_match_score = %s
+                    WHERE id = %s
+                    """,
+                    (
+                        "general",
+                        version,
+                        ats_score,
+                        keyword_match_score,
+                        document_id
+                    )
+                )
+            
+            logger.info(f"Stored optimization result as document {document_id} (version {version})")
             return document_id
             
         except Exception as e:

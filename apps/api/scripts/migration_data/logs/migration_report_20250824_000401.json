@@ -1,0 +1,19 @@
+{
+  "start_time": "2025-08-24T00:04:01.028012",
+  "end_time": "2025-08-24T00:04:01.048979",
+  "duration_seconds": 0.020967,
+  "collections_exported": {
+    "resumes": 20,
+    "jobs": 9,
+    "task_results": 0
+  },
+  "collections_imported": {},
+  "total_documents_exported": 29,
+  "total_documents_imported": 0,
+  "errors": [],
+  "error_count": 0,
+  "warnings": [],
+  "warning_count": 0,
+  "validation_results": {},
+  "success": true
+}
