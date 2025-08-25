@@ -298,7 +298,7 @@ You'll be working on cutting-edge web applications that make AI accessible to mi
 		</div>
 
 		<div class="flex gap-2">
-			<Button href="/app/job/{jobId}/edit" variant="outline" class="gap-2">
+			<Button href="/app/jobs/{jobId}/edit" variant="outline" class="gap-2">
 				<Edit class="h-4 w-4" />
 				Edit
 			</Button>

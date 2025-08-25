@@ -66,8 +66,8 @@
 
 				<!-- Auth Buttons -->
 				<div class="flex items-center gap-2">
-					<Button variant="ghost" href="/auth/signin">Sign In</Button>
-					<Button href="/auth/signup">
+					<Button variant="ghost" href="/auth/sign-in">Sign In</Button>
+					<Button href="/auth/sign-up">
 						<Sparkles class="mr-2 h-4 w-4" />
 						Get Started
 					</Button>

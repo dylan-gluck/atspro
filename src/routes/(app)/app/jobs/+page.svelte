@@ -90,8 +90,8 @@
 	let jobToDelete = $state<UserJob | null>(null);
 
 	// Filtered jobs using Svelte 5 $derived
-	let filteredJobs = $derived(() => {
-		let filtered = jobs;
+	let filteredJobs = $derived.by(() => {
+		let filtered = [...jobs];
 
 		// Filter by search query
 		if (searchQuery) {
@@ -114,13 +114,13 @@
 	});
 
 	// Paginated jobs
-	let paginatedJobs = $derived(() => {
+	let paginatedJobs = $derived.by(() => {
 		const start = (currentPage - 1) * itemsPerPage;
 		const end = start + itemsPerPage;
-		return filteredJobs().slice(start, end);
+		return filteredJobs.slice(start, end);
 	});
 
-	let totalPages = $derived(Math.ceil(filteredJobs().length / itemsPerPage));
+	let totalPages = $derived(Math.ceil(filteredJobs.length / itemsPerPage));
 
 	// Helper functions
 	function getStatusBadgeVariant(
@@ -180,7 +180,7 @@
 			<h1 class="text-3xl font-bold">Job Applications</h1>
 			<p class="text-muted-foreground mt-1">Track and manage your job applications</p>
 		</div>
-		<Button href="/app/job/new" class="gap-2">
+		<Button href="/app/jobs/new" class="gap-2">
 			<Plus class="h-4 w-4" />
 			Add New Job
 		</Button>
@@ -236,14 +236,14 @@
 						</Table.Row>
 					</Table.Header>
 					<Table.Body>
-						{#if paginatedJobs().length === 0}
+						{#if paginatedJobs.length === 0}
 							<Table.Row>
 								<Table.Cell colspan={5} class="py-12 text-center">
 									<p class="text-muted-foreground">No jobs found matching your filters</p>
 								</Table.Cell>
 							</Table.Row>
 						{:else}
-							{#each paginatedJobs() as job}
+							{#each paginatedJobs as job}
 								<Table.Row class="hover:bg-muted/50">
 									<Table.Cell>
 										<div>
@@ -271,12 +271,12 @@
 									</Table.Cell>
 									<Table.Cell>
 										<div class="flex justify-end gap-1">
-											<Button href="/app/job/{job.id}" variant="ghost" size="icon" class="h-8 w-8">
+											<Button href="/app/jobs/{job.id}" variant="ghost" size="icon" class="h-8 w-8">
 												<Eye class="h-4 w-4" />
 												<span class="sr-only">View job</span>
 											</Button>
 											<Button
-												href="/app/job/{job.id}/edit"
+												href="/app/jobs/{job.id}/edit"
 												variant="ghost"
 												size="icon"
 												class="h-8 w-8"
@@ -307,7 +307,7 @@
 	<!-- Pagination -->
 	{#if totalPages > 1}
 		<div class="flex justify-center">
-			<Pagination.Root count={filteredJobs().length} perPage={itemsPerPage} bind:page={currentPage}>
+			<Pagination.Root count={filteredJobs.length} perPage={itemsPerPage} bind:page={currentPage}>
 				<Pagination.Content>
 					<Pagination.PrevButton />
 					{#each Array(totalPages) as _, i}

@@ -10,8 +10,8 @@
 
 ## Phase 2: UI Scaffolding
 
-- [ ] Build core components
-- [ ] Build main app views
+- [x] Build core components
+- [x] Build main app views
 
 ## Phase 3: API & Database Updates
 
