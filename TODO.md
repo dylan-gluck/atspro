@@ -25,25 +25,25 @@
 
 ## Phase 4: Service Implementation (Remote Functions)
 
-- [ ] Create base utilities (auth helpers, rate limiting, error handling)
-- [ ] Implement `resume.remote.ts` service
-  - [ ] getResume query
-  - [ ] extractResume form (file upload)
-  - [ ] updateResume command
-- [ ] Implement `job.remote.ts` service
-  - [ ] getJobs query (with filtering/pagination)
-  - [ ] getJob query (single job)
-  - [ ] extractJob form
-  - [ ] updateJobStatus command
-  - [ ] deleteJob command
-  - [ ] updateJobNotes command
-- [ ] Implement `document.remote.ts` service
-  - [ ] getDocument query
-  - [ ] optimizeResume command
-  - [ ] generateCoverLetter form
-  - [ ] generateCompanyResearch command
-- [ ] Implement `activity.remote.ts` service
-  - [ ] getJobActivity query
+- [x] Create base utilities (auth helpers, rate limiting, error handling)
+- [x] Implement `resume.remote.ts` service
+  - [x] getResume query
+  - [x] extractResume form (file upload)
+  - [x] updateResume command
+- [x] Implement `job.remote.ts` service
+  - [x] getJobs query (with filtering/pagination)
+  - [x] getJob query (single job)
+  - [x] extractJob form
+  - [x] updateJobStatus command
+  - [x] deleteJob command
+  - [x] updateJobNotes command
+- [x] Implement `document.remote.ts` service
+  - [x] getDocument query
+  - [x] optimizeResume command
+  - [x] generateCoverLetter form
+  - [x] generateCompanyResearch command
+- [x] Implement `activity.remote.ts` service
+  - [x] getJobActivity query
 
 ## Phase 5: Front-end Integration
 

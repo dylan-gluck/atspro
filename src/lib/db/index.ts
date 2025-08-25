@@ -230,6 +230,7 @@ export const activity = {
 // Helper function for activity descriptions
 function generateActivityDescription(type: JobActivityType, metadata?: any): string {
 	const descriptions: Record<JobActivityType, string> = {
+		job_added: `Job added${metadata?.source ? ` from ${metadata.source}` : ''}`,
 		status_change: `Status changed${metadata ? ` to ${metadata.newStatus}` : ''}`,
 		document_generated: `Generated ${metadata?.type || 'document'}`,
 		note_added: 'Added notes',
@@ -243,9 +244,13 @@ function generateActivityDescription(type: JobActivityType, metadata?: any): str
 
 // Export all as db object for compatibility
 export const db = {
+	// Resume operations
 	getUserResume: resume.get,
 	createUserResume: resume.create,
 	updateUserResume: resume.update,
+	
+	// Job operations
+	jobs,
 	getUserJobs: async (userId: string, options?: any) => {
 		const result = await jobs.list(userId, options);
 		return result.jobs;
@@ -259,9 +264,15 @@ export const db = {
 	updateJobStatus: jobs.updateStatus,
 	updateJobNotes: jobs.updateNotes,
 	deleteJob: jobs.delete,
+	
+	// Document operations
+	documents,
 	getJobDocuments: documents.list,
 	getDocument: documents.get,
 	createJobDocument: documents.create,
+	
+	// Activity operations
+	activity,
 	getJobActivities: async (jobId: string, options?: any) => {
 		const result = await activity.list(jobId, options?.limit, options?.offset);
 		return result.items;

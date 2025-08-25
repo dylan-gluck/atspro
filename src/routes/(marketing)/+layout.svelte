@@ -18,7 +18,8 @@
 
 	let { children } = $props();
 
-	function scrollIntoView({ target }: { target: HTMLAnchorElement }) {
+	function scrollIntoView(event: Event) {
+		const target = event.target as HTMLAnchorElement;
 		const el = document.querySelector(target.getAttribute('href')!);
 		if (!el) return;
 		el.scrollIntoView({

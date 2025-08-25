@@ -1,0 +1,95 @@
+import { query, form, command } from '$app/server';
+import { error } from '@sveltejs/kit';
+import * as v from 'valibot';
+import { db } from '$lib/db';
+import { extractResume as extractResumeWithAI } from '$lib/ai';
+import { requireAuth, checkRateLimit, ErrorCodes, validateFile } from './utils';
+import type { Resume } from '$lib/types/resume';
+
+// Get current user's resume
+export const getResume = query(async () => {
+	const userId = requireAuth();
+	
+	const resume = await db.getUserResume(userId);
+	if (!resume) return null;
+	
+	return resume;
+});
+
+// Extract resume from uploaded file
+export const extractResume = form(async (data) => {
+	const userId = requireAuth();
+	
+	// Rate limit: 10 resume extractions per hour
+	checkRateLimit(userId, 10, 3600000, 'extract_resume');
+	
+	// Check for existing resume
+	const existing = await db.getUserResume(userId);
+	if (existing) {
+		error(400, 'You already have a resume. Please update it instead.');
+	}
+	
+	const file = data.get('document') as File;
+	if (!file) {
+		error(400, 'No file provided');
+	}
+	
+	// Validate file type and size
+	const validTypes = ['application/pdf', 'text/markdown', 'text/plain'];
+	validateFile(file, validTypes, 10 * 1024 * 1024); // 10MB max
+	
+	// Process file based on type
+	let content: string | Buffer;
+	if (file.type === 'application/pdf') {
+		// Convert to Buffer for AI processing
+		const buffer = await file.arrayBuffer();
+		content = Buffer.from(buffer);
+	} else {
+		content = await file.text();
+	}
+	
+	// Extract with AI
+	const extracted = await extractResumeWithAI(content, file.type);
+	
+	// Store in database
+	const resume = await db.createUserResume(userId, extracted);
+	
+	return {
+		resumeId: resume.id,
+		extractedFields: extracted
+	};
+});
+
+// Update specific resume fields
+const updateResumeSchema = v.object({
+	contactInfo: v.optional(v.any()),
+	summary: v.optional(v.string()),
+	workExperience: v.optional(v.array(v.any())),
+	education: v.optional(v.array(v.any())),
+	certifications: v.optional(v.array(v.any())),
+	skills: v.optional(v.array(v.string()))
+});
+
+export const updateResume = command(updateResumeSchema, async (updates) => {
+	const userId = requireAuth();
+	
+	// Rate limit: 30 updates per hour
+	checkRateLimit(userId, 30, 3600000, 'update_resume');
+	
+	// Ensure resume exists
+	const existing = await db.getUserResume(userId);
+	if (!existing) {
+		error(404, 'No resume found. Please upload a resume first.');
+	}
+	
+	const resume = await db.updateUserResume(userId, updates);
+	
+	// Refresh the query on success
+	await getResume().refresh();
+	
+	return {
+		id: resume.id,
+		updatedFields: Object.keys(updates),
+		updatedAt: resume.updatedAt
+	};
+});

@@ -37,7 +37,8 @@
 		BarChart3
 	} from 'lucide-svelte';
 
-	function scrollIntoView({ target }: { target: HTMLElement }) {
+	function scrollIntoView(event: Event) {
+		const target = event.target as HTMLElement;
 		const href = target.getAttribute('href');
 		if (!href) return;
 		const el = document.querySelector(href);
