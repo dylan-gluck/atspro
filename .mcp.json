@@ -1,0 +1,31 @@
+{
+	"mcpServers": {
+		"playwright": {
+			"command": "npx",
+			"args": ["@playwright/mcp@latest"]
+		},
+		"postgres": {
+			"command": "npx",
+			"args": [
+				"-y",
+				"@modelcontextprotocol/server-postgres",
+				"postgresql://postgres:postgres@localhost/atspro"
+			]
+		},
+		"language-server-ts": {
+			"command": "mcp-language-server",
+			"args": [
+				"--workspace",
+				"/Users/dylan/Workspace/projects/atspro-bun",
+				"--lsp",
+				"typescript-language-server",
+				"--",
+				"--stdio"
+			]
+		},
+		"shadcn-ui": {
+			"command": "npx",
+			"args": ["@jpisnice/shadcn-ui-mcp-server", "--framework", "svelte"]
+		}
+	}
+}

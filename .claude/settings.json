@@ -1,0 +1,4 @@
+{
+	"enableAllProjectMcpServers": true,
+	"enabledMcpjsonServers": ["postgres", "language-server-ts", "shadcn-ui", "playwright"]
+}
