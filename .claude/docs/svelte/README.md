@@ -5,7 +5,9 @@ This directory contains condensed guides for Svelte 5, focusing on the new Runes
 ## Guide Overview
 
 ### [Runes Guide](./runes-guide.md)
+
 The core reactive primitives of Svelte 5:
+
 - **`$state`** - Reactive state management
 - **`$derived`** - Computed values that update automatically
 - **`$effect`** - Side effects and lifecycle management
@@ -13,8 +15,10 @@ The core reactive primitives of Svelte 5:
 - **`$bindable`** - Two-way binding capabilities
 - Migration patterns from Svelte 4
 
-### [Template Syntax Guide](./template-syntax-guide.md) 
+### [Template Syntax Guide](./template-syntax-guide.md)
+
 HTML-like template features and control flow:
+
 - Basic markup, attributes, and events
 - Control flow: `{#if}`, `{#each}`, `{#await}`
 - Snippets - reusable template chunks (replaces slots)
@@ -23,7 +27,9 @@ HTML-like template features and control flow:
 - Advanced template features
 
 ### [Styling Guide](./styling-guide.md)
+
 CSS and styling approaches in Svelte:
+
 - Scoped styles (default behavior)
 - Global styles with `:global()`
 - Dynamic styling with `style:` and `class:` directives
@@ -32,7 +38,9 @@ CSS and styling approaches in Svelte:
 - CSS framework integration
 
 ### [Special Elements Guide](./special-elements-guide.md)
+
 Svelte's built-in special elements:
+
 - **`<svelte:window>`** - Window events and properties
 - **`<svelte:document>`** - Document-level bindings
 - **`<svelte:head>`** - Dynamic head content
@@ -41,7 +49,9 @@ Svelte's built-in special elements:
 - Integration patterns
 
 ### [Transitions Guide](./transitions-guide.md)
+
 Animation and transition system:
+
 - Built-in transitions (fade, fly, slide, etc.)
 - Custom transition functions
 - List animations with `animate:flip`
@@ -52,6 +62,7 @@ Animation and transition system:
 ## Key Changes in Svelte 5
 
 ### Runes Replace Reactive Declarations
+
 ```js
 // Svelte 4
 let count = 0;
@@ -63,6 +74,7 @@ let doubled = $derived(count * 2);
 ```
 
 ### New Props Syntax
+
 ```js
 // Svelte 4
 export let name;
@@ -73,23 +85,25 @@ let { name, age = 25 } = $props();
 ```
 
 ### Snippets Replace Slots
+
 ```svelte
 <!-- Svelte 4 -->
 <Card>
-  <span slot="header">Title</span>
-  <p>Content</p>
+	<span slot="header">Title</span>
+	<p>Content</p>
 </Card>
 
 <!-- Svelte 5 -->
 <Card>
-  {#snippet header()}
-    <span>Title</span>
-  {/snippet}
-  <p>Content</p>
+	{#snippet header()}
+		<span>Title</span>
+	{/snippet}
+	<p>Content</p>
 </Card>
 ```
 
 ### Enhanced Two-Way Binding
+
 ```js
 // Component needs to mark props as bindable
 let { value = $bindable() } = $props();
@@ -106,27 +120,30 @@ let { value = $bindable() } = $props();
 ## Quick Reference
 
 ### Essential Runes
-```js
-let state = $state(initialValue);        // Reactive state
-let computed = $derived(expression);     // Computed value
-let { prop } = $props();                 // Component props
-let bindable = $bindable(fallback);     // Two-way binding
 
-$effect(() => {                          // Side effects
-  // Runs when dependencies change
+```js
+let state = $state(initialValue); // Reactive state
+let computed = $derived(expression); // Computed value
+let { prop } = $props(); // Component props
+let bindable = $bindable(fallback); // Two-way binding
+
+$effect(() => {
+	// Side effects
+	// Runs when dependencies change
 });
 ```
 
 ### Common Patterns
+
 ```svelte
 <!-- Conditional rendering -->
 {#if condition}
-  <div>Visible when true</div>
+	<div>Visible when true</div>
 {/if}
 
 <!-- List rendering -->
 {#each items as item (item.id)}
-  <div>{item.name}</div>
+	<div>{item.name}</div>
 {/each}
 
 <!-- Two-way binding -->

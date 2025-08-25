@@ -1,14 +1,16 @@
 # plugins: Polar
+
 URL: /docs/plugins/polar
 Source: https://raw.githubusercontent.com/better-auth/better-auth/refs/heads/main/docs/content/docs/plugins/polar.mdx
 
 Better Auth Plugin for Payment and Checkouts using Polar
 
-***
+---
 
 title: Polar
 description: Better Auth Plugin for Payment and Checkouts using Polar
----------------------------------------------------------------------
+
+---
 
 [Polar](https://polar.sh) is a developer first payment infrastructure. Out of the box it provides a lot of developer first integrations for payments, checkouts and more. This plugin helps you integrate Polar with Better Auth to make your auth + payments flow seamless.
 
@@ -20,12 +22,12 @@ description: Better Auth Plugin for Payment and Checkouts using Polar
 
 ## Features
 
-* Checkout Integration
-* Customer Portal
-* Automatic Customer creation on signup
-* Event Ingestion & Customer Meters for flexible Usage Based Billing
-* Handle Polar Webhooks securely with signature verification
-* Reference System to associate purchases with organizations
+- Checkout Integration
+- Customer Portal
+- Automatic Customer creation on signup
+- Event Ingestion & Customer Meters for flexible Usage Based Billing
+- Handle Polar Webhooks securely with signature verification
+- Reference System to associate purchases with organizations
 
 ## Installation
 
@@ -46,10 +48,10 @@ POLAR_ACCESS_TOKEN=...
 
 The Polar plugin comes with a handful additional plugins which adds functionality to your stack.
 
-* Checkout - Enables a seamless checkout integration
-* Portal - Makes it possible for your customers to manage their orders, subscriptions & granted benefits
-* Usage - Simple extension for listing customer meters & ingesting events for Usage Based Billing
-* Webhooks - Listen for relevant Polar webhooks
+- Checkout - Enables a seamless checkout integration
+- Portal - Makes it possible for your customers to manage their orders, subscriptions & granted benefits
+- Usage - Simple extension for listing customer meters & ingesting events for Usage Based Billing
+- Webhooks - Listen for relevant Polar webhooks
 
 ```typescript
 import { betterAuth } from "better-auth";
@@ -101,65 +103,59 @@ const auth = betterAuth({
 You will be using the BetterAuth Client to interact with the Polar functionalities.
 
 ```typescript
-import { createAuthClient } from "better-auth/react";
-import { polarClient } from "@polar-sh/better-auth";
-import { organizationClient } from "better-auth/client/plugins";
+import { createAuthClient } from 'better-auth/react';
+import { polarClient } from '@polar-sh/better-auth';
+import { organizationClient } from 'better-auth/client/plugins';
 
 // This is all that is needed
 // All Polar plugins, etc. should be attached to the server-side BetterAuth config
 export const authClient = createAuthClient({
-  plugins: [polarClient()],
+	plugins: [polarClient()]
 });
 ```
 
 ## Configuration Options
 
 ```typescript
-import { betterAuth } from "better-auth";
-import {
-  polar,
-  checkout,
-  portal,
-  usage,
-  webhooks,
-} from "@polar-sh/better-auth";
-import { Polar } from "@polar-sh/sdk";
+import { betterAuth } from 'better-auth';
+import { polar, checkout, portal, usage, webhooks } from '@polar-sh/better-auth';
+import { Polar } from '@polar-sh/sdk';
 
 const polarClient = new Polar({
-  accessToken: process.env.POLAR_ACCESS_TOKEN,
-  // Use 'sandbox' if you're using the Polar Sandbox environment
-  // Remember that access tokens, products, etc. are completely separated between environments.
-  // Access tokens obtained in Production are for instance not usable in the Sandbox environment.
-  server: "sandbox",
+	accessToken: process.env.POLAR_ACCESS_TOKEN,
+	// Use 'sandbox' if you're using the Polar Sandbox environment
+	// Remember that access tokens, products, etc. are completely separated between environments.
+	// Access tokens obtained in Production are for instance not usable in the Sandbox environment.
+	server: 'sandbox'
 });
 
 const auth = betterAuth({
-  // ... Better Auth config
-  plugins: [
-    polar({
-      client: polarClient,
-      createCustomerOnSignUp: true,
-      getCustomerCreateParams: ({ user }, request) => ({
-        metadata: {
-          myCustomProperty: 123,
-        },
-      }),
-      use: [
-        // This is where you add Polar plugins
-      ],
-    }),
-  ],
+	// ... Better Auth config
+	plugins: [
+		polar({
+			client: polarClient,
+			createCustomerOnSignUp: true,
+			getCustomerCreateParams: ({ user }, request) => ({
+				metadata: {
+					myCustomProperty: 123
+				}
+			}),
+			use: [
+				// This is where you add Polar plugins
+			]
+		})
+	]
 });
 ```
 
 ### Required Options
 
-* `client`: Polar SDK client instance
+- `client`: Polar SDK client instance
 
 ### Optional Options
 
-* `createCustomerOnSignUp`: Automatically create a Polar customer when a user signs up
-* `getCustomerCreateParams`: Custom function to provide additional customer creation metadata
+- `createCustomerOnSignUp`: Automatically create a Polar customer when a user signs up
+- `getCustomerCreateParams`: Custom function to provide additional customer creation metadata
 
 ### Customers
 
@@ -198,10 +194,10 @@ When checkouts are enabled, you're able to initialize Checkout Sessions using th
 
 ```typescript
 await authClient.checkout({
-  // Any Polar Product ID can be passed here
-  products: ["e651f46d-ac20-4f26-b769-ad088b123df2"],
-  // Or, if you setup "products" in the Checkout Config, you can pass the slug
-  slug: "pro",
+	// Any Polar Product ID can be passed here
+	products: ['e651f46d-ac20-4f26-b769-ad088b123df2'],
+	// Or, if you setup "products" in the Checkout Config, you can pass the slug
+	slug: 'pro'
 });
 ```
 
@@ -267,11 +263,11 @@ const { data: customerState } = await authClient.customer.state();
 
 The customer state object contains:
 
-* All the data about the customer.
-* The list of their active subscriptions
-  * Note: This does not include subscriptions done by a parent organization. See the subscription list-method below for more information.
-* The list of their granted benefits.
-* The list of their active meters, with their current balance.
+- All the data about the customer.
+- The list of their active subscriptions
+  - Note: This does not include subscriptions done by a parent organization. See the subscription list-method below for more information.
+- The list of their granted benefits.
+- The list of their active meters, with their current balance.
 
 Thus, with that single object, you have all the required information to check if you should provision access to your service or not.
 
@@ -289,10 +285,10 @@ This method only lists granted benefits for the authenticated user/customer.
 
 ```typescript
 const { data: benefits } = await authClient.customer.benefits.list({
-  query: {
-    page: 1,
-    limit: 10,
-  },
+	query: {
+		page: 1,
+		limit: 10
+	}
 });
 ```
 
@@ -302,11 +298,11 @@ This method lists orders like purchases and subscription renewals for the authen
 
 ```typescript
 const { data: orders } = await authClient.customer.orders.list({
-  query: {
-    page: 1,
-    limit: 10,
-    productBillingType: "one_time", // or 'recurring'
-  },
+	query: {
+		page: 1,
+		limit: 10,
+		productBillingType: 'one_time' // or 'recurring'
+	}
 });
 ```
 
@@ -316,11 +312,11 @@ This method lists the subscriptions associated with authenticated user/customer.
 
 ```typescript
 const { data: subscriptions } = await authClient.customer.subscriptions.list({
-  query: {
-    page: 1,
-    limit: 10,
-    active: true,
-  },
+	query: {
+		page: 1,
+		limit: 10,
+		active: true
+	}
 });
 ```
 
@@ -379,10 +375,10 @@ Polar's Usage Based Billing builds entirely on event ingestion. Ingest events fr
 
 ```typescript
 const { data: ingested } = await authClient.usage.ingest({
-  event: "file-uploads",
-  metadata: {
-    uploadedFiles: 12,
-  },
+	event: 'file-uploads',
+	metadata: {
+		uploadedFiles: 12
+	}
 });
 ```
 
@@ -394,19 +390,19 @@ A simple method for listing the authenticated user's Usage Meters, or as we call
 
 Customer Meter's contains all information about their consumtion on your defined meters.
 
-* Customer Information
-* Meter Information
-* Customer Meter Information
-  * Consumed Units
-  * Credited Units
-  * Balance
+- Customer Information
+- Meter Information
+- Customer Meter Information
+  - Consumed Units
+  - Credited Units
+  - Balance
 
 ```typescript
 const { data: customerMeters } = await authClient.usage.meters.list({
-  query: {
-    page: 1,
-    limit: 10,
-  },
+	query: {
+		page: 1,
+		limit: 10
+	}
 });
 ```
 
@@ -447,29 +443,29 @@ POLAR_WEBHOOK_SECRET=...
 
 The plugin supports handlers for all Polar webhook events:
 
-* `onPayload` - Catch-all handler for any incoming Webhook event
-* `onCheckoutCreated` - Triggered when a checkout is created
-* `onCheckoutUpdated` - Triggered when a checkout is updated
-* `onOrderCreated` - Triggered when an order is created
-* `onOrderPaid` - Triggered when an order is paid
-* `onOrderRefunded` - Triggered when an order is refunded
-* `onRefundCreated` - Triggered when a refund is created
-* `onRefundUpdated` - Triggered when a refund is updated
-* `onSubscriptionCreated` - Triggered when a subscription is created
-* `onSubscriptionUpdated` - Triggered when a subscription is updated
-* `onSubscriptionActive` - Triggered when a subscription becomes active
-* `onSubscriptionCanceled` - Triggered when a subscription is canceled
-* `onSubscriptionRevoked` - Triggered when a subscription is revoked
-* `onSubscriptionUncanceled` - Triggered when a subscription cancellation is reversed
-* `onProductCreated` - Triggered when a product is created
-* `onProductUpdated` - Triggered when a product is updated
-* `onOrganizationUpdated` - Triggered when an organization is updated
-* `onBenefitCreated` - Triggered when a benefit is created
-* `onBenefitUpdated` - Triggered when a benefit is updated
-* `onBenefitGrantCreated` - Triggered when a benefit grant is created
-* `onBenefitGrantUpdated` - Triggered when a benefit grant is updated
-* `onBenefitGrantRevoked` - Triggered when a benefit grant is revoked
-* `onCustomerCreated` - Triggered when a customer is created
-* `onCustomerUpdated` - Triggered when a customer is updated
-* `onCustomerDeleted` - Triggered when a customer is deleted
-* `onCustomerStateChanged` - Triggered when a customer is created
+- `onPayload` - Catch-all handler for any incoming Webhook event
+- `onCheckoutCreated` - Triggered when a checkout is created
+- `onCheckoutUpdated` - Triggered when a checkout is updated
+- `onOrderCreated` - Triggered when an order is created
+- `onOrderPaid` - Triggered when an order is paid
+- `onOrderRefunded` - Triggered when an order is refunded
+- `onRefundCreated` - Triggered when a refund is created
+- `onRefundUpdated` - Triggered when a refund is updated
+- `onSubscriptionCreated` - Triggered when a subscription is created
+- `onSubscriptionUpdated` - Triggered when a subscription is updated
+- `onSubscriptionActive` - Triggered when a subscription becomes active
+- `onSubscriptionCanceled` - Triggered when a subscription is canceled
+- `onSubscriptionRevoked` - Triggered when a subscription is revoked
+- `onSubscriptionUncanceled` - Triggered when a subscription cancellation is reversed
+- `onProductCreated` - Triggered when a product is created
+- `onProductUpdated` - Triggered when a product is updated
+- `onOrganizationUpdated` - Triggered when an organization is updated
+- `onBenefitCreated` - Triggered when a benefit is created
+- `onBenefitUpdated` - Triggered when a benefit is updated
+- `onBenefitGrantCreated` - Triggered when a benefit grant is created
+- `onBenefitGrantUpdated` - Triggered when a benefit grant is updated
+- `onBenefitGrantRevoked` - Triggered when a benefit grant is revoked
+- `onCustomerCreated` - Triggered when a customer is created
+- `onCustomerUpdated` - Triggered when a customer is updated
+- `onCustomerDeleted` - Triggered when a customer is deleted
+- `onCustomerStateChanged` - Triggered when a customer is created

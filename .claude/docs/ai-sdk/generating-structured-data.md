@@ -1,4 +1,3 @@
-
 # Generating Structured Data
 
 While text generation can be useful, your use case will likely call for generating structured data.
@@ -30,15 +29,15 @@ import { generateObject } from 'ai';
 import { z } from 'zod';
 
 const { object } = await generateObject({
-  model: 'openai/gpt-4.1',
-  schema: z.object({
-    recipe: z.object({
-      name: z.string(),
-      ingredients: z.array(z.object({ name: z.string(), amount: z.string() })),
-      steps: z.array(z.string()),
-    }),
-  }),
-  prompt: 'Generate a lasagna recipe.',
+	model: 'openai/gpt-4.1',
+	schema: z.object({
+		recipe: z.object({
+			name: z.string(),
+			ingredients: z.array(z.object({ name: z.string(), amount: z.string() })),
+			steps: z.array(z.string())
+		})
+	}),
+	prompt: 'Generate a lasagna recipe.'
 });
 ```
 
@@ -57,7 +56,7 @@ You can access the raw response headers and body using the `response` property:
 import { generateObject } from 'ai';
 
 const result = await generateObject({
-  // ...
+	// ...
 });
 
 console.log(JSON.stringify(result.response.headers, null, 2));
@@ -73,12 +72,12 @@ With the [`streamObject`](/docs/reference/ai-sdk-core/stream-object) function, y
 import { streamObject } from 'ai';
 
 const { partialObjectStream } = streamObject({
-  // ...
+	// ...
 });
 
 // use partialObjectStream as an async iterable
 for await (const partialObject of partialObjectStream) {
-  console.log(partialObject);
+	console.log(partialObject);
 }
 ```
 
@@ -97,10 +96,10 @@ To log errors, you can provide an `onError` callback that is triggered when an e
 import { streamObject } from 'ai';
 
 const result = streamObject({
-  // ...
-  onError({ error }) {
-    console.error(error); // your error logging logic here
-  },
+	// ...
+	onError({ error }) {
+		console.error(error); // your error logging logic here
+	}
 });
 ```
 
@@ -125,20 +124,18 @@ import { streamObject } from 'ai';
 import { z } from 'zod';
 
 const { elementStream } = streamObject({
-  model: openai('gpt-4.1'),
-  output: 'array',
-  schema: z.object({
-    name: z.string(),
-    class: z
-      .string()
-      .describe('Character class, e.g. warrior, mage, or thief.'),
-    description: z.string(),
-  }),
-  prompt: 'Generate 3 hero descriptions for a fantasy role playing game.',
+	model: openai('gpt-4.1'),
+	output: 'array',
+	schema: z.object({
+		name: z.string(),
+		class: z.string().describe('Character class, e.g. warrior, mage, or thief.'),
+		description: z.string()
+	}),
+	prompt: 'Generate 3 hero descriptions for a fantasy role playing game.'
 });
 
 for await (const hero of elementStream) {
-  console.log(hero);
+	console.log(hero);
 }
 ```
 
@@ -154,13 +151,13 @@ and provide a list of possible values in the `enum` parameter.
 import { generateObject } from 'ai';
 
 const { object } = await generateObject({
-  model: 'openai/gpt-4.1',
-  output: 'enum',
-  enum: ['action', 'comedy', 'drama', 'horror', 'sci-fi'],
-  prompt:
-    'Classify the genre of this movie plot: ' +
-    '"A group of astronauts travel through a wormhole in search of a ' +
-    'new habitable planet for humanity."',
+	model: 'openai/gpt-4.1',
+	output: 'enum',
+	enum: ['action', 'comedy', 'drama', 'horror', 'sci-fi'],
+	prompt:
+		'Classify the genre of this movie plot: ' +
+		'"A group of astronauts travel through a wormhole in search of a ' +
+		'new habitable planet for humanity."'
 });
 ```
 
@@ -176,9 +173,9 @@ import { openai } from '@ai-sdk/openai';
 import { generateObject } from 'ai';
 
 const { object } = await generateObject({
-  model: openai('gpt-4.1'),
-  output: 'no-schema',
-  prompt: 'Generate a lasagna recipe.',
+	model: openai('gpt-4.1'),
+	output: 'no-schema',
+	prompt: 'Generate a lasagna recipe.'
 });
 ```
 
@@ -191,15 +188,15 @@ import { generateObject } from 'ai';
 import { z } from 'zod';
 
 const { object } = await generateObject({
-  model: 'openai/gpt-4.1',
-  schemaName: 'Recipe',
-  schemaDescription: 'A recipe for a dish.',
-  schema: z.object({
-    name: z.string(),
-    ingredients: z.array(z.object({ name: z.string(), amount: z.string() })),
-    steps: z.array(z.string()),
-  }),
-  prompt: 'Generate a lasagna recipe.',
+	model: 'openai/gpt-4.1',
+	schemaName: 'Recipe',
+	schemaDescription: 'A recipe for a dish.',
+	schema: z.object({
+		name: z.string(),
+		ingredients: z.array(z.object({ name: z.string(), amount: z.string() })),
+		steps: z.array(z.string())
+	}),
+	prompt: 'Generate a lasagna recipe.'
 });
 ```
 
@@ -213,26 +210,26 @@ import { generateObject } from 'ai';
 import { z } from 'zod/v4';
 
 const result = await generateObject({
-  model: openai('gpt-5'),
-  schema: z.object({
-    recipe: z.object({
-      name: z.string(),
-      ingredients: z.array(
-        z.object({
-          name: z.string(),
-          amount: z.string(),
-        }),
-      ),
-      steps: z.array(z.string()),
-    }),
-  }),
-  prompt: 'Generate a lasagna recipe.',
-  providerOptions: {
-    openai: {
-      strictJsonSchema: true,
-      reasoningSummary: 'detailed',
-    } satisfies OpenAIResponsesProviderOptions,
-  },
+	model: openai('gpt-5'),
+	schema: z.object({
+		recipe: z.object({
+			name: z.string(),
+			ingredients: z.array(
+				z.object({
+					name: z.string(),
+					amount: z.string()
+				})
+			),
+			steps: z.array(z.string())
+		})
+	}),
+	prompt: 'Generate a lasagna recipe.',
+	providerOptions: {
+		openai: {
+			strictJsonSchema: true,
+			reasoningSummary: 'detailed'
+		} satisfies OpenAIResponsesProviderOptions
+	}
 });
 
 console.log(result.reasoning);
@@ -260,15 +257,15 @@ The error preserves the following information to help you log the issue:
 import { generateObject, NoObjectGeneratedError } from 'ai';
 
 try {
-  await generateObject({ model, schema, prompt });
+	await generateObject({ model, schema, prompt });
 } catch (error) {
-  if (NoObjectGeneratedError.isInstance(error)) {
-    console.log('NoObjectGeneratedError');
-    console.log('Cause:', error.cause);
-    console.log('Text:', error.text);
-    console.log('Response:', error.response);
-    console.log('Usage:', error.usage);
-  }
+	if (NoObjectGeneratedError.isInstance(error)) {
+		console.log('NoObjectGeneratedError');
+		console.log('Cause:', error.cause);
+		console.log('Text:', error.text);
+		console.log('Response:', error.response);
+		console.log('Usage:', error.usage);
+	}
 }
 ```
 
@@ -289,13 +286,13 @@ You can then attempt to repair the text and return the repaired text.
 import { generateObject } from 'ai';
 
 const { object } = await generateObject({
-  model,
-  schema,
-  prompt,
-  experimental_repairText: async ({ text, error }) => {
-    // example: add a closing brace to the text
-    return text + '}';
-  },
+	model,
+	schema,
+	prompt,
+	experimental_repairText: async ({ text, error }) => {
+		// example: add a closing brace to the text
+		return text + '}';
+	}
 });
 ```
 
@@ -318,23 +315,23 @@ You can generate structured data with `generateText` and `streamText` by using t
 ```ts highlight="2,4-18"
 // experimental_output is a structured object that matches the schema:
 const { experimental_output } = await generateText({
-  // ...
-  experimental_output: Output.object({
-    schema: z.object({
-      name: z.string(),
-      age: z.number().nullable().describe('Age of the person.'),
-      contact: z.object({
-        type: z.literal('email'),
-        value: z.string(),
-      }),
-      occupation: z.object({
-        type: z.literal('employed'),
-        company: z.string(),
-        position: z.string(),
-      }),
-    }),
-  }),
-  prompt: 'Generate an example person for testing.',
+	// ...
+	experimental_output: Output.object({
+		schema: z.object({
+			name: z.string(),
+			age: z.number().nullable().describe('Age of the person.'),
+			contact: z.object({
+				type: z.literal('email'),
+				value: z.string()
+			}),
+			occupation: z.object({
+				type: z.literal('employed'),
+				company: z.string(),
+				position: z.string()
+			})
+		})
+	}),
+	prompt: 'Generate an example person for testing.'
 });
 ```
 
@@ -343,23 +340,23 @@ const { experimental_output } = await generateText({
 ```ts highlight="2,4-18"
 // experimental_partialOutputStream contains generated partial objects:
 const { experimental_partialOutputStream } = await streamText({
-  // ...
-  experimental_output: Output.object({
-    schema: z.object({
-      name: z.string(),
-      age: z.number().nullable().describe('Age of the person.'),
-      contact: z.object({
-        type: z.literal('email'),
-        value: z.string(),
-      }),
-      occupation: z.object({
-        type: z.literal('employed'),
-        company: z.string(),
-        position: z.string(),
-      }),
-    }),
-  }),
-  prompt: 'Generate an example person for testing.',
+	// ...
+	experimental_output: Output.object({
+		schema: z.object({
+			name: z.string(),
+			age: z.number().nullable().describe('Age of the person.'),
+			contact: z.object({
+				type: z.literal('email'),
+				value: z.string()
+			}),
+			occupation: z.object({
+				type: z.literal('employed'),
+				company: z.string(),
+				position: z.string()
+			})
+		})
+	}),
+	prompt: 'Generate an example person for testing.'
 });
 ```
 
@@ -370,41 +367,41 @@ You can see `generateObject` and `streamObject` in action using various framewor
 ### `generateObject`
 
 <ExampleLinks
-  examples={[
-    {
-      title: 'Learn to generate objects in Node.js',
-      link: '/examples/node/generating-structured-data/generate-object',
-    },
-    {
-      title:
-        'Learn to generate objects in Next.js with Route Handlers (AI SDK UI)',
-      link: '/examples/next-pages/basics/generating-object',
-    },
-    {
-      title:
-        'Learn to generate objects in Next.js with Server Actions (AI SDK RSC)',
-      link: '/examples/next-app/basics/generating-object',
-    },
-  ]}
+examples={[
+{
+title: 'Learn to generate objects in Node.js',
+link: '/examples/node/generating-structured-data/generate-object',
+},
+{
+title:
+'Learn to generate objects in Next.js with Route Handlers (AI SDK UI)',
+link: '/examples/next-pages/basics/generating-object',
+},
+{
+title:
+'Learn to generate objects in Next.js with Server Actions (AI SDK RSC)',
+link: '/examples/next-app/basics/generating-object',
+},
+]}
 />
 
 ### `streamObject`
 
 <ExampleLinks
-  examples={[
-    {
-      title: 'Learn to stream objects in Node.js',
-      link: '/examples/node/streaming-structured-data/stream-object',
-    },
-    {
-      title:
-        'Learn to stream objects in Next.js with Route Handlers (AI SDK UI)',
-      link: '/examples/next-pages/basics/streaming-object-generation',
-    },
-    {
-      title:
-        'Learn to stream objects in Next.js with Server Actions (AI SDK RSC)',
-      link: '/examples/next-app/basics/streaming-object-generation',
-    },
-  ]}
+examples={[
+{
+title: 'Learn to stream objects in Node.js',
+link: '/examples/node/streaming-structured-data/stream-object',
+},
+{
+title:
+'Learn to stream objects in Next.js with Route Handlers (AI SDK UI)',
+link: '/examples/next-pages/basics/streaming-object-generation',
+},
+{
+title:
+'Learn to stream objects in Next.js with Server Actions (AI SDK RSC)',
+link: '/examples/next-app/basics/streaming-object-generation',
+},
+]}
 />

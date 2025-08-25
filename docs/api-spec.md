@@ -1,21 +1,27 @@
 # ATSPro API Specification
 
 ## Overview
+
 The ATSPro API provides endpoints for resume optimization, job tracking, and document generation. All endpoints require authentication via Better-Auth session tokens.
 
 ## Authentication
+
 All API endpoints require a valid session. Authentication is handled by Better-Auth middleware.
+
 - Session token passed via cookies or Authorization header
 - All endpoints return 401 for unauthenticated requests
 
 ## Base URL
+
 - Development: `http://localhost:5173/api`
 - Production: `https://atspro.app/api`
 
 ## Response Format
+
 All endpoints return JSON responses with the following structure:
 
 ### Success Response
+
 ```json
 {
   "success": true,
@@ -25,6 +31,7 @@ All endpoints return JSON responses with the following structure:
 ```
 
 ### Error Response
+
 ```json
 {
   "success": false,
@@ -39,21 +46,25 @@ All endpoints return JSON responses with the following structure:
 ## Endpoints
 
 ### 1. Extract Resume
+
 **POST** `/api/extract/resume`
 
 Extracts and structures resume data from uploaded documents.
 
 #### Request
+
 ```typescript
 {
-  document: File // PDF, DOCX, MD, or TXT file
+	document: File; // PDF, DOCX, MD, or TXT file
 }
 ```
 
 #### Headers
+
 - `Content-Type: multipart/form-data`
 
 #### Processing Logic
+
 1. Validate user session and get `userId`
 2. Validate file type:
    - **PDF**: Base64 encode and add to AI messages as `file`
@@ -65,6 +76,7 @@ Extracts and structures resume data from uploaded documents.
 5. Return success/error response
 
 #### Response
+
 ```json
 {
   "success": true,
@@ -84,6 +96,7 @@ Extracts and structures resume data from uploaded documents.
 ```
 
 #### Error Codes
+
 - `INVALID_FILE_TYPE`: Unsupported file format
 - `FILE_TOO_LARGE`: File exceeds 10MB limit
 - `EXTRACTION_FAILED`: AI extraction failed
@@ -92,11 +105,13 @@ Extracts and structures resume data from uploaded documents.
 ---
 
 ### 2. Extract Job
+
 **POST** `/api/extract/job`
 
 Extracts job posting data from URL or raw description text.
 
 #### Request
+
 ```typescript
 {
   jobUrl?: string,        // URL to job posting
@@ -106,6 +121,7 @@ Extracts job posting data from URL or raw description text.
 ```
 
 #### Processing Logic
+
 1. Validate user session and get `userId`
 2. Process input:
    - **If jobUrl**: Fetch page content (using web scraper/crawler), extract text
@@ -115,6 +131,7 @@ Extracts job posting data from URL or raw description text.
 5. Return `jobId` in response
 
 #### Response
+
 ```json
 {
   "success": true,
@@ -136,6 +153,7 @@ Extracts job posting data from URL or raw description text.
 ```
 
 #### Error Codes
+
 - `MISSING_INPUT`: Neither jobUrl nor jobDescription provided
 - `INVALID_URL`: Provided URL is malformed
 - `FETCH_FAILED`: Unable to fetch job posting from URL
@@ -145,11 +163,13 @@ Extracts job posting data from URL or raw description text.
 ---
 
 ### 3. Optimize Resume
+
 **POST** `/api/optimize`
 
 Generates an optimized resume tailored to a specific job posting.
 
 #### Request
+
 ```typescript
 {
   resumeId: string, // UUID of user's resume
@@ -158,6 +178,7 @@ Generates an optimized resume tailored to a specific job posting.
 ```
 
 #### Processing Logic
+
 1. Validate user session
 2. Verify `resumeId` and `jobId` exist and belong to user
 3. Fetch resume and job data from database
@@ -172,37 +193,39 @@ Generates an optimized resume tailored to a specific job posting.
 7. Return list of all documents for the job
 
 #### Response
+
 ```json
 {
-  "success": true,
-  "data": {
-    "documentId": "uuid-here",
-    "documents": [
-      {
-        "id": "uuid-1",
-        "type": "resume",
-        "version": 1,
-        "createdAt": "2025-01-15T10:00:00Z"
-      },
-      {
-        "id": "uuid-2",
-        "type": "cover",
-        "version": 1,
-        "createdAt": "2025-01-15T11:00:00Z"
-      }
-    ],
-    "optimizationScore": 92,
-    "matchedKeywords": ["React", "TypeScript", "AWS"],
-    "suggestions": [
-      "Consider adding more quantifiable achievements",
-      "Include certification completion dates"
-    ]
-  },
-  "message": "Resume optimized successfully"
+	"success": true,
+	"data": {
+		"documentId": "uuid-here",
+		"documents": [
+			{
+				"id": "uuid-1",
+				"type": "resume",
+				"version": 1,
+				"createdAt": "2025-01-15T10:00:00Z"
+			},
+			{
+				"id": "uuid-2",
+				"type": "cover",
+				"version": 1,
+				"createdAt": "2025-01-15T11:00:00Z"
+			}
+		],
+		"optimizationScore": 92,
+		"matchedKeywords": ["React", "TypeScript", "AWS"],
+		"suggestions": [
+			"Consider adding more quantifiable achievements",
+			"Include certification completion dates"
+		]
+	},
+	"message": "Resume optimized successfully"
 }
 ```
 
 #### Error Codes
+
 - `RESUME_NOT_FOUND`: Resume ID doesn't exist or doesn't belong to user
 - `JOB_NOT_FOUND`: Job ID doesn't exist or doesn't belong to user
 - `OPTIMIZATION_FAILED`: AI optimization failed
@@ -211,11 +234,13 @@ Generates an optimized resume tailored to a specific job posting.
 ---
 
 ### 4. Get User Resume
+
 **GET** `/api/resume`
 
 Retrieves the user's current resume data.
 
 #### Response
+
 ```json
 {
   "success": true,
@@ -236,11 +261,13 @@ Retrieves the user's current resume data.
 ---
 
 ### 5. Update Resume
+
 **PUT** `/api/resume`
 
 Updates the user's resume data.
 
 #### Request
+
 ```typescript
 {
   contactInfo?: ContactInfo,
@@ -254,26 +281,29 @@ Updates the user's resume data.
 ```
 
 #### Response
+
 ```json
 {
-  "success": true,
-  "data": {
-    "id": "uuid-here",
-    "updatedFields": ["summary", "skills"],
-    "updatedAt": "2025-01-15T12:00:00Z"
-  },
-  "message": "Resume updated successfully"
+	"success": true,
+	"data": {
+		"id": "uuid-here",
+		"updatedFields": ["summary", "skills"],
+		"updatedAt": "2025-01-15T12:00:00Z"
+	},
+	"message": "Resume updated successfully"
 }
 ```
 
 ---
 
 ### 6. List Jobs
+
 **GET** `/api/jobs`
 
 Retrieves all jobs tracked by the user.
 
 #### Query Parameters
+
 - `status` (optional): Filter by job status ('tracked', 'applied', 'interviewing', etc.)
 - `limit` (optional): Number of results per page (default: 20, max: 100)
 - `offset` (optional): Pagination offset (default: 0)
@@ -281,39 +311,42 @@ Retrieves all jobs tracked by the user.
 - `order` (optional): Sort order ('asc', 'desc', default: 'desc')
 
 #### Response
+
 ```json
 {
-  "success": true,
-  "data": {
-    "jobs": [
-      {
-        "id": "uuid-here",
-        "company": "Example Corp",
-        "title": "Senior Software Engineer",
-        "status": "applied",
-        "appliedAt": "2025-01-14T10:00:00Z",
-        "createdAt": "2025-01-13T10:00:00Z",
-        "documentsCount": 3
-      }
-    ],
-    "pagination": {
-      "total": 45,
-      "limit": 20,
-      "offset": 0,
-      "hasMore": true
-    }
-  }
+	"success": true,
+	"data": {
+		"jobs": [
+			{
+				"id": "uuid-here",
+				"company": "Example Corp",
+				"title": "Senior Software Engineer",
+				"status": "applied",
+				"appliedAt": "2025-01-14T10:00:00Z",
+				"createdAt": "2025-01-13T10:00:00Z",
+				"documentsCount": 3
+			}
+		],
+		"pagination": {
+			"total": 45,
+			"limit": 20,
+			"offset": 0,
+			"hasMore": true
+		}
+	}
 }
 ```
 
 ---
 
 ### 7. Get Job Details
+
 **GET** `/api/jobs/:id`
 
 Retrieves detailed information about a specific job.
 
 #### Response
+
 ```json
 {
   "success": true,
@@ -357,38 +390,42 @@ Retrieves detailed information about a specific job.
 ---
 
 ### 8. Get Document
+
 **GET** `/api/documents/:id`
 
 Retrieves the content of a specific document.
 
 #### Response
+
 ```json
 {
-  "success": true,
-  "data": {
-    "id": "uuid-here",
-    "jobId": "job-uuid",
-    "type": "resume",
-    "content": "# John Doe\n\n## Contact Information\n...",
-    "version": 1,
-    "isActive": true,
-    "metadata": {
-      "atsScore": 92,
-      "keywordsMatched": ["React", "TypeScript"]
-    },
-    "created_at": "2025-01-13T11:00:00Z"
-  }
+	"success": true,
+	"data": {
+		"id": "uuid-here",
+		"jobId": "job-uuid",
+		"type": "resume",
+		"content": "# John Doe\n\n## Contact Information\n...",
+		"version": 1,
+		"isActive": true,
+		"metadata": {
+			"atsScore": 92,
+			"keywordsMatched": ["React", "TypeScript"]
+		},
+		"created_at": "2025-01-13T11:00:00Z"
+	}
 }
 ```
 
 ---
 
 ### 9. Generate Cover Letter
+
 **POST** `/api/generate/cover`
 
 Generates a cover letter for a specific job.
 
 #### Request
+
 ```typescript
 {
   jobId: string,
@@ -397,34 +434,38 @@ Generates a cover letter for a specific job.
 ```
 
 #### Response
+
 ```json
 {
-  "success": true,
-  "data": {
-    "documentId": "uuid-here",
-    "type": "cover",
-    "content": "Dear Hiring Manager,\n\n...",
-    "version": 1
-  },
-  "message": "Cover letter generated successfully"
+	"success": true,
+	"data": {
+		"documentId": "uuid-here",
+		"type": "cover",
+		"content": "Dear Hiring Manager,\n\n...",
+		"version": 1
+	},
+	"message": "Cover letter generated successfully"
 }
 ```
 
 ---
 
 ### 10. Generate Company Research
+
 **POST** `/api/generate/research`
 
 Generates company research and insights for interview preparation.
 
 #### Request
+
 ```typescript
 {
-  jobId: string
+	jobId: string;
 }
 ```
 
 #### Response
+
 ```json
 {
   "success": true,
@@ -446,11 +487,13 @@ Generates company research and insights for interview preparation.
 ---
 
 ### 11. Update Job Status
+
 **PATCH** `/api/jobs/:id/status`
 
 Updates the status of a job application.
 
 #### Request
+
 ```typescript
 {
   status: "tracked" | "applied" | "interviewing" | "offered" | "rejected" | "withdrawn",
@@ -459,31 +502,34 @@ Updates the status of a job application.
 ```
 
 #### Response
+
 ```json
 {
-  "success": true,
-  "data": {
-    "id": "uuid-here",
-    "status": "applied",
-    "appliedAt": "2025-01-15T10:00:00Z",
-    "updatedAt": "2025-01-15T10:00:00Z"
-  },
-  "message": "Job status updated successfully"
+	"success": true,
+	"data": {
+		"id": "uuid-here",
+		"status": "applied",
+		"appliedAt": "2025-01-15T10:00:00Z",
+		"updatedAt": "2025-01-15T10:00:00Z"
+	},
+	"message": "Job status updated successfully"
 }
 ```
 
 ---
 
 ### 12. Delete Job
+
 **DELETE** `/api/jobs/:id`
 
 Deletes a job and all associated documents.
 
 #### Response
+
 ```json
 {
-  "success": true,
-  "message": "Job deleted successfully"
+	"success": true,
+	"message": "Job deleted successfully"
 }
 ```
 
@@ -499,6 +545,7 @@ To prevent abuse and ensure fair usage:
 - **Update Operations**: 50 requests per minute
 
 Rate limit headers are included in responses:
+
 - `X-RateLimit-Limit`: Maximum requests allowed
 - `X-RateLimit-Remaining`: Requests remaining
 - `X-RateLimit-Reset`: Unix timestamp when limit resets
@@ -506,6 +553,7 @@ Rate limit headers are included in responses:
 ## Webhooks (Future Enhancement)
 
 Planned webhook events:
+
 - `resume.updated`: When resume is modified
 - `job.created`: When new job is added
 - `job.status_changed`: When job status changes
@@ -514,14 +562,18 @@ Planned webhook events:
 ## SDK Integration
 
 ### Vercel AI SDK
+
 Used for all AI-powered operations:
+
 - Resume extraction and parsing
 - Job description analysis
 - Resume optimization
 - Document generation
 
 ### SvelteKit Remote Functions
+
 All endpoints will be implemented as SvelteKit server functions for:
+
 - Type-safe API calls
 - Automatic request/response handling
 - Built-in CSRF protection

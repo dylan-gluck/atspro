@@ -2,7 +2,7 @@
 
 ## What are Runes?
 
-Runes are symbols that control the Svelte compiler - they are *keywords* of the Svelte language.
+Runes are symbols that control the Svelte compiler - they are _keywords_ of the Svelte language.
 
 - Have a `$` prefix and look like functions: `$state(0)`
 - Don't need to be imported - they're part of the language
@@ -21,14 +21,13 @@ let message = $state('hello');
 ```
 
 **Deep State (Objects/Arrays):**
+
 - Objects/arrays become deeply reactive proxies
 - Mutations trigger granular updates
 - Proxified recursively until non-plain objects
 
 ```js
-let todos = $state([
-  { done: false, text: 'add more todos' }
-]);
+let todos = $state([{ done: false, text: 'add more todos' }]);
 
 // This triggers updates
 todos[0].done = !todos[0].done;
@@ -36,33 +35,35 @@ todos.push({ done: false, text: 'eat lunch' });
 ```
 
 **Classes:**
+
 - Use `$state` in class fields or first assignment in constructor
 - Properties become get/set methods with private fields
 
 ```js
 class Todo {
-  done = $state(false);
-  
-  constructor(text) {
-    this.text = $state(text);
-  }
-  
-  reset = () => {
-    this.text = '';
-    this.done = false;
-  }
+	done = $state(false);
+
+	constructor(text) {
+		this.text = $state(text);
+	}
+
+	reset = () => {
+		this.text = '';
+		this.done = false;
+	};
 }
 ```
 
 **Raw State (`$state.raw`):**
+
 - Not deeply reactive
 - Cannot be mutated, only reassigned
 - Better performance for large objects you won't mutate
 
 ```js
 let person = $state.raw({
-  name: 'Heraclitus',
-  age: 49
+	name: 'Heraclitus',
+	age: 49
 });
 
 // This won't work
@@ -73,6 +74,7 @@ person = { name: 'Heraclitus', age: 50 };
 ```
 
 **Snapshots (`$state.snapshot`):**
+
 - Takes static snapshot of deeply reactive state
 - Useful for external libraries that don't expect proxies
 
@@ -90,18 +92,20 @@ let doubled = $derived(count * 2);
 ```
 
 **Complex Derivations (`$derived.by`):**
+
 ```js
 let numbers = $state([1, 2, 3]);
 let total = $derived.by(() => {
-  let total = 0;
-  for (const n of numbers) {
-    total += n;
-  }
-  return total;
+	let total = 0;
+	for (const n of numbers) {
+		total += n;
+	}
+	return total;
 });
 ```
 
 **Overriding Derived Values:**
+
 - Can temporarily override (unless declared with `const`)
 - Useful for optimistic UI
 
@@ -109,12 +113,12 @@ let total = $derived.by(() => {
 let likes = $derived(post.likes);
 
 async function onclick() {
-  likes += 1; // Optimistic update
-  try {
-    await like();
-  } catch {
-    likes -= 1; // Rollback
-  }
+	likes += 1; // Optimistic update
+	try {
+		await like();
+	} catch {
+		likes -= 1; // Rollback
+	}
 }
 ```
 
@@ -124,32 +128,35 @@ Runs when state updates. Use for third-party libraries, DOM manipulation, networ
 
 ```js
 $effect(() => {
-  const context = canvas.getContext('2d');
-  context.clearRect(0, 0, canvas.width, canvas.height);
-  context.fillStyle = color;
-  context.fillRect(0, 0, size, size);
+	const context = canvas.getContext('2d');
+	context.clearRect(0, 0, canvas.width, canvas.height);
+	context.fillStyle = color;
+	context.fillRect(0, 0, size, size);
 });
 ```
 
 **Lifecycle:**
+
 - Runs after component mount in a microtask
 - Re-runs are batched
 - Can use anywhere, not just top-level
 
 **Teardown Functions:**
+
 ```js
 $effect(() => {
-  const interval = setInterval(() => {
-    count += 1;
-  }, milliseconds);
+	const interval = setInterval(() => {
+		count += 1;
+	}, milliseconds);
 
-  return () => {
-    clearInterval(interval);
-  };
+	return () => {
+		clearInterval(interval);
+	};
 });
 ```
 
 **Advanced Effects:**
+
 - `$effect.pre` - Runs before DOM updates
 - `$effect.tracking()` - Tells if code is in tracking context
 - `$effect.pending()` - Returns number of pending promises
@@ -177,17 +184,19 @@ let { a, b, c, ...others } = $props();
 ```
 
 **Type Safety:**
+
 ```ts
 let { adjective }: { adjective: string } = $props();
 
 // Or with interface
 interface Props {
-  adjective: string;
+	adjective: string;
 }
 let { adjective }: Props = $props();
 ```
 
 **Unique IDs (`$props.id()`):**
+
 ```js
 const uid = $props.id();
 // Use for linking elements: id="{uid}-firstname"
@@ -205,6 +214,7 @@ let { bindableProperty = $bindable('fallback value') } = $props();
 ```
 
 Usage in parent:
+
 ```svelte
 <MyComponent bind:bindableProperty={value} />
 ```
@@ -212,12 +222,14 @@ Usage in parent:
 ### Other Runes
 
 **`$inspect` - Debugging:**
+
 ```js
 $inspect(count); // Logs when count changes
 $inspect(a, b, c); // Multiple values
 ```
 
 **`$host` - Component Element:**
+
 ```js
 let element = $host(); // Reference to component's DOM element
 ```
@@ -225,16 +237,19 @@ let element = $host(); // Reference to component's DOM element
 ## Key Concepts
 
 ### Dependencies
+
 - Runes automatically track synchronous reads
 - Async reads (after `await`, `setTimeout`) not tracked
 - Use `untrack()` to exempt values from dependency tracking
 
 ### Passing State vs Values
+
 - JavaScript is pass-by-value
 - To share current values, use functions or state proxies
 - Destructuring breaks reactivity
 
 ### Module State
+
 - Can declare state in `.svelte.js/.svelte.ts` files
 - Cannot export directly reassigned state
 - Either use objects or don't export directly
@@ -242,6 +257,7 @@ let element = $host(); // Reference to component's DOM element
 ## Migration from Svelte 4
 
 ### Key Changes
+
 - Runes replace `let` declarations for reactive state
 - `$:` reactive statements become `$derived` or `$effect`
 - Props use `$props()` instead of `export let`
@@ -249,6 +265,7 @@ let element = $host(); // Reference to component's DOM element
 - Stores still work but runes are preferred for local state
 
 ### Common Patterns
+
 ```js
 // Svelte 4
 let count = 0;

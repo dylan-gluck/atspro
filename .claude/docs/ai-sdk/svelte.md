@@ -1,4 +1,3 @@
-
 # Svelte Quickstart
 
 The AI SDK is a powerful Typescript library designed to help developers build AI-powered applications.
@@ -88,18 +87,18 @@ import { streamText, type UIMessage, convertToModelMessages } from 'ai';
 import { OPENAI_API_KEY } from '$env/static/private';
 
 const openai = createOpenAI({
-  apiKey: OPENAI_API_KEY,
+	apiKey: OPENAI_API_KEY
 });
 
 export async function POST({ request }) {
-  const { messages }: { messages: UIMessage[] } = await request.json();
+	const { messages }: { messages: UIMessage[] } = await request.json();
 
-  const result = streamText({
-    model: openai('gpt-4o'),
-    messages: convertToModelMessages(messages),
-  });
+	const result = streamText({
+		model: openai('gpt-4o'),
+		messages: convertToModelMessages(messages)
+	});
 
-  return result.toUIMessageStreamResponse();
+	return result.toUIMessageStreamResponse();
 }
 ```
 
@@ -125,37 +124,37 @@ Update your root page (`src/routes/+page.svelte`) with the following code to sho
 
 ```svelte filename="src/routes/+page.svelte"
 <script lang="ts">
-  import { Chat } from '@ai-sdk/svelte';
+	import { Chat } from '@ai-sdk/svelte';
 
-  let input = '';
-  const chat = new Chat({});
+	let input = '';
+	const chat = new Chat({});
 
-  function handleSubmit(event: SubmitEvent) {
-    event.preventDefault();
-    chat.sendMessage({ text: input });
-    input = '';
-  }
+	function handleSubmit(event: SubmitEvent) {
+		event.preventDefault();
+		chat.sendMessage({ text: input });
+		input = '';
+	}
 </script>
 
 <main>
-  <ul>
-    {#each chat.messages as message, messageIndex (messageIndex)}
-      <li>
-        <div>{message.role}</div>
-        <div>
-          {#each message.parts as part, partIndex (partIndex)}
-            {#if part.type === 'text'}
-              <div>{part.text}</div>
-            {/if}
-          {/each}
-        </div>
-      </li>
-    {/each}
-  </ul>
-  <form onsubmit={handleSubmit}>
-    <input bind:value={input} />
-    <button type="submit">Send</button>
-  </form>
+	<ul>
+		{#each chat.messages as message, messageIndex (messageIndex)}
+			<li>
+				<div>{message.role}</div>
+				<div>
+					{#each message.parts as part, partIndex (partIndex)}
+						{#if part.type === 'text'}
+							<div>{part.text}</div>
+						{/if}
+					{/each}
+				</div>
+			</li>
+		{/each}
+	</ul>
+	<form onsubmit={handleSubmit}>
+		<input bind:value={input} />
+		<button type="submit">Send</button>
+	</form>
 </main>
 ```
 
@@ -192,45 +191,39 @@ Modify your `src/routes/api/chat/+server.ts` file to include the new weather too
 
 ```tsx filename="src/routes/api/chat/+server.ts" highlight="2,3,17-31"
 import { createOpenAI } from '@ai-sdk/openai';
-import {
-  streamText,
-  type UIMessage,
-  convertToModelMessages,
-  tool,
-  stepCountIs,
-} from 'ai';
+import { streamText, type UIMessage, convertToModelMessages, tool, stepCountIs } from 'ai';
 import { z } from 'zod';
 
 import { OPENAI_API_KEY } from '$env/static/private';
 
 const openai = createOpenAI({
-  apiKey: OPENAI_API_KEY,
+	apiKey: OPENAI_API_KEY
 });
 
 export async function POST({ request }) {
-  const { messages }: { messages: UIMessage[] } = await request.json();
+	const { messages }: { messages: UIMessage[] } = await request.json();
 
-  const result = streamText({
-    model: openai('gpt-4o'),
-    messages: convertToModelMessages(messages),
-    tools: {
-      weather: tool({
-        description: 'Get the weather in a location (fahrenheit)',
-        inputSchema: z.object({
-          location: z.string().describe('The location to get the weather for'),
-        }),
-        execute: async ({ location }) => {
-          const temperature = Math.round(Math.random() * (90 - 32) + 32);
-          return {
-            location,
-            temperature,
-          };
-        },
-      }),
-    },
-  });
+	const result = streamText({
+		model: openai('gpt-4o'),
+		messages: convertToModelMessages(messages),
+		tools: {
+			weather: tool({
+				description: 'Get the weather in a location (fahrenheit)',
+				inputSchema: z.object({
+					location: z.string().describe('The location to get the weather for')
+				}),
+				execute: async ({ location }) => {
+					const temperature = Math.round(Math.random() * (90 - 32) + 32);
+					return {
+						location,
+						temperature
+					};
+				}
+			})
+		}
+	});
 
-  return result.toUIMessageStreamResponse();
+	return result.toUIMessageStreamResponse();
 }
 ```
 
@@ -238,7 +231,6 @@ In this updated code:
 
 1. You import the `tool` function from the `ai` package and `z` from `zod` for schema validation.
 2. You define a `tools` object with a `weather` tool. This tool:
-
    - Has a description that helps the model understand when to use it.
    - Defines `inputSchema` using a Zod schema, specifying that it requires a `location` string to execute this tool. The model will attempt to extract this input from the context of the conversation. If it can't, it will ask the user for the missing information.
    - Defines an `execute` function that simulates getting weather data (in this case, it returns a random temperature). This is an asynchronous function running on the server so you can fetch real data from an external API.
@@ -261,39 +253,39 @@ To display the tool invocation in your UI, update your `src/routes/+page.svelte`
 
 ```svelte filename="src/routes/+page.svelte"
 <script lang="ts">
-  import { Chat } from '@ai-sdk/svelte';
+	import { Chat } from '@ai-sdk/svelte';
 
-  let input = '';
-  const chat = new Chat({});
+	let input = '';
+	const chat = new Chat({});
 
-  function handleSubmit(event: SubmitEvent) {
-    event.preventDefault();
-    chat.sendMessage({ text: input });
-    input = '';
-  }
+	function handleSubmit(event: SubmitEvent) {
+		event.preventDefault();
+		chat.sendMessage({ text: input });
+		input = '';
+	}
 </script>
 
 <main>
-  <ul>
-    {#each chat.messages as message, messageIndex (messageIndex)}
-      <li>
-        <div>{message.role}</div>
-        <div>
-          {#each message.parts as part, partIndex (partIndex)}
-            {#if part.type === 'text'}
-              <div>{part.text}</div>
-            {:else if part.type === 'tool-weather'}
-              <pre>{JSON.stringify(part, null, 2)}</pre>
-            {/if}
-          {/each}
-        </div>
-      </li>
-    {/each}
-  </ul>
-  <form onsubmit={handleSubmit}>
-    <input bind:value={input} />
-    <button type="submit">Send</button>
-  </form>
+	<ul>
+		{#each chat.messages as message, messageIndex (messageIndex)}
+			<li>
+				<div>{message.role}</div>
+				<div>
+					{#each message.parts as part, partIndex (partIndex)}
+						{#if part.type === 'text'}
+							<div>{part.text}</div>
+						{:else if part.type === 'tool-weather'}
+							<pre>{JSON.stringify(part, null, 2)}</pre>
+						{/if}
+					{/each}
+				</div>
+			</li>
+		{/each}
+	</ul>
+	<form onsubmit={handleSubmit}>
+		<input bind:value={input} />
+		<button type="submit">Send</button>
+	</form>
 </main>
 ```
 
@@ -313,46 +305,40 @@ Modify your `src/routes/api/chat/+server.ts` file to include the `stopWhen` cond
 
 ```ts filename="src/routes/api/chat/+server.ts" highlight="15"
 import { createOpenAI } from '@ai-sdk/openai';
-import {
-  streamText,
-  type UIMessage,
-  convertToModelMessages,
-  tool,
-  stepCountIs,
-} from 'ai';
+import { streamText, type UIMessage, convertToModelMessages, tool, stepCountIs } from 'ai';
 import { z } from 'zod';
 
 import { OPENAI_API_KEY } from '$env/static/private';
 
 const openai = createOpenAI({
-  apiKey: OPENAI_API_KEY,
+	apiKey: OPENAI_API_KEY
 });
 
 export async function POST({ request }) {
-  const { messages }: { messages: UIMessage[] } = await request.json();
+	const { messages }: { messages: UIMessage[] } = await request.json();
 
-  const result = streamText({
-    model: openai('gpt-4o'),
-    messages: convertToModelMessages(messages),
-    stopWhen: stepCountIs(5),
-    tools: {
-      weather: tool({
-        description: 'Get the weather in a location (fahrenheit)',
-        inputSchema: z.object({
-          location: z.string().describe('The location to get the weather for'),
-        }),
-        execute: async ({ location }) => {
-          const temperature = Math.round(Math.random() * (90 - 32) + 32);
-          return {
-            location,
-            temperature,
-          };
-        },
-      }),
-    },
-  });
+	const result = streamText({
+		model: openai('gpt-4o'),
+		messages: convertToModelMessages(messages),
+		stopWhen: stepCountIs(5),
+		tools: {
+			weather: tool({
+				description: 'Get the weather in a location (fahrenheit)',
+				inputSchema: z.object({
+					location: z.string().describe('The location to get the weather for')
+				}),
+				execute: async ({ location }) => {
+					const temperature = Math.round(Math.random() * (90 - 32) + 32);
+					return {
+						location,
+						temperature
+					};
+				}
+			})
+		}
+	});
 
-  return result.toUIMessageStreamResponse();
+	return result.toUIMessageStreamResponse();
 }
 ```
 
@@ -366,60 +352,52 @@ Update your `src/routes/api/chat/+server.ts` file to add a new tool to convert t
 
 ```tsx filename="src/routes/api/chat/+server.ts" highlight="32-45"
 import { createOpenAI } from '@ai-sdk/openai';
-import {
-  streamText,
-  type UIMessage,
-  convertToModelMessages,
-  tool,
-  stepCountIs,
-} from 'ai';
+import { streamText, type UIMessage, convertToModelMessages, tool, stepCountIs } from 'ai';
 import { z } from 'zod';
 
 import { OPENAI_API_KEY } from '$env/static/private';
 
 const openai = createOpenAI({
-  apiKey: OPENAI_API_KEY,
+	apiKey: OPENAI_API_KEY
 });
 
 export async function POST({ request }) {
-  const { messages }: { messages: UIMessage[] } = await request.json();
+	const { messages }: { messages: UIMessage[] } = await request.json();
 
-  const result = streamText({
-    model: openai('gpt-4o'),
-    messages: convertToModelMessages(messages),
-    stopWhen: stepCountIs(5),
-    tools: {
-      weather: tool({
-        description: 'Get the weather in a location (fahrenheit)',
-        inputSchema: z.object({
-          location: z.string().describe('The location to get the weather for'),
-        }),
-        execute: async ({ location }) => {
-          const temperature = Math.round(Math.random() * (90 - 32) + 32);
-          return {
-            location,
-            temperature,
-          };
-        },
-      }),
-      convertFahrenheitToCelsius: tool({
-        description: 'Convert a temperature in fahrenheit to celsius',
-        inputSchema: z.object({
-          temperature: z
-            .number()
-            .describe('The temperature in fahrenheit to convert'),
-        }),
-        execute: async ({ temperature }) => {
-          const celsius = Math.round((temperature - 32) * (5 / 9));
-          return {
-            celsius,
-          };
-        },
-      }),
-    },
-  });
+	const result = streamText({
+		model: openai('gpt-4o'),
+		messages: convertToModelMessages(messages),
+		stopWhen: stepCountIs(5),
+		tools: {
+			weather: tool({
+				description: 'Get the weather in a location (fahrenheit)',
+				inputSchema: z.object({
+					location: z.string().describe('The location to get the weather for')
+				}),
+				execute: async ({ location }) => {
+					const temperature = Math.round(Math.random() * (90 - 32) + 32);
+					return {
+						location,
+						temperature
+					};
+				}
+			}),
+			convertFahrenheitToCelsius: tool({
+				description: 'Convert a temperature in fahrenheit to celsius',
+				inputSchema: z.object({
+					temperature: z.number().describe('The temperature in fahrenheit to convert')
+				}),
+				execute: async ({ temperature }) => {
+					const celsius = Math.round((temperature - 32) * (5 / 9));
+					return {
+						celsius
+					};
+				}
+			})
+		}
+	});
 
-  return result.toUIMessageStreamResponse();
+	return result.toUIMessageStreamResponse();
 }
 ```
 
@@ -429,39 +407,39 @@ Update your UI to handle the new temperature conversion tool by modifying the to
 
 ```svelte filename="src/routes/+page.svelte" highlight="17"
 <script lang="ts">
-  import { Chat } from '@ai-sdk/svelte';
+	import { Chat } from '@ai-sdk/svelte';
 
-  let input = '';
-  const chat = new Chat({});
+	let input = '';
+	const chat = new Chat({});
 
-  function handleSubmit(event: SubmitEvent) {
-    event.preventDefault();
-    chat.sendMessage({ text: input });
-    input = '';
-  }
+	function handleSubmit(event: SubmitEvent) {
+		event.preventDefault();
+		chat.sendMessage({ text: input });
+		input = '';
+	}
 </script>
 
 <main>
-  <ul>
-    {#each chat.messages as message, messageIndex (messageIndex)}
-      <li>
-        <div>{message.role}</div>
-        <div>
-          {#each message.parts as part, partIndex (partIndex)}
-            {#if part.type === 'text'}
-              <div>{part.text}</div>
-            {:else if part.type === 'tool-weather' || part.type === 'tool-convertFahrenheitToCelsius'}
-              <pre>{JSON.stringify(part, null, 2)}</pre>
-            {/if}
-          {/each}
-        </div>
-      </li>
-    {/each}
-  </ul>
-  <form onsubmit={handleSubmit}>
-    <input bind:value={input} />
-    <button type="submit">Send</button>
-  </form>
+	<ul>
+		{#each chat.messages as message, messageIndex (messageIndex)}
+			<li>
+				<div>{message.role}</div>
+				<div>
+					{#each message.parts as part, partIndex (partIndex)}
+						{#if part.type === 'text'}
+							<div>{part.text}</div>
+						{:else if part.type === 'tool-weather' || part.type === 'tool-convertFahrenheitToCelsius'}
+							<pre>{JSON.stringify(part, null, 2)}</pre>
+						{/if}
+					{/each}
+				</div>
+			</li>
+		{/each}
+	</ul>
+	<form onsubmit={handleSubmit}>
+		<input bind:value={input} />
+		<button type="submit">Send</button>
+	</form>
 </main>
 ```
 
@@ -489,19 +467,19 @@ This means that, if you want arguments to your class to be reactive, you need to
 
 ```svelte
 <script>
-  import { Chat } from '@ai-sdk/svelte';
+	import { Chat } from '@ai-sdk/svelte';
 
-  let { id } = $props();
+	let { id } = $props();
 
-  // won't work; the class instance will be created once, `id` will be copied by value, and won't update when $props.id changes
-  let chat = new Chat({ id });
+	// won't work; the class instance will be created once, `id` will be copied by value, and won't update when $props.id changes
+	let chat = new Chat({ id });
 
-  // will work; passes `id` by reference, so `Chat` always has the latest value
-  let chat = new Chat({
-    get id() {
-      return id;
-    },
-  });
+	// will work; passes `id` by reference, so `Chat` always has the latest value
+	let chat = new Chat({
+		get id() {
+			return id;
+		}
+	});
 </script>
 ```
 
@@ -524,15 +502,15 @@ The same is true of classes in Svelte:
 
 ```svelte
 <script>
-  import { Chat } from '@ai-sdk/svelte';
+	import { Chat } from '@ai-sdk/svelte';
 
-  const chat = new Chat({});
-  let { messages } = chat;
+	const chat = new Chat({});
+	let { messages } = chat;
 
-  chat.append({ content: 'Hello, world!', role: 'user' }).then(() => {
-    console.log(messages); // []
-    console.log(chat.messages); // [{ content: 'Hello, world!', role: 'user' }] (plus some other stuff)
-  });
+	chat.append({ content: 'Hello, world!', role: 'user' }).then(() => {
+		console.log(messages); // []
+		console.log(chat.messages); // [{ content: 'Hello, world!', role: 'user' }] (plus some other stuff)
+	});
 </script>
 ```
 
@@ -543,13 +521,13 @@ For most use cases, you probably don't need this behavior -- but if you do, you 
 
 ```svelte
 <script>
-  import { createAIContext } from '@ai-sdk/svelte';
+	import { createAIContext } from '@ai-sdk/svelte';
 
-  let { children } = $props();
+	let { children } = $props();
 
-  createAIContext();
-  // all hooks created after this or in components that are children of this component
-  // will have synchronized state
+	createAIContext();
+	// all hooks created after this or in components that are children of this component
+	// will have synchronized state
 </script>
 
 {@render children()}

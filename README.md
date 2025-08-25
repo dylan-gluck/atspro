@@ -7,12 +7,15 @@ ATSPro isn't just another resume checker—it's the comprehensive career advance
 ## ✨ Features
 
 ### 🎯 ATS Mastery
+
 Our proprietary engine, reverse-engineered from leading ATS platforms, doesn't just scan your resume—it reconstructs it for maximum algorithmic impact. Watch your match rates soar from 35% to 85%+.
 
 ### 🔬 Company Intelligence
+
 Go beyond generic applications with deep-dive research reports, insider interview questions, and cultural insights that help you speak their language from day one.
 
 ### 📈 Success Analytics
+
 Track your entire job search journey with precision. See which strategies drive interviews, which companies respond, and where your next breakthrough is coming from.
 
 ## Developing

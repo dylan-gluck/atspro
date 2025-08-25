@@ -10,6 +10,7 @@ The backend API will contain all of the core business logic, prompts and agent w
 ## Endpoints
 
 ### Extract Resume `/api/extract/resume`
+
 - POST {document: File} => Returns {success, error}
 - Validate user session, get userId
 - Validate file type:
@@ -22,6 +23,7 @@ The backend API will contain all of the core business logic, prompts and agent w
 - Return json response with success/error
 
 ### Extract Job `/api/extract/job`
+
 - POST {jobUrl: string, jobDescription: string} => Returns {success, error, data: {jobId: string}}
   - If jobUrl, Fetch page content (freecrawl), add to messages array as `text`
   - If jobDescription, add string to messages array as `text`
@@ -30,6 +32,7 @@ The backend API will contain all of the core business logic, prompts and agent w
 - Return `jobId` in standard json response with success/error
 
 ### Optimize `/api/optimize`
+
 - POST {resumeId: string, jobId: string} => Returns {success, error, data: {documents: string[]}}
 - Confirm resume and job exist in db
 - Fetch resume and job data from db

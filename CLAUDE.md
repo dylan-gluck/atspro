@@ -37,6 +37,7 @@ bun run test:unit   # Run tests in watch mode
 ## Architecture
 
 ### Tech Stack
+
 - **Runtime**: Bun (replaces Node.js)
 - **Framework**: SvelteKit with Svelte 5
 - **Styling**: Tailwind CSS v4 with shadcn-svelte components
@@ -81,10 +82,12 @@ See `docs/data-model.md` for complete schema.
 ### API Design
 
 All API endpoints follow RESTful patterns with consistent response format:
+
 - Success: `{ success: true, data: {...}, message: "..." }`
 - Error: `{ success: false, error: { code: "...", message: "..." } }`
 
 Key endpoints (see `docs/api-spec.md`):
+
 - `/api/extract/resume` - Extract resume from file upload
 - `/api/extract/job` - Extract job from URL or text
 - `/api/optimize` - Generate optimized resume for job
@@ -94,6 +97,7 @@ Key endpoints (see `docs/api-spec.md`):
 ### Authentication Flow
 
 Better-Auth handles all authentication with PostgreSQL storage:
+
 1. Session management via `hooks.server.ts`
 2. Auth routes at `/auth/[method]`
 3. Protected routes under `(app)` layout group
@@ -102,6 +106,7 @@ Better-Auth handles all authentication with PostgreSQL storage:
 ### Environment Variables
 
 Required in `.env`:
+
 ```
 DATABASE_URL=            # PostgreSQL connection string
 BETTER_AUTH_SECRET=      # Auth secret key
@@ -113,6 +118,7 @@ OPENAI_API_KEY=          # For AI features
 ### Testing Strategy
 
 Two test environments configured:
+
 - **Client tests**: Browser-based Svelte component tests (`*.svelte.test.ts`)
 - **Server tests**: Node environment for server-side logic
 
@@ -131,6 +137,7 @@ Two test environments configured:
 
 Currently completing Phase 1 (Project Setup).
 Next phases:
+
 - Phase 2: UI Scaffolding
 - Phase 3: API & Database Updates
 - Phase 4: Service Architecture
@@ -140,6 +147,7 @@ Next phases:
 ### Reference Implementation
 
 The original ATSPro monorepo at `/Users/dylan/Workspace/projects/atspro/` contains:
+
 - UI layouts and components to reference (copy UI only, not logic)
 - Next.js frontend (being converted to SvelteKit)
 

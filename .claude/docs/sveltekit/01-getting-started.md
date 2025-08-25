@@ -3,6 +3,7 @@
 ## Overview
 
 SvelteKit is a framework for rapidly developing robust, performant web applications using Svelte. Think of it as:
+
 - **React developers**: Similar to Next.js
 - **Vue developers**: Similar to Nuxt.js
 
@@ -21,11 +22,13 @@ This creates a new SvelteKit project and starts dev server on http://localhost:5
 ## Core Concepts
 
 ### Pages and Components
+
 - Each page = Svelte component
 - Pages live in `src/routes` directory
 - Server-rendered first (fast initial load), then client-side app takes over
 
 ### Editor Setup
+
 Recommended: VS Code + Svelte extension
 
 ## Project Types
@@ -33,40 +36,46 @@ Recommended: VS Code + Svelte extension
 SvelteKit supports multiple rendering approaches:
 
 ### Default (Hybrid)
+
 - **First load**: SSR (Server-Side Rendering) - better SEO/performance
 - **Navigation**: CSR (Client-Side Rendering) - faster, no flash
 - Also called "transitional apps"
 
 ### Static Site Generation (SSG)
+
 ```js
 // +page.js
 export const prerender = true;
 ```
+
 - Pre-generates HTML at build time
 - Use `adapter-static` for full static sites
 - Can mix prerendered and dynamic pages
 
 ### Single Page App (SPA)
+
 - Client-side only rendering
 - Use `adapter-static` with SPA mode
 - Skip backend-related docs if using external API
 
 ### Multi-Page App
+
 ```js
-// +page.js  
+// +page.js
 export const csr = false; // Disable client-side JS
 ```
+
 - Traditional server-rendered pages
 - No JavaScript hydration
 
 ### Deployment Options
 
-| Type | Adapter | Use Case |
-|------|---------|----------|
-| **Serverless** | `adapter-auto`, `adapter-vercel`, `adapter-netlify` | Most common |
-| **Node Server** | `adapter-node` | VPS, Docker, own server |
-| **Static** | `adapter-static` | CDN, GitHub Pages |
-| **Edge** | Platform-specific adapters | Ultra-low latency |
+| Type            | Adapter                                             | Use Case                |
+| --------------- | --------------------------------------------------- | ----------------------- |
+| **Serverless**  | `adapter-auto`, `adapter-vercel`, `adapter-netlify` | Most common             |
+| **Node Server** | `adapter-node`                                      | VPS, Docker, own server |
+| **Static**      | `adapter-static`                                    | CDN, GitHub Pages       |
+| **Edge**        | Platform-specific adapters                          | Ultra-low latency       |
 
 ## Project Structure
 
@@ -93,13 +102,15 @@ my-project/
 ### Key Files
 
 **`src/app.html`** - Page template with placeholders:
+
 - `%sveltekit.head%` - Scripts and head content
 - `%sveltekit.body%` - Rendered page (put in `<div>` not `<body>`)
 - `%sveltekit.assets%` - Asset path
 - `%sveltekit.nonce%` - CSP nonce
-- `%sveltekit.env.[NAME]%` - Environment variables (PUBLIC_ prefix)
+- `%sveltekit.env.[NAME]%` - Environment variables (PUBLIC\_ prefix)
 
 **`src/error.html`** - Error page with placeholders:
+
 - `%sveltekit.status%` - HTTP status
 - `%sveltekit.error.message%` - Error message
 
@@ -108,22 +119,27 @@ my-project/
 SvelteKit uses modern web APIs - your web skills transfer directly:
 
 ### Fetch API
+
 - `fetch()` works in hooks, server routes, and browser
 - Special SvelteKit version in `load` functions handles credentials/relative URLs
 
 ### Request/Response
+
 - `Request` objects in hooks and server routes (`event.request`)
 - Return `Response` objects from `+server.js` files
 
 ### Headers/FormData/Streams
+
 - Standard `Headers`, `FormData`, streaming APIs
 - Built on web standards, not framework-specific APIs
 
 ### URL/URLSearchParams
+
 - `URL` objects everywhere (`event.url`, `page.url`, etc.)
 - `url.searchParams` for query parameters
 
 ### Web Crypto
+
 ```js
 const uuid = crypto.randomUUID();
 ```
@@ -145,11 +161,11 @@ const uuid = crypto.randomUUID();
 
 ## Quick Reference
 
-| Need | File | Purpose |
-|------|------|---------|
-| **Page** | `+page.svelte` | UI component |
-| **Data** | `+page.js` | Client+server data loading |
-| **Server Data** | `+page.server.js` | Server-only data loading |
-| **Layout** | `+layout.svelte` | Shared UI wrapper |
-| **API** | `+server.js` | REST/API endpoints |
-| **Error** | `+error.svelte` | Error pages |
+| Need            | File              | Purpose                    |
+| --------------- | ----------------- | -------------------------- |
+| **Page**        | `+page.svelte`    | UI component               |
+| **Data**        | `+page.js`        | Client+server data loading |
+| **Server Data** | `+page.server.js` | Server-only data loading   |
+| **Layout**      | `+layout.svelte`  | Shared UI wrapper          |
+| **API**         | `+server.js`      | REST/API endpoints         |
+| **Error**       | `+error.svelte`   | Error pages                |

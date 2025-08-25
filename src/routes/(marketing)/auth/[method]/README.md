@@ -1,6 +1,7 @@
 # Auth Pages: Sign-in and Sign-up
 
 Pages for users to sign-in or create an account.
+
 - `/auth/sign-in`: Sign-in form
 - `/auth/sign-up`: Sign-up form
 

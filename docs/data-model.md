@@ -1,6 +1,7 @@
 # ATSPro Data Model Documentation
 
 ## Overview
+
 The ATSPro application uses PostgreSQL to store all application data. The database schema leverages Better-Auth for authentication and extends it with custom tables for the core business logic.
 
 ## Database Schema
@@ -8,7 +9,9 @@ The ATSPro application uses PostgreSQL to store all application data. The databa
 ### Existing Tables (Better-Auth)
 
 #### `user`
+
 Authentication user table
+
 - `id` (text, primary key)
 - `name` (text, not null)
 - `email` (text, unique, not null)
@@ -18,7 +21,9 @@ Authentication user table
 - `updatedAt` (timestamp, default CURRENT_TIMESTAMP, not null)
 
 #### `session`
+
 User session management
+
 - `id` (text, primary key)
 - `expiresAt` (timestamp, not null)
 - `token` (text, unique, not null)
@@ -29,7 +34,9 @@ User session management
 - `userId` (text, not null, foreign key → user.id, cascade delete)
 
 #### `account`
+
 OAuth/Social account connections
+
 - `id` (text, primary key)
 - `accountId` (text, not null)
 - `providerId` (text, not null)
@@ -45,7 +52,9 @@ OAuth/Social account connections
 - `updatedAt` (timestamp, not null)
 
 #### `verification`
+
 Email/token verification
+
 - `id` (text, primary key)
 - `identifier` (text, not null)
 - `value` (text, not null)
@@ -56,7 +65,9 @@ Email/token verification
 ### New Tables (ATSPro Business Logic)
 
 #### `userResume`
+
 Stores the base resume data for each user (one per user)
+
 - `id` (uuid, primary key, generated)
 - `userId` (text, not null, unique, foreign key → user.id, cascade delete)
 - `contactInfo` (jsonb, not null)
@@ -74,11 +85,14 @@ Stores the base resume data for each user (one per user)
 - `updatedAt` (timestamp, default CURRENT_TIMESTAMP, not null)
 
 **Indexes:**
+
 - Unique index on `userId`
 - Index on `createdAt`
 
 #### `userJobs`
+
 Stores job postings that users are tracking/applying to
+
 - `id` (uuid, primary key, generated)
 - `userId` (text, not null, foreign key → user.id, cascade delete)
 - `company` (text, not null)
@@ -98,13 +112,16 @@ Stores job postings that users are tracking/applying to
 - `updatedAt` (timestamp, default CURRENT_TIMESTAMP, not null)
 
 **Indexes:**
+
 - Index on `userId`
 - Index on `status`
 - Index on `createdAt`
 - Composite index on `(userId, status)`
 
 #### `jobDocuments`
+
 Stores generated documents for specific jobs (resumes, cover letters, etc.)
+
 - `id` (uuid, primary key, generated)
 - `jobId` (uuid, not null, foreign key → userJobs.id, cascade delete)
 - `type` (text, not null)
@@ -119,6 +136,7 @@ Stores generated documents for specific jobs (resumes, cover letters, etc.)
 - `updatedAt` (timestamp, default CURRENT_TIMESTAMP, not null)
 
 **Indexes:**
+
 - Index on `jobId`
 - Index on `type`
 - Composite index on `(jobId, type, isActive)`
@@ -127,57 +145,61 @@ Stores generated documents for specific jobs (resumes, cover letters, etc.)
 ## JSONB Field Structures
 
 ### ContactInfo (jsonb)
+
 ```json
 {
-  "fullName": "string",
-  "email": "string | null",
-  "phone": "string | null",
-  "address": "string | null",
-  "links": [
-    {
-      "name": "string",
-      "url": "string"
-    }
-  ]
+	"fullName": "string",
+	"email": "string | null",
+	"phone": "string | null",
+	"address": "string | null",
+	"links": [
+		{
+			"name": "string",
+			"url": "string"
+		}
+	]
 }
 ```
 
 ### WorkExperience (jsonb array element)
+
 ```json
 {
-  "company": "string",
-  "position": "string",
-  "startDate": "string | null",
-  "endDate": "string | null",
-  "isCurrent": "boolean",
-  "description": "string | null",
-  "responsibilities": ["string"],
-  "skills": ["string"]
+	"company": "string",
+	"position": "string",
+	"startDate": "string | null",
+	"endDate": "string | null",
+	"isCurrent": "boolean",
+	"description": "string | null",
+	"responsibilities": ["string"],
+	"skills": ["string"]
 }
 ```
 
 ### Education (jsonb array element)
+
 ```json
 {
-  "institution": "string",
-  "degree": "string",
-  "fieldOfStudy": "string | null",
-  "graduationDate": "string | null",
-  "gpa": "number | null",
-  "honors": ["string"],
-  "relevantCourses": ["string"],
-  "skills": ["string"]
+	"institution": "string",
+	"degree": "string",
+	"fieldOfStudy": "string | null",
+	"graduationDate": "string | null",
+	"gpa": "number | null",
+	"honors": ["string"],
+	"relevantCourses": ["string"],
+	"skills": ["string"]
 }
 ```
 
 ### Certification (jsonb array element)
+
 ```json
 {
-  "name": "string",
-  "issuer": "string",
-  "dateObtained": "string | null",
-  "expirationDate": "string | null",
-  "credentialId": "string | null"
+	"name": "string",
+	"issuer": "string",
+	"dateObtained": "string | null",
+	"expirationDate": "string | null",
+	"credentialId": "string | null"
 }
 ```
 
@@ -189,7 +211,7 @@ Stores generated documents for specific jobs (resumes, cover letters, etc.)
 
 3. **Multiple Documents Per Job**: Each job can have multiple versions of documents (resumes, cover letters, research, prep materials)
 
-4. **Cascade Deletes**: 
+4. **Cascade Deletes**:
    - Deleting a user removes all associated resumes, jobs, and documents
    - Deleting a job removes all associated documents
 
