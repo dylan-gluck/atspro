@@ -4,7 +4,7 @@ export interface Link {
 }
 
 export interface ContactInfo {
-	full_name: string;
+	fullName: string;
 	email?: string | null;
 	phone?: string | null;
 	address?: string | null;
@@ -14,9 +14,9 @@ export interface ContactInfo {
 export interface WorkExperience {
 	company: string;
 	position: string;
-	start_date?: string | null;
-	end_date?: string | null;
-	is_current?: boolean;
+	startDate?: string | null;
+	endDate?: string | null;
+	isCurrent?: boolean;
 	description?: string | null;
 	responsibilities: string[];
 	skills: string[];
@@ -25,26 +25,26 @@ export interface WorkExperience {
 export interface Education {
 	institution: string;
 	degree: string;
-	field_of_study?: string | null;
-	graduation_date?: string | null;
+	fieldOfStudy?: string | null;
+	graduationDate?: string | null;
 	gpa?: number | null;
 	honors: string[];
-	relevant_courses: string[];
+	relevantCourses: string[];
 	skills: string[];
 }
 
 export interface Certification {
 	name: string;
 	issuer: string;
-	date_obtained?: string | null;
-	expiration_date?: string | null;
-	credential_id?: string | null;
+	dateObtained?: string | null;
+	expirationDate?: string | null;
+	credentialId?: string | null;
 }
 
 export interface Resume {
-	contact_info: ContactInfo;
+	contactInfo: ContactInfo;
 	summary?: string | null;
-	work_experience: WorkExperience[];
+	workExperience: WorkExperience[];
 	education: Education[];
 	certifications: Certification[];
 	skills: string[];

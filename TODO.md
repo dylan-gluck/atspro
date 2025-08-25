@@ -4,8 +4,8 @@
 - [x] Initialize app scaffolding
 - [x] Add better-auth, initial migration
 - [x] Project types & Documentation
-- [ ] Full data model
-- [ ] API Spec
+- [x] Full data model (docs/data-model.md)
+- [x] API Spec (docs/api-spec.md)
 
 ## Phase 2: UI Scaffolding
 - [ ] Build core components

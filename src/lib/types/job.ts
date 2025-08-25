@@ -7,7 +7,7 @@ export interface Job {
 	qualifications?: string[] | null;
 	logistics?: string[] | null;
 	location?: string[] | null;
-	additional_info?: string[] | null;
+	additionalInfo?: string[] | null;
 	link?: string | null;
 }
 
