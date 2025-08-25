@@ -13,11 +13,16 @@
 - [x] Build core components
 - [x] Build main app views
 
+@.claude/docs/sveltekit/05-remote-functions.md
+@docs/api-spec.md
+@docs/data-model.md
+
 ## Phase 2.5: API Scaffolding
 - [x] Analyze data model, api-spec & all routes in `src/routes/`, check for consistency between data model and page data. Update data model / spec docs as needed.
 - [x] Add missing fields to data model (notes, jobActivity)
-- [ ] Create API route structure in `/src/routes/api/`
-- [ ] Implement type-safe API client using SvelteKit conventions (Remote Functions)
+- [ ] Create API route structure in `/src/routes/api/`, all endpoints
+  - Type-safe API client using SvelteKit conventions (Remote Functions).
+  - DO NOT add business logic, just console.log() form data & return success.
 
 ## Phase 3: API & Database Updates
 - [ ] Apply data model changes to DB
