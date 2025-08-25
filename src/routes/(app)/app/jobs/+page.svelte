@@ -8,79 +8,12 @@
 	import * as Select from '$lib/components/ui/select';
 	import * as Pagination from '$lib/components/ui/pagination';
 	import * as AlertDialog from '$lib/components/ui/alert-dialog';
-	import { Search, Plus, Eye, Edit, Trash2, Filter } from 'lucide-svelte';
+	import { Search, Plus, Eye, Edit, Trash2, Filter, Loader2 } from 'lucide-svelte';
 	import type { UserJob, JobStatus } from '$lib/types/user-job';
+	import { getJobs, deleteJob } from '$lib/services/job.remote';
+	import { toast } from 'svelte-sonner';
 
-	// Placeholder data with Svelte 5 state
-	let jobs = $state<UserJob[]>([
-		{
-			id: '1',
-			userId: 'user1',
-			company: 'OpenAI',
-			title: 'Senior Frontend Engineer',
-			description: 'Build amazing AI-powered interfaces...',
-			status: 'applied',
-			appliedAt: new Date('2024-01-15'),
-			createdAt: new Date('2024-01-10'),
-			updatedAt: new Date('2024-01-15'),
-			location: ['San Francisco, CA'],
-			salary: '$180k - $250k'
-		},
-		{
-			id: '2',
-			userId: 'user1',
-			company: 'Anthropic',
-			title: 'Full Stack Developer',
-			description: 'Work on cutting-edge AI safety research tools...',
-			status: 'interviewing',
-			appliedAt: new Date('2024-01-12'),
-			createdAt: new Date('2024-01-08'),
-			updatedAt: new Date('2024-01-20'),
-			location: ['Remote'],
-			salary: '$160k - $220k'
-		},
-		{
-			id: '3',
-			userId: 'user1',
-			company: 'Google',
-			title: 'Software Engineer III',
-			description: 'Join the search infrastructure team...',
-			status: 'tracked',
-			appliedAt: null,
-			createdAt: new Date('2024-01-22'),
-			updatedAt: new Date('2024-01-22'),
-			location: ['Mountain View, CA', 'Remote'],
-			salary: '$150k - $200k'
-		},
-		{
-			id: '4',
-			userId: 'user1',
-			company: 'Meta',
-			title: 'React Native Engineer',
-			description: 'Build cross-platform mobile experiences...',
-			status: 'rejected',
-			appliedAt: new Date('2024-01-05'),
-			createdAt: new Date('2024-01-03'),
-			updatedAt: new Date('2024-01-18'),
-			location: ['Menlo Park, CA'],
-			salary: '$170k - $240k'
-		},
-		{
-			id: '5',
-			userId: 'user1',
-			company: 'Stripe',
-			title: 'Backend Engineer',
-			description: 'Scale payment infrastructure for millions...',
-			status: 'offered',
-			appliedAt: new Date('2024-01-07'),
-			createdAt: new Date('2024-01-06'),
-			updatedAt: new Date('2024-01-25'),
-			location: ['San Francisco, CA', 'Remote'],
-			salary: '$190k - $260k'
-		}
-	]);
-
-	// Filter states
+	// Filter and pagination states
 	let searchQuery = $state('');
 	let selectedStatus = $state<JobStatus | 'all'>('all');
 	let currentPage = $state(1);
@@ -89,39 +22,46 @@
 	// Delete confirmation state
 	let deleteDialogOpen = $state(false);
 	let jobToDelete = $state<UserJob | null>(null);
+	let isDeleting = $state(false);
 
-	// Filtered jobs using Svelte 5 $derived
+	// Calculate offset for pagination
+	let offset = $derived((currentPage - 1) * itemsPerPage);
+
+	// Fetch jobs with filters - reactive query
+	let jobsQuery = $derived(
+		getJobs({
+			status: selectedStatus !== 'all' ? selectedStatus : undefined,
+			limit: itemsPerPage,
+			offset: offset
+		})
+	);
+
+	// Client-side search filtering
 	let filteredJobs = $derived.by(() => {
-		let filtered = [...jobs];
+		if (!jobsQuery.data?.jobs) return [];
+		
+		let filtered = [...jobsQuery.data.jobs];
 
-		// Filter by search query
+		// Apply client-side search filter
 		if (searchQuery) {
 			const query = searchQuery.toLowerCase();
 			filtered = filtered.filter(
 				(job) =>
-					job.company.toLowerCase().includes(query) || job.title.toLowerCase().includes(query)
+					job.company.toLowerCase().includes(query) || 
+					job.title.toLowerCase().includes(query) ||
+					job.location?.some(loc => loc.toLowerCase().includes(query))
 			);
 		}
-
-		// Filter by status
-		if (selectedStatus !== 'all') {
-			filtered = filtered.filter((job) => job.status === selectedStatus);
-		}
-
-		// Sort by updatedAt descending
-		filtered.sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
 
 		return filtered;
 	});
 
-	// Paginated jobs
-	let paginatedJobs = $derived.by(() => {
-		const start = (currentPage - 1) * itemsPerPage;
-		const end = start + itemsPerPage;
-		return filteredJobs.slice(start, end);
-	});
-
-	let totalPages = $derived(Math.ceil(filteredJobs.length / itemsPerPage));
+	// Total pages calculation
+	let totalPages = $derived(
+		jobsQuery.data 
+			? Math.ceil(jobsQuery.data.pagination.total / itemsPerPage)
+			: 0
+	);
 
 	// Helper functions
 	function getStatusBadgeVariant(
@@ -165,13 +105,37 @@
 		deleteDialogOpen = true;
 	}
 
-	function handleDelete() {
-		if (jobToDelete) {
-			jobs = jobs.filter((j) => j.id !== jobToDelete.id);
+	async function handleDelete() {
+		if (!jobToDelete) return;
+		
+		isDeleting = true;
+		try {
+			await deleteJob(jobToDelete.id);
+			toast.success('Job deleted successfully');
+			
+			// Refresh the jobs list
+			await jobsQuery.refresh();
+			
+			// Reset page if we deleted the last item on current page
+			if (filteredJobs.length === 0 && currentPage > 1) {
+				currentPage = currentPage - 1;
+			}
+		} catch (error) {
+			console.error('Failed to delete job:', error);
+			toast.error('Failed to delete job');
+		} finally {
+			isDeleting = false;
 			jobToDelete = null;
 			deleteDialogOpen = false;
 		}
 	}
+
+	// Reset page when filters change
+	$effect(() => {
+		selectedStatus;
+		searchQuery;
+		currentPage = 1;
+	});
 </script>
 
 <svelte:head>
@@ -241,14 +205,52 @@
 						</Table.Row>
 					</Table.Header>
 					<Table.Body>
-						{#if paginatedJobs.length === 0}
+						{#if jobsQuery.loading}
 							<Table.Row>
 								<Table.Cell colspan={5} class="py-12 text-center">
-									<p class="text-muted-foreground">No jobs found matching your filters</p>
+									<div class="flex items-center justify-center gap-2">
+										<Loader2 class="h-4 w-4 animate-spin" />
+										<p class="text-muted-foreground">Loading jobs...</p>
+									</div>
+								</Table.Cell>
+							</Table.Row>
+						{:else if jobsQuery.error}
+							<Table.Row>
+								<Table.Cell colspan={5} class="py-12 text-center">
+									<p class="text-destructive">Failed to load jobs. Please try again.</p>
+									<Button 
+										onclick={() => jobsQuery.refresh()} 
+										variant="outline" 
+										size="sm"
+										class="mt-4"
+									>
+										Retry
+									</Button>
+								</Table.Cell>
+							</Table.Row>
+						{:else if filteredJobs.length === 0}
+							<Table.Row>
+								<Table.Cell colspan={5} class="py-12 text-center">
+									<p class="text-muted-foreground">
+										{searchQuery || selectedStatus !== 'all' 
+											? 'No jobs found matching your filters' 
+											: 'No jobs yet. Add your first job application!'}
+									</p>
+									{#if !searchQuery && selectedStatus === 'all'}
+										<Button 
+											onclick={() => goto('/app/jobs/new')} 
+											variant="outline" 
+											size="sm"
+											class="mt-4 gap-2"
+										>
+											<Plus class="h-4 w-4" />
+											Add First Job
+										</Button>
+									{/if}
 								</Table.Cell>
 							</Table.Row>
 						{:else}
-							{#each paginatedJobs as job}
+							{#each filteredJobs as job}
 								<Table.Row class="hover:bg-muted/50">
 									<Table.Cell>
 										<div>
@@ -299,6 +301,7 @@
 												size="icon"
 												class="text-destructive hover:text-destructive h-8 w-8"
 												onclick={() => confirmDelete(job)}
+												disabled={isDeleting}
 											>
 												<Trash2 class="h-4 w-4" />
 												<span class="sr-only">Delete job</span>
@@ -341,12 +344,18 @@
 			</AlertDialog.Description>
 		</AlertDialog.Header>
 		<AlertDialog.Footer>
-			<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
+			<AlertDialog.Cancel disabled={isDeleting}>Cancel</AlertDialog.Cancel>
 			<AlertDialog.Action
 				onclick={handleDelete}
 				class="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+				disabled={isDeleting}
 			>
-				Delete
+				{#if isDeleting}
+					<Loader2 class="mr-2 h-4 w-4 animate-spin" />
+					Deleting...
+				{:else}
+					Delete
+				{/if}
 			</AlertDialog.Action>
 		</AlertDialog.Footer>
 	</AlertDialog.Content>

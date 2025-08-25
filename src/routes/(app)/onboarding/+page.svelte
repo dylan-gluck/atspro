@@ -21,9 +21,12 @@
 		Sparkles,
 		ChevronLeft,
 		ChevronRight,
-		Info
+		Info,
+		Loader2
 	} from 'lucide-svelte';
 	import type { Resume } from '$lib/types/resume';
+	import { extractResume, updateResume } from '$lib/services/resume.remote';
+	import { goto } from '$app/navigation';
 
 	// State management using Svelte 5 runes
 	let currentStep = $state(1);
@@ -33,6 +36,8 @@
 	let dragActive = $state(false);
 	let uploadedFile = $state<File | null>(null);
 	let fileError = $state<string | null>(null);
+	let isExtracting = $state(false);
+	let isSaving = $state(false);
 
 	// Resume data state (will be populated when we integrate with API)
 	let resumeData = $state<Partial<Resume>>({
@@ -65,7 +70,7 @@
 			case 1:
 				return true; // Welcome step
 			case 2:
-				return uploadedFile !== null; // File upload step
+				return uploadedFile !== null && !isExtracting; // File upload step
 			case 3:
 				return resumeData.contactInfo?.fullName !== ''; // Resume review step
 			case 4:
@@ -78,8 +83,20 @@
 	});
 
 	// Step navigation functions
-	function nextStep() {
-		if (currentStep < totalSteps && canGoNext()) {
+	async function nextStep() {
+		if (!canGoNext()) return;
+
+		// When moving from upload step to review step, extract the resume
+		if (currentStep === 2 && uploadedFile) {
+			await handleFileUpload();
+			// Only advance if extraction was successful
+			if (resumeData.contactInfo?.fullName) {
+				currentStep++;
+			}
+		} else if (currentStep === 4) {
+			// When finishing preferences step, save the resume
+			await saveResume();
+		} else if (currentStep < totalSteps) {
 			currentStep++;
 		}
 	}
@@ -90,10 +107,38 @@
 		}
 	}
 
-	function skipStep() {
+	async function skipStep() {
 		// Only allow skipping on optional steps (step 4)
 		if (currentStep === 4) {
-			currentStep++;
+			await saveResume();
+		}
+	}
+
+	// Save resume to database
+	async function saveResume() {
+		if (isSaving) return;
+		
+		try {
+			isSaving = true;
+			fileError = null;
+
+			// Update the resume with the edited data
+			await updateResume({
+				contactInfo: resumeData.contactInfo,
+				summary: resumeData.summary,
+				workExperience: resumeData.workExperience,
+				education: resumeData.education,
+				certifications: resumeData.certifications,
+				skills: resumeData.skills
+			});
+
+			// Move to success step
+			currentStep = 5;
+		} catch (err) {
+			fileError = err instanceof Error ? err.message : 'Failed to save resume';
+			console.error('Failed to save resume:', err);
+		} finally {
+			isSaving = false;
 		}
 	}
 
@@ -119,45 +164,59 @@
 	}
 
 	function handleFileSelect(file: File) {
-		// Validate file type
+		// Validate file type (note: the backend only accepts PDF, markdown, and plain text)
 		const validTypes = [
 			'application/pdf',
-			'application/msword',
-			'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-			'text/plain'
+			'text/plain',
+			'text/markdown'
 		];
-		if (!validTypes.includes(file.type)) {
-			fileError = 'Please upload a PDF, DOCX, DOC, or TXT file';
+		
+		// Map DOCX to plain text for now (user will need to convert)
+		if (file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
+			file.type === 'application/msword') {
+			fileError = 'Please convert your document to PDF or TXT format first';
 			return;
 		}
 
-		// Validate file size (max 5MB)
-		if (file.size > 5 * 1024 * 1024) {
-			fileError = 'File size must be less than 5MB';
+		if (!validTypes.includes(file.type)) {
+			fileError = 'Please upload a PDF, TXT, or Markdown file';
+			return;
+		}
+
+		// Validate file size (max 10MB as per backend)
+		if (file.size > 10 * 1024 * 1024) {
+			fileError = 'File size must be less than 10MB';
 			return;
 		}
 
 		fileError = null;
 		uploadedFile = file;
+	}
 
-		// In real implementation, this would trigger API call to extract resume data
-		// For now, we'll populate with sample data when file is uploaded
-		setTimeout(() => {
-			resumeData = {
-				contactInfo: {
-					fullName: 'John Doe',
-					email: 'john.doe@example.com',
-					phone: '+1 (555) 123-4567',
-					address: 'San Francisco, CA',
-					links: [
-						{ name: 'LinkedIn', url: 'https://linkedin.com/in/johndoe' },
-						{ name: 'GitHub', url: 'https://github.com/johndoe' }
-					]
-				},
-				summary: 'Experienced software engineer with 5+ years building scalable web applications.',
-				skills: ['JavaScript', 'TypeScript', 'React', 'Node.js', 'Python']
-			};
-		}, 500);
+	async function handleFileUpload() {
+		if (!uploadedFile || isExtracting) return;
+
+		try {
+			isExtracting = true;
+			fileError = null;
+
+			// Create FormData with the file
+			const formData = new FormData();
+			formData.append('document', uploadedFile);
+
+			// Extract resume using the remote function
+			const result = await extractResume(formData);
+
+			// Update resumeData with extracted fields
+			if (result.extractedFields) {
+				resumeData = result.extractedFields;
+			}
+		} catch (err) {
+			fileError = err instanceof Error ? err.message : 'Failed to extract resume';
+			console.error('Failed to extract resume:', err);
+		} finally {
+			isExtracting = false;
+		}
 	}
 
 	function handleFileInput(e: Event) {
@@ -166,6 +225,11 @@
 		if (files && files.length > 0) {
 			handleFileSelect(files[0]);
 		}
+	}
+
+	// Function to finish onboarding and go to dashboard
+	async function finishOnboarding() {
+		await goto('/app');
 	}
 </script>
 
@@ -254,7 +318,21 @@
 			ondragleave={handleDragLeave}
 			ondrop={handleDrop}
 		>
-			{#if uploadedFile}
+			{#if isExtracting}
+				<div class="space-y-4">
+					<div
+						class="bg-primary/10 mx-auto flex h-16 w-16 items-center justify-center rounded-full animate-pulse"
+					>
+						<Loader2 class="text-primary h-8 w-8 animate-spin" />
+					</div>
+					<div>
+						<p class="font-medium">Extracting Resume Data...</p>
+						<p class="text-muted-foreground text-sm">
+							This may take a few moments
+						</p>
+					</div>
+				</div>
+			{:else if uploadedFile}
 				<div class="space-y-4">
 					<div
 						class="bg-primary/10 mx-auto flex h-16 w-16 items-center justify-center rounded-full"
@@ -274,6 +352,7 @@
 							uploadedFile = null;
 							fileError = null;
 						}}
+						disabled={isExtracting}
 					>
 						Remove File
 					</Button>
@@ -287,10 +366,10 @@
 						<p class="font-medium">Drop your resume here</p>
 						<p class="text-muted-foreground text-sm">or click to browse</p>
 					</div>
-					<p class="text-muted-foreground text-xs">Supports PDF, DOCX, DOC, and TXT (max 5MB)</p>
+					<p class="text-muted-foreground text-xs">Supports PDF, TXT, and Markdown (max 10MB)</p>
 					<input
 						type="file"
-						accept=".pdf,.doc,.docx,.txt"
+						accept=".pdf,.txt,.md"
 						onchange={handleFileInput}
 						class="hidden"
 						id="file-upload"
@@ -509,7 +588,7 @@
 			</div>
 		</div>
 		<div class="pt-4">
-			<Button size="lg" onclick={() => (window.location.href = '/app')}>Go to Dashboard</Button>
+			<Button size="lg" onclick={finishOnboarding}>Go to Dashboard</Button>
 		</div>
 	</div>
 {/snippet}
@@ -542,19 +621,37 @@
 
 			{#if currentStep < 5}
 				<CardFooter class="flex justify-between">
-					<Button variant="outline" onclick={previousStep} disabled={currentStep === 1}>
+					<Button variant="outline" onclick={previousStep} disabled={currentStep === 1 || isExtracting || isSaving}>
 						<ChevronLeft class="mr-2 h-4 w-4" />
 						Previous
 					</Button>
 
 					<div class="flex gap-2">
 						{#if currentStep === 4}
-							<Button variant="ghost" onclick={skipStep}>Skip</Button>
+							<Button variant="ghost" onclick={skipStep} disabled={isSaving}>
+								{#if isSaving}
+									<Loader2 class="mr-2 h-4 w-4 animate-spin" />
+									Saving...
+								{:else}
+									Skip
+								{/if}
+							</Button>
 						{/if}
 
-						<Button onclick={nextStep} disabled={!canGoNext()}>
-							Next
-							<ChevronRight class="ml-2 h-4 w-4" />
+						<Button onclick={nextStep} disabled={!canGoNext() || isExtracting || isSaving}>
+							{#if currentStep === 2 && isExtracting}
+								<Loader2 class="mr-2 h-4 w-4 animate-spin" />
+								Extracting...
+							{:else if currentStep === 4 && isSaving}
+								<Loader2 class="mr-2 h-4 w-4 animate-spin" />
+								Saving...
+							{:else if currentStep === 4}
+								Finish
+								<CheckCircle class="ml-2 h-4 w-4" />
+							{:else}
+								Next
+								<ChevronRight class="ml-2 h-4 w-4" />
+							{/if}
 						</Button>
 					</div>
 				</CardFooter>

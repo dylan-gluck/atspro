@@ -19,8 +19,10 @@
 		Menu
 	} from 'lucide-svelte';
 	import ModeToggle from '@/components/mode-toggle.svelte';
+	import { authClient } from '$lib/auth-client';
+	import type { LayoutData } from './$types';
 
-	let { children } = $props();
+	let { children, data }: { children: any; data: LayoutData } = $props();
 
 	// Navigation items with their routes
 	const navItems = [
@@ -30,12 +32,18 @@
 		{ title: 'Settings', href: '/app/settings', icon: Settings }
 	];
 
-	// Placeholder user data
-	const user = {
-		name: 'John Doe',
-		email: 'john.doe@example.com',
-		avatar: 'JD'
-	};
+	// Get user data from server
+	const user = $derived({
+		name: data.user?.name || 'User',
+		email: data.user?.email || '',
+		avatar: data.user?.name?.slice(0, 2).toUpperCase() || 'U'
+	});
+
+	// Handle logout
+	async function handleLogout() {
+		await authClient.signOut();
+		goto('/auth/sign-in');
+	}
 </script>
 
 <ModeWatcher />
@@ -119,7 +127,7 @@
 									<span>Settings</span>
 								</DropdownMenu.Item>
 								<DropdownMenu.Separator />
-								<DropdownMenu.Item>
+								<DropdownMenu.Item onclick={handleLogout}>
 									<LogOut class="mr-2 size-4" />
 									<span>Log out</span>
 								</DropdownMenu.Item>
@@ -183,7 +191,7 @@
 									<span>Settings</span>
 								</DropdownMenu.Item>
 								<DropdownMenu.Separator />
-								<DropdownMenu.Item>
+								<DropdownMenu.Item onclick={handleLogout}>
 									<LogOut class="mr-2 size-4" />
 									<span>Log out</span>
 								</DropdownMenu.Item>

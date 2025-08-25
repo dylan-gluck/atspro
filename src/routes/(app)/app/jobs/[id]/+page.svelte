@@ -9,6 +9,8 @@
 	import * as AlertDialog from '$lib/components/ui/alert-dialog';
 	import { Textarea } from '$lib/components/ui/textarea';
 	import { Separator } from '$lib/components/ui/separator';
+	import { Skeleton } from '$lib/components/ui/skeleton';
+	import { toast } from 'svelte-sonner';
 	import {
 		ArrowLeft,
 		Edit,
@@ -24,129 +26,52 @@
 		Sparkles,
 		Clock,
 		CheckCircle2,
-		Eye
+		Eye,
+		Loader2
 	} from 'lucide-svelte';
 	import type { UserJob, JobStatus, JobDocument, JobActivity } from '$lib/types/user-job';
+	
+	// Import remote functions
+	import { getJob, updateJobStatus, updateJobNotes, deleteJob } from '$lib/services/job.remote';
+	import { optimizeResume, generateCoverLetter, generateCompanyResearch } from '$lib/services/document.remote';
+	import { getJobActivity } from '$lib/services/activity.remote';
+	import { getResume } from '$lib/services/resume.remote';
 
 	// Get job ID from URL
 	let jobId = $derived(page.params.id);
 
-	// Placeholder job data - in real app, this would come from a load function
-	let job = $state<UserJob>({
-		id: jobId,
-		userId: 'user1',
-		company: 'OpenAI',
-		title: 'Senior Frontend Engineer',
-		description: `We're looking for a talented Senior Frontend Engineer to join our team and help build the next generation of AI-powered interfaces.
+	// Fetch job data using remote functions
+	let jobQuery = $derived(getJob(jobId));
+	let job = $derived(jobQuery.data?.job);
+	let documents = $derived(jobQuery.data?.documents || []);
+	let jobLoading = $derived(jobQuery.loading);
+	let jobError = $derived(jobQuery.error);
 
-### About the Role
-You'll be working on cutting-edge web applications that make AI accessible to millions of users worldwide. This role involves close collaboration with our AI research team to create intuitive, performant, and beautiful user experiences.
+	// Fetch activity data
+	let activityQuery = $derived(getJobActivity({ jobId, limit: 20 }));
+	let activities = $derived(activityQuery.data?.activities || []);
+	let activityLoading = $derived(activityQuery.loading);
 
-### What You'll Do
-- Design and implement responsive, accessible web applications
-- Collaborate with designers and researchers to bring innovative AI features to life
-- Optimize application performance and user experience
-- Mentor junior engineers and contribute to technical architecture decisions`,
-		responsibilities: [
-			'Build and maintain high-quality React applications',
-			'Implement real-time features using WebSockets and streaming APIs',
-			'Optimize application performance for scale',
-			'Collaborate with cross-functional teams',
-			'Participate in code reviews and technical discussions'
-		],
-		qualifications: [
-			'5+ years of frontend development experience',
-			'Expert knowledge of React, TypeScript, and modern web standards',
-			'Experience with real-time applications and WebSocket protocols',
-			'Strong understanding of web performance optimization',
-			'Excellent communication and collaboration skills'
-		],
-		logistics: [
-			'Full-time position',
-			'Hybrid work model (3 days in office)',
-			'Comprehensive health benefits',
-			'Equity compensation',
-			'401(k) matching'
-		],
-		location: ['San Francisco, CA', 'Remote (US)'],
-		salary: '$180k - $250k + equity',
-		link: 'https://openai.com/careers/senior-frontend-engineer',
-		status: 'applied' as JobStatus,
-		appliedAt: new Date('2024-01-15'),
-		createdAt: new Date('2024-01-10'),
-		updatedAt: new Date('2024-01-15')
-	});
-
-	// Placeholder documents
-	let documents = $state<JobDocument[]>([
-		{
-			id: '1',
-			jobId: jobId,
-			type: 'resume',
-			content: '# Optimized Resume\n\nTailored for OpenAI Senior Frontend Engineer position...',
-			version: 2,
-			isActive: true,
-			metadata: { atsScore: 92, keywordsMatched: 15 },
-			createdAt: new Date('2024-01-14'),
-			updatedAt: new Date('2024-01-14')
-		},
-		{
-			id: '2',
-			jobId: jobId,
-			type: 'cover',
-			content: '# Cover Letter\n\nDear OpenAI Hiring Team...',
-			version: 1,
-			isActive: true,
-			metadata: null,
-			createdAt: new Date('2024-01-14'),
-			updatedAt: new Date('2024-01-14')
-		}
-	]);
-
-	// Placeholder activities
-	let activities = $state<JobActivity[]>([
-		{
-			id: '1',
-			jobId: jobId,
-			action: 'applied',
-			description: 'Applied to position',
-			createdAt: new Date('2024-01-15')
-		},
-		{
-			id: '2',
-			jobId: jobId,
-			action: 'document_generated',
-			description: 'Generated optimized resume (v2)',
-			createdAt: new Date('2024-01-14')
-		},
-		{
-			id: '3',
-			jobId: jobId,
-			action: 'document_generated',
-			description: 'Generated cover letter',
-			createdAt: new Date('2024-01-14')
-		},
-		{
-			id: '4',
-			jobId: jobId,
-			action: 'created',
-			description: 'Added job to tracking',
-			createdAt: new Date('2024-01-10')
-		}
-	]);
+	// Fetch user's resume for document generation
+	let resumeQuery = getResume();
+	let userResume = $derived(resumeQuery.data);
 
 	// Notes state
-	let notes = $state(
-		'Initial thoughts: Great match for my skills. Focus on React performance optimization experience in the cover letter.'
-	);
+	let notes = $state(job?.notes || '');
+	let notesLoading = $state(false);
 
 	// Dialog states
 	let deleteDialogOpen = $state(false);
+	let deleteLoading = $state(false);
 	let generateResumeLoading = $state(false);
 	let generateCoverLoading = $state(false);
+	let generateResearchLoading = $state(false);
 
 	// Tab state
 	let activeTab = $state('overview');
+	
+	// Status update loading
+	let statusLoading = $state(false);
 
 	// Helper functions
 	function getStatusBadgeVariant(
@@ -225,38 +150,118 @@ You'll be working on cutting-edge web applications that make AI accessible to mi
 	}
 
 	async function generateOptimizedResume() {
+		if (!userResume) {
+			toast.error('Please complete your profile first');
+			goto('/app/resume');
+			return;
+		}
+		
 		generateResumeLoading = true;
-		// Simulate API call
-		await new Promise((resolve) => setTimeout(resolve, 2000));
-		generateResumeLoading = false;
-		// In real app, would add the new document to the documents array
-	}
-
-	async function generateCoverLetter() {
-		generateCoverLoading = true;
-		// Simulate API call
-		await new Promise((resolve) => setTimeout(resolve, 2000));
-		generateCoverLoading = false;
-		// In real app, would add the new document to the documents array
-	}
-
-	function updateStatus(newStatus: JobStatus) {
-		job.status = newStatus;
-		job.updatedAt = new Date();
-		if (newStatus === 'applied' && !job.appliedAt) {
-			job.appliedAt = new Date();
+		try {
+			const result = await optimizeResume({
+				resumeId: userResume.id,
+				jobId
+			});
+			
+			toast.success(`Resume optimized! ATS Score: ${result.optimizationScore}%`);
+			// Refresh job data to get new documents
+			await jobQuery.refresh();
+		} catch (error) {
+			toast.error('Failed to optimize resume');
+			console.error(error);
+		} finally {
+			generateResumeLoading = false;
 		}
 	}
 
-	function handleDelete() {
-		// In real app, would navigate to jobs list after deletion
-		deleteDialogOpen = false;
-		console.log('Job deleted');
+	async function generateCoverLetter() {
+		if (!userResume) {
+			toast.error('Please complete your profile first');
+			goto('/app/resume');
+			return;
+		}
+		
+		generateCoverLoading = true;
+		try {
+			const formData = new FormData();
+			formData.append('jobId', jobId);
+			formData.append('tone', 'professional');
+			
+			const result = await generateCoverLetter(formData);
+			toast.success('Cover letter generated successfully!');
+			// Refresh job data to get new documents
+			await jobQuery.refresh();
+		} catch (error) {
+			toast.error('Failed to generate cover letter');
+			console.error(error);
+		} finally {
+			generateCoverLoading = false;
+		}
+	}
+	
+	async function generateResearch() {
+		generateResearchLoading = true;
+		try {
+			const result = await generateCompanyResearch({ jobId });
+			toast.success('Company research generated!');
+			// Refresh job data to get new documents
+			await jobQuery.refresh();
+		} catch (error) {
+			toast.error('Failed to generate company research');
+			console.error(error);
+		} finally {
+			generateResearchLoading = false;
+		}
 	}
 
-	function saveNotes() {
-		// In real app, would save to database
-		console.log('Notes saved:', notes);
+	async function updateStatus(newStatus: JobStatus) {
+		if (!job) return;
+		
+		statusLoading = true;
+		try {
+			await updateJobStatus({
+				jobId,
+				status: newStatus,
+				appliedAt: newStatus === 'applied' && !job.appliedAt ? new Date().toISOString() : undefined
+			});
+			
+			toast.success(`Status updated to ${newStatus}`);
+			// Data will auto-refresh via single-flight mutation
+		} catch (error) {
+			toast.error('Failed to update status');
+			console.error(error);
+		} finally {
+			statusLoading = false;
+		}
+	}
+
+	async function handleDelete() {
+		deleteLoading = true;
+		try {
+			await deleteJob(jobId);
+			toast.success('Job deleted successfully');
+			goto('/app/jobs');
+		} catch (error) {
+			toast.error('Failed to delete job');
+			console.error(error);
+			deleteLoading = false;
+			deleteDialogOpen = false;
+		}
+	}
+
+	async function saveNotes() {
+		if (!job) return;
+		
+		notesLoading = true;
+		try {
+			await updateJobNotes({ jobId, notes });
+			toast.success('Notes saved');
+		} catch (error) {
+			toast.error('Failed to save notes');
+			console.error(error);
+		} finally {
+			notesLoading = false;
+		}
 	}
 </script>
 
@@ -342,8 +347,13 @@ You'll be working on cutting-edge web applications that make AI accessible to mi
 						disabled={generateResumeLoading}
 						class="flex-1 gap-2 sm:flex-initial"
 					>
-						<Sparkles class="h-4 w-4" />
-						{generateResumeLoading ? 'Generating...' : 'Generate Resume'}
+						{#if generateResumeLoading}
+							<Loader2 class="h-4 w-4 animate-spin" />
+							Generating...
+						{:else}
+							<Sparkles class="h-4 w-4" />
+							Generate Resume
+						{/if}
 					</Button>
 					<Button
 						onclick={generateCoverLetter}
@@ -351,8 +361,27 @@ You'll be working on cutting-edge web applications that make AI accessible to mi
 						variant="outline"
 						class="flex-1 gap-2 sm:flex-initial"
 					>
-						<FileText class="h-4 w-4" />
-						{generateCoverLoading ? 'Generating...' : 'Generate Cover Letter'}
+						{#if generateCoverLoading}
+							<Loader2 class="h-4 w-4 animate-spin" />
+							Generating...
+						{:else}
+							<FileText class="h-4 w-4" />
+							Generate Cover Letter
+						{/if}
+					</Button>
+					<Button
+						onclick={generateResearch}
+						disabled={generateResearchLoading}
+						variant="outline"
+						class="flex-1 gap-2 sm:flex-initial"
+					>
+						{#if generateResearchLoading}
+							<Loader2 class="h-4 w-4 animate-spin" />
+							Generating...
+						{:else}
+							<Building class="h-4 w-4" />
+							Company Research
+						{/if}
 					</Button>
 				</div>
 
@@ -473,7 +502,7 @@ You'll be working on cutting-edge web applications that make AI accessible to mi
 										<div>
 											<p class="font-medium">{getDocumentTypeLabel(doc.type)}</p>
 											<p class="text-muted-foreground text-sm">
-												Version {doc.version} " Created {formatDate(doc.createdAt)}
+												Version {doc.version} • Created {formatDate(doc.createdAt)}
 											</p>
 											{#if doc.metadata?.atsScore}
 												<p class="text-primary mt-1 text-sm">
@@ -542,7 +571,9 @@ You'll be working on cutting-edge web applications that make AI accessible to mi
 				</Card.Header>
 				<Card.Content>
 					<Textarea bind:value={notes} placeholder="Add your notes here..." class="min-h-[200px]" />
-					<Button onclick={saveNotes} class="mt-4">Save Notes</Button>
+					<Button onclick={saveNotes} disabled={notesLoading} class="mt-4">
+						{notesLoading ? 'Saving...' : 'Save Notes'}
+					</Button>
 				</Card.Content>
 			</Card.Root>
 		</Tabs.Content>
@@ -563,10 +594,12 @@ You'll be working on cutting-edge web applications that make AI accessible to mi
 			<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
 			<AlertDialog.Action
 				onclick={handleDelete}
+				disabled={deleteLoading}
 				class="bg-destructive text-destructive-foreground hover:bg-destructive/90"
 			>
-				Delete Application
+				{deleteLoading ? 'Deleting...' : 'Delete Application'}
 			</AlertDialog.Action>
 		</AlertDialog.Footer>
 	</AlertDialog.Content>
 </AlertDialog.Root>
+{/if}

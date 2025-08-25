@@ -31,7 +31,7 @@ export function requireAuth() {
   const userId = locals.user?.id;
   
   if (!userId) {
-    error(401, 'You must be logged in to perform this action');
+    error(401, 'Unauthorized');
   }
   
   return userId;

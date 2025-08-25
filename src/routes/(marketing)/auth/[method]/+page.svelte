@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/state';
+	import { goto } from '$app/navigation';
 	import { Button } from '$lib/components/ui/button';
 	import {
 		Card,
@@ -15,6 +16,7 @@
 	import { Separator } from '$lib/components/ui/separator';
 	import GithubIcon from '@lucide/svelte/icons/github';
 	import MailIcon from '@lucide/svelte/icons/mail';
+	import { authClient } from '$lib/auth-client';
 
 	// Get the auth method from the URL parameter
 	let method = $derived(page.params.method);
@@ -24,6 +26,8 @@
 	let password = $state('');
 	let name = $state('');
 	let rememberMe = $state(false);
+	let loading = $state(false);
+	let error = $state<string | null>(null);
 
 	// Derive form configuration based on method
 	let formConfig = $derived(() => {
@@ -89,22 +93,67 @@
 
 	let config = $derived(formConfig());
 
-	// Form submission handler (placeholder for now)
-	function handleSubmit(e: Event) {
+	// Form submission handler
+	async function handleSubmit(e: Event) {
 		e.preventDefault();
-		// Form submission logic will be added in Phase 3
-		console.log('Form submitted:', { method, email, password, name, rememberMe });
+		error = null;
+		loading = true;
+
+		try {
+			if (method === 'sign-in') {
+				await authClient.signIn.email({
+					email,
+					password,
+					rememberMe
+				});
+				goto('/app');
+			} else if (method === 'sign-up') {
+				await authClient.signUp.email({
+					email,
+					password,
+					name
+				});
+				// Sign in after successful signup
+				await authClient.signIn.email({
+					email,
+					password
+				});
+				goto('/onboarding');
+			} else if (method === 'forgot-password') {
+				// TODO: Implement password reset
+				error = 'Password reset is not yet implemented';
+			}
+		} catch (err: any) {
+			console.error('Auth error:', err);
+			error = err?.message || 'An error occurred during authentication';
+		} finally {
+			loading = false;
+		}
 	}
 
-	// Social login handlers (placeholder for now)
-	function handleGoogleLogin() {
-		// Google OAuth logic will be added later
-		console.log('Google login clicked');
+	// Social login handlers
+	async function handleGoogleLogin() {
+		loading = true;
+		try {
+			// TODO: Implement Google OAuth
+			error = 'Google login is not yet configured';
+		} catch (err: any) {
+			error = err?.message || 'Failed to login with Google';
+		} finally {
+			loading = false;
+		}
 	}
 
-	function handleGithubLogin() {
-		// GitHub OAuth logic will be added later
-		console.log('GitHub login clicked');
+	async function handleGithubLogin() {
+		loading = true;
+		try {
+			// TODO: Implement GitHub OAuth  
+			error = 'GitHub login is not yet configured';
+		} catch (err: any) {
+			error = err?.message || 'Failed to login with GitHub';
+		} finally {
+			loading = false;
+		}
 	}
 </script>
 
@@ -126,12 +175,14 @@
 			{#if method === 'sign-in' || method === 'sign-up' || method === 'forgot-password'}
 				<form onsubmit={handleSubmit}>
 					<CardContent class="space-y-4">
-						<!-- Error message placeholder -->
-						<div
-							class="border-destructive/20 bg-destructive/5 text-destructive hidden rounded-md border px-3 py-2 text-sm"
-						>
-							Error message will appear here
-						</div>
+						<!-- Error message -->
+						{#if error}
+							<div
+								class="border-destructive/20 bg-destructive/5 text-destructive rounded-md border px-3 py-2 text-sm"
+							>
+								{error}
+							</div>
+						{/if}
 
 						<!-- Name field (sign-up only) -->
 						{#if config.showName}
@@ -186,8 +237,8 @@
 						{/if}
 
 						<!-- Submit button -->
-						<Button type="submit" class="w-full">
-							{config.submitText}
+						<Button type="submit" class="w-full" disabled={loading}>
+							{loading ? 'Please wait...' : config.submitText}
 						</Button>
 
 						<!-- Social login section -->

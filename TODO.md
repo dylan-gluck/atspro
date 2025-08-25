@@ -46,13 +46,14 @@
   - [x] getJobActivity query
 
 ## Phase 5: Front-end Integration
-
-- [ ] Update onboarding flow to use remote functions
-- [ ] Update job tracker dashboard to use remote functions
-- [ ] Update job details page to use remote functions
-- [ ] Update resume editor to use remote functions
-- [ ] Implement optimistic UI with withOverride
-- [ ] Add loading states and error boundaries
+- [x] Update auth flow to use better-auth methods
+- [x] Update redirects & routing logic
+- [x] Update onboarding flow to use remote functions
+- [x] Update job tracker dashboard to use remote functions
+- [x] Update job details page to use remote functions
+- [x] Update resume editor to use remote functions
+- [x] Implement optimistic UI with withOverride
+- [x] Add loading states and error boundaries
 
 ## Phase 6: Testing & Polish
 

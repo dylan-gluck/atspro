@@ -12,7 +12,9 @@
 	import { Textarea } from '$lib/components/ui/textarea';
 	import { Badge } from '$lib/components/ui/badge';
 	import { Separator } from '$lib/components/ui/separator';
+	import { Skeleton } from '$lib/components/ui/skeleton';
 	import * as Accordion from '$lib/components/ui/accordion';
+	import { toast } from 'svelte-sonner';
 	import {
 		Plus,
 		Trash2,
@@ -22,63 +24,45 @@
 		Eye,
 		EyeOff,
 		ChevronUp,
-		ChevronDown
+		ChevronDown,
+		Loader2
 	} from 'lucide-svelte';
 	import type { Resume, WorkExperience, Education, Certification, Link } from '$lib/types/resume';
+	import { getResume, updateResume } from '$lib/services/resume.remote';
 
-	// Initialize with placeholder data
-	let resume = $state<Resume>({
+	// Fetch resume data using remote function
+	let resumeQuery = getResume();
+	let loading = $derived(resumeQuery.loading);
+	let error = $derived(resumeQuery.error);
+	let originalResume = $derived(resumeQuery.data);
+	
+	// Initialize with fetched data or empty structure
+	let resume = $state<Resume>(originalResume || {
 		contactInfo: {
-			fullName: 'John Doe',
-			email: 'john.doe@example.com',
-			phone: '+1 (555) 123-4567',
-			address: 'San Francisco, CA',
-			links: [
-				{ name: 'LinkedIn', url: 'https://linkedin.com/in/johndoe' },
-				{ name: 'GitHub', url: 'https://github.com/johndoe' }
-			]
+			fullName: '',
+			email: '',
+			phone: '',
+			address: '',
+			links: []
 		},
-		summary:
-			'Experienced software engineer with 5+ years developing scalable web applications. Passionate about clean code, user experience, and continuous learning.',
-		workExperience: [
-			{
-				company: 'Tech Corp',
-				position: 'Senior Software Engineer',
-				startDate: '2021-06',
-				endDate: null,
-				isCurrent: true,
-				description: 'Leading development of cloud-native applications',
-				responsibilities: [
-					'Architected microservices using Node.js and Kubernetes',
-					'Mentored junior developers and conducted code reviews',
-					'Improved CI/CD pipeline reducing deployment time by 40%'
-				],
-				skills: ['React', 'Node.js', 'AWS', 'Docker']
-			}
-		],
-		education: [
-			{
-				institution: 'Stanford University',
-				degree: 'Bachelor of Science',
-				fieldOfStudy: 'Computer Science',
-				graduationDate: '2018-05',
-				gpa: 3.8,
-				honors: ["Dean's List", 'Cum Laude'],
-				relevantCourses: ['Data Structures', 'Algorithms', 'Machine Learning'],
-				skills: ['Python', 'Java', 'C++']
-			}
-		],
-		certifications: [
-			{
-				name: 'AWS Certified Solutions Architect',
-				issuer: 'Amazon Web Services',
-				dateObtained: '2022-03',
-				expirationDate: '2025-03',
-				credentialId: 'AWS-123456'
-			}
-		],
-		skills: ['JavaScript', 'TypeScript', 'React', 'Node.js', 'Python', 'AWS', 'Docker', 'Git']
+		summary: '',
+		workExperience: [],
+		education: [],
+		certifications: [],
+		skills: []
 	});
+	
+	// Update local state when data is fetched
+	$effect(() => {
+		if (originalResume) {
+			resume = { ...originalResume };
+		}
+	});
+	
+	let saving = $state(false);
+	let hasChanges = $derived(
+		JSON.stringify(resume) !== JSON.stringify(originalResume)
+	);
 
 	let showPreview = $state(true);
 	let newSkill = $state('');
@@ -195,14 +179,45 @@
 		accordionValue = newOrder;
 	}
 
-	function handleSave() {
-		// Placeholder for save functionality
-		console.log('Saving resume:', resume);
+	async function handleSave() {
+		if (!hasChanges) {
+			toast.info('No changes to save');
+			return;
+		}
+		
+		saving = true;
+		try {
+			await updateResume(resume);
+			toast.success('Resume saved successfully!');
+			// Refresh data to update originalResume
+			await resumeQuery.refresh();
+		} catch (error) {
+			toast.error('Failed to save resume');
+			console.error(error);
+		} finally {
+			saving = false;
+		}
 	}
 
 	function handleCancel() {
-		// Placeholder for cancel functionality
-		console.log('Cancelling changes');
+		if (hasChanges) {
+			// Reset to original data
+			resume = originalResume ? { ...originalResume } : {
+				contactInfo: {
+					fullName: '',
+					email: '',
+					phone: '',
+					address: '',
+					links: []
+				},
+				summary: '',
+				workExperience: [],
+				education: [],
+				certifications: [],
+				skills: []
+			};
+			toast.info('Changes discarded');
+		}
 	}
 </script>
 
@@ -211,6 +226,26 @@
 </svelte:head>
 
 <div class="container mx-auto p-6">
+	{#if loading}
+		<div class="space-y-4">
+			<Skeleton class="h-8 w-48" />
+			<Skeleton class="h-6 w-64" />
+			<div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+				<Skeleton class="h-96" />
+				<Skeleton class="h-96" />
+			</div>
+		</div>
+	{:else if error}
+		<Card>
+			<CardContent class="pt-6">
+				<div class="text-center">
+					<p class="text-muted-foreground mb-4">Failed to load resume</p>
+					<p class="text-destructive mb-4 text-sm">{error}</p>
+					<Button onclick={() => resumeQuery.refresh()}>Retry</Button>
+				</div>
+			</CardContent>
+		</Card>
+	{:else}
 	<!-- Header with action buttons -->
 	<div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 		<div>
@@ -227,13 +262,18 @@
 					Show Preview
 				{/if}
 			</Button>
-			<Button variant="outline" onclick={handleCancel}>
+			<Button variant="outline" onclick={handleCancel} disabled={saving || !hasChanges}>
 				<X class="mr-2 h-4 w-4" />
 				Cancel
 			</Button>
-			<Button onclick={handleSave}>
-				<Save class="mr-2 h-4 w-4" />
-				Save Changes
+			<Button onclick={handleSave} disabled={saving || !hasChanges}>
+				{#if saving}
+					<Loader2 class="mr-2 h-4 w-4 animate-spin" />
+					Saving...
+				{:else}
+					<Save class="mr-2 h-4 w-4" />
+					Save Changes
+				{/if}
 			</Button>
 		</div>
 	</div>
@@ -951,4 +991,5 @@
 			</div>
 		{/if}
 	</div>
+	{/if}
 </div>
