@@ -2,6 +2,15 @@ import { query, form, command } from '$app/server';
 import { error } from '@sveltejs/kit';
 import * as v from 'valibot';
 import { db } from '$lib/db';
+import type { UserResume } from '$lib/types/user-resume';
+import type { UserJob } from '$lib/types/user-job';
+import type {
+	ContactInfo,
+	WorkExperience,
+	Education,
+	Certification,
+	Resume
+} from '$lib/types/resume';
 import {
 	optimizeResume as optimizeResumeWithAI,
 	generateCoverLetter as generateCoverLetterWithAI
@@ -226,7 +235,9 @@ export const generateCompanyResearch = command(companyResearchSchema, async ({ j
 });
 
 // Helper function to format optimized resume
-function formatOptimizedResume(optimized: any): string {
+function formatOptimizedResume(
+	optimized: Resume & { score?: number; keywords?: string[] }
+): string {
 	const { contactInfo, summary, workExperience, education, certifications, skills } = optimized;
 
 	let content = `# ${contactInfo.fullName}\n\n`;
@@ -237,7 +248,7 @@ function formatOptimizedResume(optimized: any): string {
 
 	if (contactInfo.links?.length > 0) {
 		content += '\n';
-		contactInfo.links.forEach((link: any) => {
+		contactInfo.links.forEach((link) => {
 			content += `[${link.name}](${link.url})\n`;
 		});
 	}
@@ -248,7 +259,7 @@ function formatOptimizedResume(optimized: any): string {
 
 	if (workExperience?.length > 0) {
 		content += '\n## Work Experience\n';
-		workExperience.forEach((exp: any) => {
+		workExperience.forEach((exp) => {
 			content += `\n### ${exp.position} at ${exp.company}\n`;
 			if (exp.startDate || exp.endDate) {
 				content += `${exp.startDate || ''} - ${exp.isCurrent ? 'Present' : exp.endDate || ''}\n`;
@@ -267,7 +278,7 @@ function formatOptimizedResume(optimized: any): string {
 
 	if (education?.length > 0) {
 		content += '\n## Education\n';
-		education.forEach((edu: any) => {
+		education.forEach((edu) => {
 			content += `\n### ${edu.degree} in ${edu.fieldOfStudy || 'General Studies'}\n`;
 			content += `${edu.institution}`;
 			if (edu.graduationDate) content += ` - ${edu.graduationDate}`;
@@ -281,7 +292,7 @@ function formatOptimizedResume(optimized: any): string {
 
 	if (certifications?.length > 0) {
 		content += '\n## Certifications\n';
-		certifications.forEach((cert: any) => {
+		certifications.forEach((cert) => {
 			content += `- **${cert.name}** - ${cert.issuer}`;
 			if (cert.dateObtained) content += ` (${cert.dateObtained})`;
 			content += '\n';
@@ -296,7 +307,9 @@ function formatOptimizedResume(optimized: any): string {
 }
 
 // Helper function to format optimized resume as HTML
-function formatOptimizedResumeAsHTML(optimized: any): string {
+function formatOptimizedResumeAsHTML(
+	optimized: Resume & { score?: number; keywords?: string[] }
+): string {
 	const { contactInfo, summary, workExperience, education, certifications, skills } = optimized;
 
 	let html = `<div class="resume">`;
@@ -312,7 +325,7 @@ function formatOptimizedResumeAsHTML(optimized: any): string {
 
 	if (contactInfo.links?.length > 0) {
 		html += `<div class="links">`;
-		contactInfo.links.forEach((link: any) => {
+		contactInfo.links.forEach((link) => {
 			html += `<a href="${link.url}" target="_blank">${link.name}</a>`;
 		});
 		html += `</div>`;
@@ -325,7 +338,7 @@ function formatOptimizedResumeAsHTML(optimized: any): string {
 
 	if (workExperience?.length > 0) {
 		html += `<section class="resume-section"><h2>Work Experience</h2>`;
-		workExperience.forEach((exp: any) => {
+		workExperience.forEach((exp) => {
 			html += `<div class="experience-item">`;
 			html += `<h3>${exp.position} at ${exp.company}</h3>`;
 			if (exp.startDate || exp.endDate) {
@@ -348,7 +361,7 @@ function formatOptimizedResumeAsHTML(optimized: any): string {
 
 	if (education?.length > 0) {
 		html += `<section class="resume-section"><h2>Education</h2>`;
-		education.forEach((edu: any) => {
+		education.forEach((edu) => {
 			html += `<div class="education-item">`;
 			html += `<h3>${edu.degree} in ${edu.fieldOfStudy || 'General Studies'}</h3>`;
 			html += `<p>${edu.institution}`;
@@ -365,7 +378,7 @@ function formatOptimizedResumeAsHTML(optimized: any): string {
 
 	if (certifications?.length > 0) {
 		html += `<section class="resume-section"><h2>Certifications</h2><ul>`;
-		certifications.forEach((cert: any) => {
+		certifications.forEach((cert) => {
 			html += `<li><strong>${cert.name}</strong> - ${cert.issuer}`;
 			if (cert.dateObtained) html += ` (${cert.dateObtained})`;
 			html += `</li>`;
@@ -382,7 +395,7 @@ function formatOptimizedResumeAsHTML(optimized: any): string {
 }
 
 // Helper function to generate company research with AI
-async function generateCompanyResearchContent(job: any): Promise<string> {
+async function generateCompanyResearchContent(job: UserJob): Promise<string> {
 	// Import AI functions
 	const { generateText } = await import('ai');
 	const { createAnthropic } = await import('@ai-sdk/anthropic');

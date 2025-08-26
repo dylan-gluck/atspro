@@ -33,9 +33,9 @@ Sentry.init({
 });
 
 // Set user context when authentication state changes
-authClient.getSession().then((session: any) => {
-	if (session?.user) {
-		const userContext = getSentryUserContext(session.user);
+authClient.getSession().then((result) => {
+	if (result?.data?.user) {
+		const userContext = getSentryUserContext(result.data.user);
 		if (userContext) {
 			Sentry.setUser(userContext);
 		}
@@ -46,7 +46,7 @@ authClient.getSession().then((session: any) => {
 export const handleError = handleErrorWithSentry();
 
 // Optional: Add custom error handling
-export function handleCustomError(error: Error, context?: Record<string, any>) {
+export function handleCustomError(error: Error, context?: Record<string, unknown>) {
 	// Log to console in development
 	if (import.meta.env.DEV) {
 		console.error('Client error:', error, context);

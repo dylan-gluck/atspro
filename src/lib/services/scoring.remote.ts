@@ -2,6 +2,7 @@ import { command } from '$app/server';
 import * as v from 'valibot';
 import { requireAuth } from './utils';
 import { extractATSKeywords, scoreResumewithAI } from '$lib/ai';
+import type { ATSAnalysis, FormattingAnalysis, SectionAnalysis } from '$lib/types/ats-scoring';
 
 // ATS Scoring schema
 const calculateATSScoreSchema = v.object({
@@ -64,7 +65,7 @@ export const calculateATSScore = command(
 );
 
 // Analyze content against job description
-function analyzeContent(content: string, jobDescription: string) {
+function analyzeContent(content: string, jobDescription: string): ATSAnalysis {
 	const contentLower = content.toLowerCase();
 	const jobLower = jobDescription.toLowerCase();
 
@@ -102,7 +103,7 @@ function analyzeContent(content: string, jobDescription: string) {
 }
 
 // Calculate ATS score based on analysis
-function calculateScore(analysis: any): number {
+function calculateScore(analysis: ATSAnalysis): number {
 	let score = 0;
 
 	// Keyword matching (40 points)
@@ -209,7 +210,7 @@ function extractKeywords(text: string): string[] {
 }
 
 // Analyze formatting for ATS compatibility
-function analyzeFormatting(content: string): any {
+function analyzeFormatting(content: string): FormattingAnalysis {
 	return {
 		hasProperHeaders: /##?\s+(experience|education|skills|summary)/i.test(content),
 		hasContactInfo: /email:|phone:|address:/i.test(content) || /@.*\./i.test(content),
@@ -282,7 +283,7 @@ function findActionVerbs(content: string): string[] {
 }
 
 // Analyze section structure
-function analyzeSections(content: string): any {
+function analyzeSections(content: string): SectionAnalysis {
 	const contentLower = content.toLowerCase();
 	return {
 		hasSummary: /(summary|objective|profile)\s*[:|\n]/i.test(contentLower),
@@ -309,7 +310,7 @@ function calculateKeywordDensity(content: string, keywords: string[]): number {
 }
 
 // Generate recommendations based on analysis
-function generateRecommendations(analysis: any, jobDescription: string): string[] {
+function generateRecommendations(analysis: ATSAnalysis, jobDescription: string): string[] {
 	const recommendations = [];
 
 	// Keyword recommendations

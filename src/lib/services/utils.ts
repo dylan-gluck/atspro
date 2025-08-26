@@ -15,8 +15,8 @@ export async function checkRateLimitV2(endpoint: string) {
 
 	try {
 		await enforceRateLimit(session, endpoint);
-	} catch (err: any) {
-		if (err.name === 'RateLimitError') {
+	} catch (err: unknown) {
+		if (err instanceof Error && err.name === 'RateLimitError') {
 			const rateLimitHeaders = await getRateLimitHeaders(session, endpoint);
 			// Set headers on the response
 			Object.entries(rateLimitHeaders).forEach(([key, value]) => {
@@ -113,7 +113,7 @@ export function validateFile(
 }
 
 // Logging helper
-export function logActivity(action: string, userId: string, metadata?: Record<string, any>) {
+export function logActivity(action: string, userId: string, metadata?: Record<string, unknown>) {
 	// In production, this would send to a logging service
 	console.log(
 		JSON.stringify({
