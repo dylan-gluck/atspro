@@ -1,13 +1,13 @@
 # TODO
 
-## Phase 6: Missing Core Features
+## Phase 1: Testing
 
-- [x] Fix PDF resume upload, only .txt files working currently.
-- [ ] Fix Add Job flow, currently not working.
-- [ ] Add functionality to Dashboard buttons (Edit Resume, Add Job)
+- [ ] Write unit tests & integration tests
+- [ ] Write End-to-end tests
 
-## Phase 7: Testing
+## Phase 2: Missing Core Functionality
 
-- [ ] Write unit tests for remote functions
-- [ ] Write integration tests for service flows
-- [ ] Error tracking and logging setup
+- [ ] Optimize resume, add resume markdown content to db as job document
+- [ ] Calculate ATS Score, original resume vs optimized vs job description
+- [ ] Company research, web search + scrape generate job document
+- [ ] Download optimized resume as PDF, markdown to PDF (Maybe: https://www.npmjs.com/package/markdown-pdf)

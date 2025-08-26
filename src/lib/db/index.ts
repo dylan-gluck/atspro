@@ -257,6 +257,7 @@ export const activity = {
 function generateActivityDescription(type: JobActivityType, metadata?: any): string {
 	const descriptions: Record<JobActivityType, string> = {
 		job_added: `Job added${metadata?.source ? ` from ${metadata.source}` : ''}`,
+		job_updated: `Job updated${metadata?.updatedFields ? ` (${metadata.updatedFields.join(', ')})` : ''}`,
 		status_change: `Status changed${metadata ? ` to ${metadata.newStatus}` : ''}`,
 		document_generated: `Generated ${metadata?.type || 'document'}`,
 		note_added: 'Added notes',

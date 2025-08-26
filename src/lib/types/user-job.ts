@@ -41,6 +41,7 @@ export interface JobDocument {
 
 export type JobActivityType =
 	| 'job_added'
+	| 'job_updated'
 	| 'status_change'
 	| 'document_generated'
 	| 'note_added'

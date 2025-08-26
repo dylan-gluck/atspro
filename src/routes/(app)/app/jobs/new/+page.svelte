@@ -418,16 +418,16 @@
 		isSubmitting = true;
 		
 		try {
-			// Submit the form and get the result
-			const result = await submit();
+			// Submit the form
+			await submit();
 			
 			// The form submission was successful and returned data
 			toast.success('Job extracted and added successfully!');
 			
 			// Navigate to the newly created job page
-			// The result contains { jobId, extractedData } from the extractJob function
-			if (result?.jobId) {
-				goto(`/app/jobs/${result.jobId}`);
+			// The result is available via extractJob.result after submission
+			if (extractJob.result?.jobId) {
+				goto(`/app/jobs/${extractJob.result.jobId}`);
 			}
 		} catch (error) {
 			// An actual error occurred during extraction
