@@ -1,4 +1,5 @@
 <script lang="ts">
+	import '$lib/app.css';
 	import { Button } from '$lib/components/ui/button';
 	import {
 		Card,
@@ -25,8 +26,17 @@
 		Loader2
 	} from 'lucide-svelte';
 	import type { Resume } from '$lib/types/resume';
-	import { extractResume, updateResume } from '$lib/services/resume.remote';
 	import { goto } from '$app/navigation';
+	import { extractResume, updateResume } from '$lib/services/resume.remote';
+	
+	$effect(() => {
+		console.log('[onboarding] extractResume object:', extractResume);
+		console.log('[onboarding] extractResume properties:', Object.keys(extractResume));
+		if (extractResume) {
+			console.log('[onboarding] extractResume.action:', extractResume.action);
+			console.log('[onboarding] extractResume.method:', extractResume.method);
+		}
+	});
 
 	// State management using Svelte 5 runes
 	let currentStep = $state(1);
@@ -38,6 +48,10 @@
 	let fileError = $state<string | null>(null);
 	let isExtracting = $state(false);
 	let isSaving = $state(false);
+	
+	// Reference to hidden form and file input for programmatic submission
+	let extractResumeForm: HTMLFormElement;
+	let hiddenFileInput: HTMLInputElement;
 
 	// Resume data state (will be populated when we integrate with API)
 	let resumeData = $state<Partial<Resume>>({
@@ -88,11 +102,17 @@
 
 		// When moving from upload step to review step, extract the resume
 		if (currentStep === 2 && uploadedFile) {
-			await handleFileUpload();
-			// Only advance if extraction was successful
-			if (resumeData.contactInfo?.fullName) {
-				currentStep++;
+			// Add file to hidden input and submit form
+			if (extractResumeForm && hiddenFileInput) {
+				// Create a DataTransfer to set files on the input
+				const dataTransfer = new DataTransfer();
+				dataTransfer.items.add(uploadedFile);
+				hiddenFileInput.files = dataTransfer.files;
+				
+				// Submit the form
+				extractResumeForm.requestSubmit();
 			}
+			// The form submission handler will advance to the next step if successful
 		} else if (currentStep === 4) {
 			// When finishing preferences step, save the resume
 			await saveResume();
@@ -117,15 +137,15 @@
 	// Save resume to database
 	async function saveResume() {
 		if (isSaving) return;
-		
+
 		try {
 			isSaving = true;
 			fileError = null;
 
-			// Update the resume with the edited data
+			// Update resume using remote function
 			await updateResume({
 				contactInfo: resumeData.contactInfo,
-				summary: resumeData.summary,
+				summary: resumeData.summary || undefined,
 				workExperience: resumeData.workExperience,
 				education: resumeData.education,
 				certifications: resumeData.certifications,
@@ -165,15 +185,13 @@
 
 	function handleFileSelect(file: File) {
 		// Validate file type (note: the backend only accepts PDF, markdown, and plain text)
-		const validTypes = [
-			'application/pdf',
-			'text/plain',
-			'text/markdown'
-		];
-		
+		const validTypes = ['application/pdf', 'text/plain', 'text/markdown'];
+
 		// Map DOCX to plain text for now (user will need to convert)
-		if (file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
-			file.type === 'application/msword') {
+		if (
+			file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
+			file.type === 'application/msword'
+		) {
 			fileError = 'Please convert your document to PDF or TXT format first';
 			return;
 		}
@@ -191,32 +209,6 @@
 
 		fileError = null;
 		uploadedFile = file;
-	}
-
-	async function handleFileUpload() {
-		if (!uploadedFile || isExtracting) return;
-
-		try {
-			isExtracting = true;
-			fileError = null;
-
-			// Create FormData with the file
-			const formData = new FormData();
-			formData.append('document', uploadedFile);
-
-			// Extract resume using the remote function
-			const result = await extractResume(formData);
-
-			// Update resumeData with extracted fields
-			if (result.extractedFields) {
-				resumeData = result.extractedFields;
-			}
-		} catch (err) {
-			fileError = err instanceof Error ? err.message : 'Failed to extract resume';
-			console.error('Failed to extract resume:', err);
-		} finally {
-			isExtracting = false;
-		}
 	}
 
 	function handleFileInput(e: Event) {
@@ -317,19 +309,19 @@
 			ondragover={handleDragOver}
 			ondragleave={handleDragLeave}
 			ondrop={handleDrop}
+			role="region"
+			aria-label="Resume upload area"
 		>
 			{#if isExtracting}
 				<div class="space-y-4">
 					<div
-						class="bg-primary/10 mx-auto flex h-16 w-16 items-center justify-center rounded-full animate-pulse"
+						class="bg-primary/10 mx-auto flex h-16 w-16 animate-pulse items-center justify-center rounded-full"
 					>
 						<Loader2 class="text-primary h-8 w-8 animate-spin" />
 					</div>
 					<div>
 						<p class="font-medium">Extracting Resume Data...</p>
-						<p class="text-muted-foreground text-sm">
-							This may take a few moments
-						</p>
+						<p class="text-muted-foreground text-sm">This may take a few moments</p>
 					</div>
 				</div>
 			{:else if uploadedFile}
@@ -369,13 +361,16 @@
 					<p class="text-muted-foreground text-xs">Supports PDF, TXT, and Markdown (max 10MB)</p>
 					<input
 						type="file"
+						name="document"
 						accept=".pdf,.txt,.md"
 						onchange={handleFileInput}
 						class="hidden"
 						id="file-upload"
 					/>
-					<label for="file-upload">
-						<Button variant="outline" as="span" class="cursor-pointer">Choose File</Button>
+					<label for="file-upload" class="cursor-pointer">
+						<span class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2">
+							Choose File
+						</span>
 					</label>
 				</div>
 			{/if}
@@ -394,6 +389,44 @@
 				your consent.
 			</AlertDescription>
 		</Alert>
+		
+		<!-- Hidden form for extracting resume -->
+		<form
+			class="hidden"
+			enctype="multipart/form-data"
+			bind:this={extractResumeForm}
+			{...extractResume.enhance(async ({ form, data, submit }) => {
+				console.log('[enhance] Form action:', form.action);
+				console.log('[enhance] Form method:', form.method);
+				console.log('[enhance] Starting form submission');
+				console.log('[enhance] FormData entries:', Array.from(data.entries()).map(([k, v]) => `${k}: ${v instanceof File ? `File(${v.name}, ${v.size} bytes)` : v}`));
+				
+				isExtracting = true;
+				fileError = null;
+				
+				try {
+					const result = await submit();
+					console.log('[enhance] Submit result:', result);
+					
+					// Update resume data with extracted fields
+					if (extractResume.result?.extractedFields) {
+						resumeData = extractResume.result.extractedFields;
+						console.log('[enhance] Resume data updated');
+						// Move to next step after successful extraction
+						currentStep++;
+					} else {
+						console.log('[enhance] No extractedFields in result');
+					}
+				} catch (err) {
+					console.error('[enhance] Submit error:', err);
+					fileError = err instanceof Error ? err.message : 'Failed to extract resume';
+				} finally {
+					isExtracting = false;
+				}
+			})}
+		>
+			<input type="file" name="document" bind:this={hiddenFileInput} style="display: none" />
+		</form>
 	</div>
 {/snippet}
 
@@ -409,7 +442,7 @@
 				<Label for="fullName">Full Name</Label>
 				<Input
 					id="fullName"
-					bind:value={resumeData.contactInfo.fullName}
+					bind:value={resumeData.contactInfo!.fullName}
 					placeholder="Enter your full name"
 				/>
 			</div>
@@ -420,7 +453,7 @@
 					<Input
 						id="email"
 						type="email"
-						bind:value={resumeData.contactInfo.email}
+						bind:value={resumeData.contactInfo!.email}
 						placeholder="your@email.com"
 					/>
 				</div>
@@ -429,7 +462,7 @@
 					<Input
 						id="phone"
 						type="tel"
-						bind:value={resumeData.contactInfo.phone}
+						bind:value={resumeData.contactInfo!.phone}
 						placeholder="+1 (555) 123-4567"
 					/>
 				</div>
@@ -437,7 +470,7 @@
 
 			<div class="space-y-2">
 				<Label for="address">Location</Label>
-				<Input id="address" bind:value={resumeData.contactInfo.address} placeholder="City, State" />
+				<Input id="address" bind:value={resumeData.contactInfo!.address} placeholder="City, State" />
 			</div>
 
 			<div class="space-y-2">
@@ -588,7 +621,7 @@
 			</div>
 		</div>
 		<div class="pt-4">
-			<Button size="lg" onclick={finishOnboarding}>Go to Dashboard</Button>
+			<Button size="lg" onclick={() => finishOnboarding()}>Go to Dashboard</Button>
 		</div>
 	</div>
 {/snippet}
@@ -621,14 +654,18 @@
 
 			{#if currentStep < 5}
 				<CardFooter class="flex justify-between">
-					<Button variant="outline" onclick={previousStep} disabled={currentStep === 1 || isExtracting || isSaving}>
+					<Button
+						variant="outline"
+						onclick={() => previousStep()}
+						disabled={currentStep === 1 || isExtracting || isSaving}
+					>
 						<ChevronLeft class="mr-2 h-4 w-4" />
 						Previous
 					</Button>
 
 					<div class="flex gap-2">
 						{#if currentStep === 4}
-							<Button variant="ghost" onclick={skipStep} disabled={isSaving}>
+							<Button variant="ghost" onclick={() => skipStep()} disabled={isSaving}>
 								{#if isSaving}
 									<Loader2 class="mr-2 h-4 w-4 animate-spin" />
 									Saving...
@@ -638,7 +675,7 @@
 							</Button>
 						{/if}
 
-						<Button onclick={nextStep} disabled={!canGoNext() || isExtracting || isSaving}>
+						<Button onclick={() => nextStep()} disabled={!canGoNext() || isExtracting || isSaving}>
 							{#if currentStep === 2 && isExtracting}
 								<Loader2 class="mr-2 h-4 w-4 animate-spin" />
 								Extracting...

@@ -12,7 +12,6 @@
 	import { Textarea } from '$lib/components/ui/textarea';
 	import { Badge } from '$lib/components/ui/badge';
 	import { Separator } from '$lib/components/ui/separator';
-	import { Skeleton } from '$lib/components/ui/skeleton';
 	import * as Accordion from '$lib/components/ui/accordion';
 	import { toast } from 'svelte-sonner';
 	import {
@@ -28,40 +27,39 @@
 		Loader2
 	} from 'lucide-svelte';
 	import type { Resume, WorkExperience, Education, Certification, Link } from '$lib/types/resume';
-	import { getResume, updateResume } from '$lib/services/resume.remote';
-
+	import type { UserResume } from '$lib/types/user-resume';
+	import { updateResume, getResume } from '$lib/services/resume.remote';
+	import { goto } from '$app/navigation';
+	
 	// Fetch resume data using remote function
-	let resumeQuery = getResume();
-	let loading = $derived(resumeQuery.loading);
-	let error = $derived(resumeQuery.error);
-	let originalResume = $derived(resumeQuery.data);
+	let resumePromise = $state(getResume());
+	let originalResume = $state<UserResume | null>(null);
+	let resume = $state<UserResume | null>(null);
+	let loading = $state(true);
 	
-	// Initialize with fetched data or empty structure
-	let resume = $state<Resume>(originalResume || {
-		contactInfo: {
-			fullName: '',
-			email: '',
-			phone: '',
-			address: '',
-			links: []
-		},
-		summary: '',
-		workExperience: [],
-		education: [],
-		certifications: [],
-		skills: []
-	});
-	
-	// Update local state when data is fetched
+	// Load resume data on mount
 	$effect(() => {
-		if (originalResume) {
-			resume = { ...originalResume };
-		}
+		(async () => {
+			try {
+				const resumeData = await resumePromise;
+				if (!resumeData) {
+					// No resume found, redirect to onboarding
+					goto('/onboarding');
+					return;
+				}
+				originalResume = resumeData;
+				resume = { ...resumeData };
+				loading = false;
+			} catch (error) {
+				console.error('Failed to load resume:', error);
+				loading = false;
+			}
+		})();
 	});
 	
 	let saving = $state(false);
 	let hasChanges = $derived(
-		JSON.stringify(resume) !== JSON.stringify(originalResume)
+		resume && originalResume ? JSON.stringify(resume) !== JSON.stringify(originalResume) : false
 	);
 
 	let showPreview = $state(true);
@@ -77,6 +75,7 @@
 
 	// Helper functions for managing dynamic lists
 	function addWorkExperience() {
+		if (!resume) return;
 		resume.workExperience = [
 			...resume.workExperience,
 			{
@@ -93,10 +92,12 @@
 	}
 
 	function removeWorkExperience(index: number) {
+		if (!resume) return;
 		resume.workExperience = resume.workExperience.filter((_, i) => i !== index);
 	}
 
 	function addEducation() {
+		if (!resume) return;
 		resume.education = [
 			...resume.education,
 			{
@@ -113,10 +114,12 @@
 	}
 
 	function removeEducation(index: number) {
+		if (!resume) return;
 		resume.education = resume.education.filter((_, i) => i !== index);
 	}
 
 	function addCertification() {
+		if (!resume) return;
 		resume.certifications = [
 			...resume.certifications,
 			{
@@ -130,18 +133,22 @@
 	}
 
 	function removeCertification(index: number) {
+		if (!resume) return;
 		resume.certifications = resume.certifications.filter((_, i) => i !== index);
 	}
 
 	function addLink() {
+		if (!resume) return;
 		resume.contactInfo.links = [...resume.contactInfo.links, { name: '', url: '' }];
 	}
 
 	function removeLink(index: number) {
+		if (!resume) return;
 		resume.contactInfo.links = resume.contactInfo.links.filter((_, i) => i !== index);
 	}
 
 	function addSkill() {
+		if (!resume) return;
 		if (newSkill && !resume.skills.includes(newSkill)) {
 			resume.skills = [...resume.skills, newSkill];
 			newSkill = '';
@@ -149,10 +156,12 @@
 	}
 
 	function removeSkill(skill: string) {
+		if (!resume) return;
 		resume.skills = resume.skills.filter((s) => s !== skill);
 	}
 
 	function addResponsibility(expIndex: number, responsibility: string) {
+		if (!resume) return;
 		if (responsibility) {
 			resume.workExperience[expIndex].responsibilities = [
 				...resume.workExperience[expIndex].responsibilities,
@@ -162,6 +171,7 @@
 	}
 
 	function removeResponsibility(expIndex: number, respIndex: number) {
+		if (!resume) return;
 		resume.workExperience[expIndex].responsibilities = resume.workExperience[
 			expIndex
 		].responsibilities.filter((_, i) => i !== respIndex);
@@ -180,17 +190,26 @@
 	}
 
 	async function handleSave() {
-		if (!hasChanges) {
+		if (!hasChanges || !resume) {
 			toast.info('No changes to save');
 			return;
 		}
 		
 		saving = true;
 		try {
-			await updateResume(resume);
+			// Extract only the resume fields (not id, userId, etc.)
+			const resumeData = {
+				contactInfo: resume.contactInfo,
+				summary: resume.summary || '',
+				workExperience: resume.workExperience,
+				education: resume.education,
+				certifications: resume.certifications,
+				skills: resume.skills
+			};
+			await updateResume(resumeData);
 			toast.success('Resume saved successfully!');
-			// Refresh data to update originalResume
-			await resumeQuery.refresh();
+			// Update originalResume to reflect saved state
+			originalResume = { ...resume };
 		} catch (error) {
 			toast.error('Failed to save resume');
 			console.error(error);
@@ -200,22 +219,9 @@
 	}
 
 	function handleCancel() {
-		if (hasChanges) {
+		if (hasChanges && originalResume) {
 			// Reset to original data
-			resume = originalResume ? { ...originalResume } : {
-				contactInfo: {
-					fullName: '',
-					email: '',
-					phone: '',
-					address: '',
-					links: []
-				},
-				summary: '',
-				workExperience: [],
-				education: [],
-				certifications: [],
-				skills: []
-			};
+			resume = { ...originalResume };
 			toast.info('Changes discarded');
 		}
 	}
@@ -225,27 +231,12 @@
 	<title>Resume Editor - ATSPro</title>
 </svelte:head>
 
+{#if loading}
+	<div class="container mx-auto p-6 flex items-center justify-center min-h-[60vh]">
+		<Loader2 class="h-8 w-8 animate-spin" />
+	</div>
+{:else if resume}
 <div class="container mx-auto p-6">
-	{#if loading}
-		<div class="space-y-4">
-			<Skeleton class="h-8 w-48" />
-			<Skeleton class="h-6 w-64" />
-			<div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
-				<Skeleton class="h-96" />
-				<Skeleton class="h-96" />
-			</div>
-		</div>
-	{:else if error}
-		<Card>
-			<CardContent class="pt-6">
-				<div class="text-center">
-					<p class="text-muted-foreground mb-4">Failed to load resume</p>
-					<p class="text-destructive mb-4 text-sm">{error}</p>
-					<Button onclick={() => resumeQuery.refresh()}>Retry</Button>
-				</div>
-			</CardContent>
-		</Card>
-	{:else}
 	<!-- Header with action buttons -->
 	<div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 		<div>
@@ -253,7 +244,7 @@
 			<p class="text-muted-foreground">Edit your resume information below</p>
 		</div>
 		<div class="flex gap-2">
-			<Button variant="outline" onclick={() => (showPreview = !showPreview)} class="sm:hidden">
+			<Button variant="outline" onclick={() => { showPreview = !showPreview; }} class="sm:hidden">
 				{#if showPreview}
 					<EyeOff class="mr-2 h-4 w-4" />
 					Hide Preview
@@ -262,11 +253,11 @@
 					Show Preview
 				{/if}
 			</Button>
-			<Button variant="outline" onclick={handleCancel} disabled={saving || !hasChanges}>
+			<Button variant="outline" onclick={() => handleCancel()} disabled={saving || !hasChanges}>
 				<X class="mr-2 h-4 w-4" />
 				Cancel
 			</Button>
-			<Button onclick={handleSave} disabled={saving || !hasChanges}>
+			<Button onclick={() => handleSave()} disabled={saving || !hasChanges}>
 				{#if saving}
 					<Loader2 class="mr-2 h-4 w-4 animate-spin" />
 					Saving...
@@ -281,7 +272,7 @@
 	<div class="grid gap-6 lg:grid-cols-2">
 		<!-- Editor Column -->
 		<div class="space-y-4">
-			<Accordion.Root bind:value={accordionValue} multiple>
+			<Accordion.Root bind:value={accordionValue} type="multiple">
 				<!-- Contact Information -->
 				<Accordion.Item value="contact">
 					<Accordion.Trigger class="flex items-center justify-between">
@@ -344,7 +335,7 @@
 										</Button>
 									</div>
 									<div class="space-y-2">
-										{#each resume.contactInfo.links as link, i}
+										{#each resume.contactInfo?.links || [] as link, i}
 											<div class="flex gap-2">
 												<Input placeholder="Name" bind:value={link.name} />
 												<Input placeholder="URL" bind:value={link.url} />
@@ -448,7 +439,17 @@
 									<Card>
 										<CardHeader>
 											<div class="flex items-start justify-between">
-												<CardTitle class="text-lg">Experience {expIndex + 1}</CardTitle>
+												<CardTitle class="text-lg">
+													{#if experience.position && experience.company}
+														{experience.position} - {experience.company}
+													{:else if experience.position}
+														{experience.position}
+													{:else if experience.company}
+														{experience.company}
+													{:else}
+														New Experience
+													{/if}
+												</CardTitle>
 												<Button
 													variant="ghost"
 													size="icon"
@@ -472,12 +473,13 @@
 											<div class="grid gap-4 sm:grid-cols-2">
 												<div>
 													<Label>Start Date</Label>
-													<Input type="month" bind:value={experience.startDate} />
+													<Input type="text" placeholder="e.g., Jan 2020" bind:value={experience.startDate} />
 												</div>
 												<div>
 													<Label>End Date</Label>
 													<Input
-														type="month"
+														type="text"
+														placeholder="e.g., Dec 2023"
 														bind:value={experience.endDate}
 														disabled={experience.isCurrent}
 													/>
@@ -572,7 +574,17 @@
 									<Card>
 										<CardHeader>
 											<div class="flex items-start justify-between">
-												<CardTitle class="text-lg">Education {eduIndex + 1}</CardTitle>
+												<CardTitle class="text-lg">
+													{#if edu.degree && edu.institution}
+														{edu.degree} - {edu.institution}
+													{:else if edu.degree}
+														{edu.degree}
+													{:else if edu.institution}
+														{edu.institution}
+													{:else}
+														New Education
+													{/if}
+												</CardTitle>
 												<Button
 													variant="ghost"
 													size="icon"
@@ -600,7 +612,7 @@
 											<div class="grid gap-4 sm:grid-cols-2">
 												<div>
 													<Label>Graduation Date</Label>
-													<Input type="month" bind:value={edu.graduationDate} />
+													<Input type="text" placeholder="e.g., May 2024" bind:value={edu.graduationDate} />
 												</div>
 												<div>
 													<Label>GPA</Label>
@@ -658,7 +670,17 @@
 									<Card>
 										<CardHeader>
 											<div class="flex items-start justify-between">
-												<CardTitle class="text-lg">Certification {certIndex + 1}</CardTitle>
+												<CardTitle class="text-lg">
+													{#if cert.name && cert.issuer}
+														{cert.name} - {cert.issuer}
+													{:else if cert.name}
+														{cert.name}
+													{:else if cert.issuer}
+														{cert.issuer}
+													{:else}
+														New Certification
+													{/if}
+												</CardTitle>
 												<Button
 													variant="ghost"
 													size="icon"
@@ -680,11 +702,11 @@
 											<div class="grid gap-4 sm:grid-cols-2">
 												<div>
 													<Label>Date Obtained</Label>
-													<Input type="month" bind:value={cert.dateObtained} />
+													<Input type="text" placeholder="e.g., Jan 2023" bind:value={cert.dateObtained} />
 												</div>
 												<div>
 													<Label>Expiration Date</Label>
-													<Input type="month" bind:value={cert.expirationDate} />
+													<Input type="text" placeholder="e.g., Jan 2026" bind:value={cert.expirationDate} />
 												</div>
 											</div>
 											<div>
@@ -745,7 +767,7 @@
 											}
 										}}
 									/>
-									<Button onclick={addSkill}>
+									<Button onclick={() => addSkill()}>
 										<Plus class="mr-1 h-4 w-4" />
 										Add
 									</Button>
@@ -991,5 +1013,5 @@
 			</div>
 		{/if}
 	</div>
-	{/if}
 </div>
+{/if}

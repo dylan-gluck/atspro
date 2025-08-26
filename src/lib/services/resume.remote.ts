@@ -18,7 +18,17 @@ export const getResume = query(async () => {
 
 // Extract resume from uploaded file
 export const extractResume = form(async (data) => {
-	const userId = requireAuth();
+	console.log('[extractResume] Starting extraction...');
+	console.log('[extractResume] FormData entries:', Array.from(data.entries()).map(([k, v]) => `${k}: ${v instanceof File ? `File(${v.name}, ${v.size} bytes)` : v}`));
+	
+	let userId: string;
+	try {
+		userId = requireAuth();
+		console.log('[extractResume] User ID:', userId);
+	} catch (authError) {
+		console.error('[extractResume] Auth error:', authError);
+		throw authError;
+	}
 	
 	// Rate limit: 10 resume extractions per hour
 	checkRateLimit(userId, 10, 3600000, 'extract_resume');
@@ -26,10 +36,12 @@ export const extractResume = form(async (data) => {
 	// Check for existing resume
 	const existing = await db.getUserResume(userId);
 	if (existing) {
+		console.log('[extractResume] User already has resume, returning error');
 		error(400, 'You already have a resume. Please update it instead.');
 	}
 	
 	const file = data.get('document') as File;
+	console.log('[extractResume] File:', file ? `${file.name} (${file.size} bytes, type: ${file.type})` : 'null');
 	if (!file) {
 		error(400, 'No file provided');
 	}
@@ -49,10 +61,14 @@ export const extractResume = form(async (data) => {
 	}
 	
 	// Extract with AI
+	console.log('[extractResume] Starting AI extraction...');
 	const extracted = await extractResumeWithAI(content, file.type);
+	console.log('[extractResume] AI extraction complete, fields:', Object.keys(extracted));
 	
 	// Store in database
+	console.log('[extractResume] Storing in database...');
 	const resume = await db.createUserResume(userId, extracted);
+	console.log('[extractResume] Resume stored with ID:', resume.id);
 	
 	return {
 		resumeId: resume.id,

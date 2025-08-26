@@ -48,7 +48,12 @@ export const resume = {
 		Object.entries(data).forEach(([key, value]) => {
 			if (value !== undefined && key !== 'id' && key !== 'userId') {
 				fields.push(`"${key}" = $${idx++}`);
-				values.push(typeof value === 'object' ? JSON.stringify(value) : value);
+				// Handle skills array specifically for PostgreSQL TEXT[] type
+				if (key === 'skills' && Array.isArray(value)) {
+					values.push(value); // PostgreSQL driver will handle array conversion
+				} else {
+					values.push(typeof value === 'object' ? JSON.stringify(value) : value);
+				}
 			}
 		});
 

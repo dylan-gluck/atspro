@@ -21,18 +21,18 @@
 		ChevronRight,
 		Loader2
 	} from 'lucide-svelte';
-	import type { UserJob } from '$lib/types/user-job';
 	import { getJobs } from '$lib/services/job.remote';
 	import { getDashboardActivity } from '$lib/services/activity.remote';
+	import type { UserJob, JobActivity } from '$lib/types/user-job';
 
 	// Fetch data using remote functions
 	let jobsQuery = getJobs({ limit: 20 });
 	let activitiesQuery = getDashboardActivity({ limit: 10 });
 
 	// Derived state from queries
-	let jobs = $derived(jobsQuery.data?.jobs || []);
-	let totalJobs = $derived(jobsQuery.data?.pagination.total || 0);
-	let activities = $derived(activitiesQuery.data?.activities || []);
+	let jobs = $derived(jobsQuery.current?.jobs || []);
+	let totalJobs = $derived(jobsQuery.current?.pagination.total || 0);
+	let activities = $derived(activitiesQuery.current?.activities || []);
 	let jobsLoading = $derived(jobsQuery.loading);
 	let activitiesLoading = $derived(activitiesQuery.loading);
 
@@ -47,14 +47,14 @@
 		},
 		{
 			title: 'Applications Sent',
-			value: jobs.filter(j => j.status === 'applied' || j.status === 'interviewing' || j.status === 'offered').length,
+			value: jobs.filter((j: UserJob) => j.status === 'applied' || j.status === 'interviewing' || j.status === 'offered').length,
 			icon: Send,
 			change: calculateWeeklyChange('applied'),
 			changeType: 'positive' as const
 		},
 		{
 			title: 'Interview Invitations',
-			value: jobs.filter(j => j.status === 'interviewing').length,
+			value: jobs.filter((j: UserJob) => j.status === 'interviewing').length,
 			icon: Calendar,
 			change: calculateWeeklyChange('interviewing'),
 			changeType: 'positive' as const
@@ -70,7 +70,7 @@
 
 	// Get the 5 most recent jobs
 	let recentJobs = $derived(
-		jobs.slice(0, 5).map(job => ({
+		jobs.slice(0, 5).map((job: UserJob) => ({
 			...job,
 			appliedDate: job.appliedAt ? formatDate(job.appliedAt) : formatDate(job.createdAt),
 			matchScore: 85 // TODO: Calculate actual match score when available
@@ -79,7 +79,7 @@
 
 	// Format activities for display
 	let recentActivity = $derived(
-		activities.map(activity => ({
+		activities.map((activity: JobActivity & { jobTitle: string; jobCompany: string }) => ({
 			type: mapActivityType(activity.type),
 			message: formatActivityMessage(activity),
 			time: formatRelativeTime(activity.createdAt)
@@ -96,19 +96,19 @@
 		
 		let count = 0;
 		if (type === 'total') {
-			count = jobs.filter(j => new Date(j.createdAt) > weekAgo).length;
+			count = jobs.filter((j: UserJob) => new Date(j.createdAt) > weekAgo).length;
 		} else if (type === 'applied') {
-			count = jobs.filter(j => j.appliedAt && new Date(j.appliedAt) > weekAgo).length;
+			count = jobs.filter((j: UserJob) => j.appliedAt && new Date(j.appliedAt) > weekAgo).length;
 		} else if (type === 'interviewing') {
-			count = jobs.filter(j => j.status === 'interviewing' && new Date(j.updatedAt) > weekAgo).length;
+			count = jobs.filter((j: UserJob) => j.status === 'interviewing' && new Date(j.updatedAt) > weekAgo).length;
 		}
 		
 		return count > 0 ? `+${count} this week` : 'No change';
 	}
 
 	function calculateResponseRate(): string {
-		const appliedCount = jobs.filter(j => j.status === 'applied' || j.status === 'interviewing' || j.status === 'offered').length;
-		const responseCount = jobs.filter(j => j.status === 'interviewing' || j.status === 'offered').length;
+		const appliedCount = jobs.filter((j: UserJob) => j.status === 'applied' || j.status === 'interviewing' || j.status === 'offered').length;
+		const responseCount = jobs.filter((j: UserJob) => j.status === 'interviewing' || j.status === 'offered').length;
 		
 		if (appliedCount === 0) return '0%';
 		
@@ -141,7 +141,7 @@
 		return formatDate(d);
 	}
 
-	function mapActivityType(type: string): string {
+	function mapActivityType(type: JobActivity['type']): string {
 		switch (type) {
 			case 'applied':
 			case 'job_added':
@@ -158,7 +158,7 @@
 		}
 	}
 
-	function formatActivityMessage(activity: any): string {
+	function formatActivityMessage(activity: JobActivity & { jobTitle: string; jobCompany: string }): string {
 		const jobInfo = activity.jobTitle ? ` for ${activity.jobTitle} at ${activity.jobCompany}` : '';
 		
 		switch (activity.type) {

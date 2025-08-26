@@ -127,9 +127,19 @@
 					<h3 class="font-semibold">Product</h3>
 					<ul class="text-muted-foreground space-y-2 text-sm">
 						<li>
-							<a href="#features" onclick={preventDefault(scrollIntoView)} class="hover:text-foreground transition-colors">Features</a>
+							<a
+								href="#features"
+								onclick={preventDefault(scrollIntoView)}
+								class="hover:text-foreground transition-colors">Features</a
+							>
 						</li>
-						<li><a href="#pricing" onclick={preventDefault(scrollIntoView)} class="hover:text-foreground transition-colors">Pricing</a></li>
+						<li>
+							<a
+								href="#pricing"
+								onclick={preventDefault(scrollIntoView)}
+								class="hover:text-foreground transition-colors">Pricing</a
+							>
+						</li>
 						<li>
 							<a href="#" class="hover:text-foreground transition-colors">API Documentation</a>
 						</li>
@@ -141,7 +151,13 @@
 				<div class="space-y-4">
 					<h3 class="font-semibold">Company</h3>
 					<ul class="text-muted-foreground space-y-2 text-sm">
-						<li><a href="#about" onclick={preventDefault(scrollIntoView)} class="hover:text-foreground transition-colors">About Us</a></li>
+						<li>
+							<a
+								href="#about"
+								onclick={preventDefault(scrollIntoView)}
+								class="hover:text-foreground transition-colors">About Us</a
+							>
+						</li>
 						<li><a href="#" class="hover:text-foreground transition-colors">Blog</a></li>
 						<li><a href="#" class="hover:text-foreground transition-colors">Careers</a></li>
 						<li><a href="#" class="hover:text-foreground transition-colors">Contact</a></li>

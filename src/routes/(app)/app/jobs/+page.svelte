@@ -38,9 +38,9 @@
 
 	// Client-side search filtering
 	let filteredJobs = $derived.by(() => {
-		if (!jobsQuery.data?.jobs) return [];
+		if (!jobsQuery.current?.jobs) return [];
 		
-		let filtered = [...jobsQuery.data.jobs];
+		let filtered = [...jobsQuery.current.jobs];
 
 		// Apply client-side search filter
 		if (searchQuery) {
@@ -49,7 +49,7 @@
 				(job) =>
 					job.company.toLowerCase().includes(query) || 
 					job.title.toLowerCase().includes(query) ||
-					job.location?.some(loc => loc.toLowerCase().includes(query))
+					job.location?.some((loc: string) => loc.toLowerCase().includes(query))
 			);
 		}
 
@@ -58,8 +58,8 @@
 
 	// Total pages calculation
 	let totalPages = $derived(
-		jobsQuery.data 
-			? Math.ceil(jobsQuery.data.pagination.total / itemsPerPage)
+		jobsQuery.current 
+			? Math.ceil(jobsQuery.current.pagination.total / itemsPerPage)
 			: 0
 	);
 
@@ -84,7 +84,7 @@
 		}
 	}
 
-	function formatDate(date: Date | null): string {
+	function formatDate(date: Date | null | undefined): string {
 		if (!date) return 'N/A';
 		return new Intl.DateTimeFormat('en-US', {
 			month: 'short',
@@ -170,10 +170,16 @@
 						bind:value={searchQuery}
 					/>
 				</div>
-				<Select.Root bind:value={selectedStatus}>
+				<Select.Root 
+					type="single"
+					value={selectedStatus} 
+					onValueChange={(v: string | undefined) => {
+						if (v) selectedStatus = v as JobStatus | 'all';
+					}}
+				>
 					<Select.Trigger class="w-full sm:w-[180px]">
 						<Filter class="mr-2 h-4 w-4" />
-						<span>All Statuses</span>
+						<span>{selectedStatus === 'all' ? 'All Statuses' : selectedStatus}</span>
 					</Select.Trigger>
 					<Select.Content>
 						<Select.Item value="all">All Statuses</Select.Item>
@@ -324,7 +330,7 @@
 				<Pagination.Content>
 					<Pagination.PrevButton />
 					{#each Array(totalPages) as _, i}
-						<Pagination.Item page={i + 1} />
+						<Pagination.Item>{i + 1}</Pagination.Item>
 					{/each}
 					<Pagination.NextButton />
 				</Pagination.Content>

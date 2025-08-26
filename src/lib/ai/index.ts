@@ -48,7 +48,7 @@ const ResumeSchema = z.object({
 	certifications: z.array(
 		z.object({
 			name: z.string(),
-			issuer: z.string(),
+			issuer: z.string().nullable(),
 			dateObtained: z.string().nullable(),
 			expirationDate: z.string().nullable(),
 			credentialId: z.string().nullable()
@@ -73,31 +73,48 @@ const JobSchema = z.object({
 
 // Extract resume from file content
 export async function extractResume(content: string | Buffer, fileType: string): Promise<Resume> {
+	console.log('[AI extractResume] Starting extraction...');
+	console.log('[AI extractResume] File type:', fileType);
+	console.log('[AI extractResume] Content type:', typeof content);
+	console.log('[AI extractResume] Content length:', content.length);
+	
 	const isPDF = fileType === 'application/pdf';
+	console.log('[AI extractResume] Is PDF:', isPDF);
 
-	const result = await generateObject({
-		model: openai('gpt-4.1-mini'),
-		schema: ResumeSchema,
-		system:
-			'Extract all information from this resume. Return structured data with contact info, summary, work experience, education, certifications, and skills.',
-		prompt: isPDF
-			? [
-					{
-						role: 'user' as const,
-						content: [
-							{ type: 'text' as const, text: 'Extract information from this resume PDF:' },
-							{
-								type: 'file' as const,
-								data: content, // base64 string or Buffer
-								mediaType: 'application/pdf' as const
-							}
-						]
-					}
-				]
-			: (content as string)
-	});
-
-	return result.object;
+	try {
+		console.log('[AI extractResume] Calling generateObject with OpenAI...');
+		const startTime = Date.now();
+		
+		const result = await generateObject({
+			model: openai('gpt-4o-mini'),
+			schema: ResumeSchema,
+			system:
+				'Extract all information from this resume. Return structured data with contact info, summary, work experience, education, certifications, and skills.',
+			prompt: isPDF
+				? [
+						{
+							role: 'user' as const,
+							content: [
+								{ type: 'text' as const, text: 'Extract information from this resume PDF:' },
+								{
+									type: 'file' as const,
+									data: content, // base64 string or Buffer
+									mediaType: 'application/pdf' as const
+								}
+							]
+						}
+					]
+				: (content as string)
+		});
+		
+		console.log('[AI extractResume] OpenAI responded after', Date.now() - startTime, 'ms');
+		console.log('[AI extractResume] Extracted object:', JSON.stringify(result.object).substring(0, 200) + '...');
+		
+		return result.object;
+	} catch (error) {
+		console.error('[AI extractResume] Error during extraction:', error);
+		throw error;
+	}
 }
 
 // Extract job from content

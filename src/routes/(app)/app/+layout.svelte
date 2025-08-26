@@ -2,7 +2,6 @@
 	import '$lib/app.css';
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
-	import { ModeWatcher } from 'mode-watcher';
 	import * as Sidebar from '$lib/components/ui/sidebar';
 	import { Button } from '$lib/components/ui/button';
 	import * as Avatar from '$lib/components/ui/avatar';
@@ -46,7 +45,6 @@
 	}
 </script>
 
-<ModeWatcher />
 <Sidebar.Provider>
 	<div class="flex h-screen w-full">
 		<!-- Sidebar -->

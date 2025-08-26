@@ -92,19 +92,11 @@ const coverLetterSchema = v.object({
 	tone: v.optional(v.picklist(['professional', 'enthusiastic', 'conversational']))
 });
 
-export const generateCoverLetter = form(async (data) => {
+export const generateCoverLetter = command(coverLetterSchema, async ({ jobId, tone = 'professional' }) => {
 	const userId = requireAuth();
 	
 	// Rate limit: 15 cover letters per hour
 	checkRateLimit(userId, 15, 3600000, 'generate_cover');
-	
-	const jobId = data.get('jobId') as string;
-	const tone = (data.get('tone') as string || 'professional') as 'professional' | 'enthusiastic' | 'conversational';
-	
-	// Validate jobId format
-	if (!jobId || !jobId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
-		error(400, 'Invalid job ID format');
-	}
 	
 	// Verify ownership and get data
 	const [resume, job] = await Promise.all([

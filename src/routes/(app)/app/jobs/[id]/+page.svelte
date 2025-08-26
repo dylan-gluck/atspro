@@ -29,7 +29,7 @@
 		Eye,
 		Loader2
 	} from 'lucide-svelte';
-	import type { UserJob, JobStatus, JobDocument, JobActivity } from '$lib/types/user-job';
+	import type { UserJob, JobStatus, JobDocument, JobActivity, JobActivityType } from '$lib/types/user-job';
 	
 	// Import remote functions
 	import { getJob, updateJobStatus, updateJobNotes, deleteJob } from '$lib/services/job.remote';
@@ -41,23 +41,23 @@
 	let jobId = $derived(page.params.id);
 
 	// Fetch job data using remote functions
-	let jobQuery = $derived(getJob(jobId));
-	let job = $derived(jobQuery.data?.job);
-	let documents = $derived(jobQuery.data?.documents || []);
-	let jobLoading = $derived(jobQuery.loading);
-	let jobError = $derived(jobQuery.error);
+	let jobQuery = $derived(jobId ? getJob(jobId) : null);
+	let job = $derived(jobQuery?.current?.job);
+	let documents = $derived(jobQuery?.current?.documents || []);
+	let jobLoading = $derived(jobQuery?.loading);
+	let jobError = $derived(jobQuery?.error);
 
 	// Fetch activity data
-	let activityQuery = $derived(getJobActivity({ jobId, limit: 20 }));
-	let activities = $derived(activityQuery.data?.activities || []);
-	let activityLoading = $derived(activityQuery.loading);
+	let activityQuery = $derived(jobId ? getJobActivity({ jobId, limit: 20 }) : null);
+	let activities = $derived(activityQuery?.current?.activities || []);
+	let activityLoading = $derived(activityQuery?.loading);
 
 	// Fetch user's resume for document generation
 	let resumeQuery = getResume();
-	let userResume = $derived(resumeQuery.data);
+	let userResume = $derived(resumeQuery.current);
 
 	// Notes state
-	let notes = $state(job?.notes || '');
+	let notes = $derived(job?.notes || '');
 	let notesLoading = $state(false);
 
 	// Dialog states
@@ -136,14 +136,22 @@
 		}
 	}
 
-	function getActivityIcon(action: string) {
-		switch (action) {
+	function getActivityIcon(type: JobActivityType) {
+		switch (type) {
 			case 'applied':
 				return CheckCircle2;
 			case 'document_generated':
 				return FileText;
-			case 'status_changed':
+			case 'status_change':
 				return Clock;
+			case 'job_added':
+				return Building;
+			case 'interview_scheduled':
+				return Calendar;
+			case 'offer_received':
+				return CheckCircle2;
+			case 'note_added':
+				return Edit;
 			default:
 				return Clock;
 		}
@@ -158,14 +166,17 @@
 		
 		generateResumeLoading = true;
 		try {
+			if (!jobId) {
+				toast.error('Job ID is missing');
+				return;
+			}
 			const result = await optimizeResume({
-				resumeId: userResume.id,
 				jobId
 			});
 			
 			toast.success(`Resume optimized! ATS Score: ${result.optimizationScore}%`);
 			// Refresh job data to get new documents
-			await jobQuery.refresh();
+			if (jobQuery) await jobQuery.refresh();
 		} catch (error) {
 			toast.error('Failed to optimize resume');
 			console.error(error);
@@ -174,7 +185,7 @@
 		}
 	}
 
-	async function generateCoverLetter() {
+	async function handleGenerateCoverLetter() {
 		if (!userResume) {
 			toast.error('Please complete your profile first');
 			goto('/app/resume');
@@ -183,14 +194,18 @@
 		
 		generateCoverLoading = true;
 		try {
-			const formData = new FormData();
-			formData.append('jobId', jobId);
-			formData.append('tone', 'professional');
+			if (!jobId) {
+				toast.error('Job ID is missing');
+				return;
+			}
 			
-			const result = await generateCoverLetter(formData);
+			const result = await generateCoverLetter({
+				jobId,
+				tone: 'professional'
+			});
 			toast.success('Cover letter generated successfully!');
 			// Refresh job data to get new documents
-			await jobQuery.refresh();
+			if (jobQuery) await jobQuery.refresh();
 		} catch (error) {
 			toast.error('Failed to generate cover letter');
 			console.error(error);
@@ -202,10 +217,14 @@
 	async function generateResearch() {
 		generateResearchLoading = true;
 		try {
+			if (!jobId) {
+				toast.error('Job ID is missing');
+				return;
+			}
 			const result = await generateCompanyResearch({ jobId });
 			toast.success('Company research generated!');
 			// Refresh job data to get new documents
-			await jobQuery.refresh();
+			if (jobQuery) await jobQuery.refresh();
 		} catch (error) {
 			toast.error('Failed to generate company research');
 			console.error(error);
@@ -219,6 +238,10 @@
 		
 		statusLoading = true;
 		try {
+			if (!jobId) {
+				toast.error('Job ID is missing');
+				return;
+			}
 			await updateJobStatus({
 				jobId,
 				status: newStatus,
@@ -238,6 +261,10 @@
 	async function handleDelete() {
 		deleteLoading = true;
 		try {
+			if (!jobId) {
+				toast.error('Job ID is missing');
+				return;
+			}
 			await deleteJob(jobId);
 			toast.success('Job deleted successfully');
 			goto('/app/jobs');
@@ -254,6 +281,10 @@
 		
 		notesLoading = true;
 		try {
+			if (!jobId) {
+			toast.error('Job ID is missing');
+			return;
+			}
 			await updateJobNotes({ jobId, notes });
 			toast.success('Notes saved');
 		} catch (error) {
@@ -266,10 +297,39 @@
 </script>
 
 <svelte:head>
-	<title>{job.title} at {job.company} - ATSPro</title>
+	<title>{job ? `${job.title} at ${job.company}` : 'Loading...'} - ATSPro</title>
 </svelte:head>
 
-<div class="container mx-auto space-y-6 p-6">
+{#if jobLoading}
+	<div class="container mx-auto space-y-6 p-6">
+		<div class="flex items-center justify-center py-12">
+			<Loader2 class="h-8 w-8 animate-spin" />
+		</div>
+	</div>
+{:else if jobError}
+	<div class="container mx-auto space-y-6 p-6">
+		<Card.Root>
+			<Card.Content class="py-12 text-center">
+				<p class="text-destructive">Failed to load job details</p>
+				<Button onclick={() => goto('/app/jobs')} variant="outline" class="mt-4">
+					Back to Jobs
+				</Button>
+			</Card.Content>
+		</Card.Root>
+	</div>
+{:else if !job}
+	<div class="container mx-auto space-y-6 p-6">
+		<Card.Root>
+			<Card.Content class="py-12 text-center">
+				<p class="text-muted-foreground">Job not found</p>
+				<Button onclick={() => goto('/app/jobs')} variant="outline" class="mt-4">
+					Back to Jobs
+				</Button>
+			</Card.Content>
+		</Card.Root>
+	</div>
+{:else}
+	<div class="container mx-auto space-y-6 p-6">
 	<!-- Header -->
 	<div class="flex flex-col items-start justify-between gap-4 sm:flex-row">
 		<div class="flex items-start gap-4">
@@ -327,7 +387,12 @@
 	<Card.Root>
 		<Card.Content class="pt-6">
 			<div class="flex flex-col gap-4 sm:flex-row">
-				<Select.Root onValueChange={(v) => v && updateStatus(v as JobStatus)}>
+				<Select.Root 
+					type="single"
+					onValueChange={(v: string | undefined) => {
+						if (v) updateStatus(v as JobStatus);
+					}}
+				>
 					<Select.Trigger class="w-full sm:w-[200px]">
 						<span>Update Status</span>
 					</Select.Trigger>
@@ -356,7 +421,7 @@
 						{/if}
 					</Button>
 					<Button
-						onclick={generateCoverLetter}
+						onclick={handleGenerateCoverLetter}
 						disabled={generateCoverLoading}
 						variant="outline"
 						class="flex-1 gap-2 sm:flex-initial"
@@ -386,7 +451,7 @@
 				</div>
 
 				{#if job.link}
-					<Button onclick={() => window.open(job.link, '_blank')} variant="outline" class="gap-2">
+					<Button onclick={() => job.link && window.open(job.link, '_blank')} variant="outline" class="gap-2">
 						<ExternalLink class="h-4 w-4" />
 						View Posting
 					</Button>
@@ -538,7 +603,7 @@
 				<Card.Content>
 					<div class="space-y-4">
 						{#each activities as activity, i}
-							{@const Icon = getActivityIcon(activity.action)}
+							{@const Icon = getActivityIcon(activity.type)}
 							<div class="flex gap-4">
 								<div class="flex flex-col items-center">
 									<div class="bg-primary/10 rounded-full p-2">
@@ -571,14 +636,15 @@
 				</Card.Header>
 				<Card.Content>
 					<Textarea bind:value={notes} placeholder="Add your notes here..." class="min-h-[200px]" />
-					<Button onclick={saveNotes} disabled={notesLoading} class="mt-4">
+					<Button onclick={() => saveNotes()} disabled={notesLoading} class="mt-4">
 						{notesLoading ? 'Saving...' : 'Save Notes'}
 					</Button>
 				</Card.Content>
 			</Card.Root>
 		</Tabs.Content>
 	</Tabs.Root>
-</div>
+	</div>
+{/if}
 
 <!-- Delete Confirmation Dialog -->
 <AlertDialog.Root bind:open={deleteDialogOpen}>
@@ -602,4 +668,3 @@
 		</AlertDialog.Footer>
 	</AlertDialog.Content>
 </AlertDialog.Root>
-{/if}
