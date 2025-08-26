@@ -81,6 +81,8 @@ export const TASK_MODEL_MAP = {
 	// Research and information gathering - Use cheap models
 	company_research: 'claude-3-haiku-20240307',
 	industry_analysis: 'claude-3-haiku-20240307',
+	industry_detection: 'claude-3-haiku-20240307',
+	industry_scoring: 'claude-3-haiku-20240307',
 
 	// Complex optimization tasks - Use powerful models
 	optimize_resume: 'claude-3-5-sonnet-20241022',

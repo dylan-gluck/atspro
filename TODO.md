@@ -63,7 +63,11 @@
   - [x] Implemented comprehensive ATS scoring with AI fallback
   - [x] Integrated with existing scoring.remote.ts service
   - [x] Maintained backwards compatibility with rule-based fallback
-- [ ] **[P4.2] Industry Scoring**: Add industry-specific scoring models
+- [x] **[P4.2] Industry Scoring**: Add industry-specific scoring models
+  - [x] Created industry detection AI function
+  - [x] Implemented industry-specific scoring with weighted factors
+  - [x] Added pre-defined requirements for major industries
+  - [x] Created industry-scoring.remote.ts service
 - [x] **[P4.3] Semantic Matching**: Implement synonym recognition and semantic understanding
 - [x] **[P4.4] Job Matching**: Build missing job matching algorithm
 

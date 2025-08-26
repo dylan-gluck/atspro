@@ -485,3 +485,139 @@ export async function scoreResumewithAI(
 	optimizationCache.set(cacheKey, result.object);
 	return result.object;
 }
+
+// Industry Detection Schema
+const IndustrySchema = z.object({
+	primaryIndustry: z.string(),
+	relatedIndustries: z.array(z.string()),
+	confidence: z.number().min(0).max(1)
+});
+
+// Industry-Specific Scoring Schema
+const IndustryScoreSchema = z.object({
+	score: z.number().min(0).max(100),
+	industryFit: z.object({
+		alignment: z.number().min(0).max(100),
+		terminology: z.array(z.string()),
+		missingElements: z.array(z.string())
+	}),
+	domainExpertise: z.object({
+		level: z.enum(['entry', 'intermediate', 'senior', 'expert']),
+		strengths: z.array(z.string()),
+		gaps: z.array(z.string())
+	}),
+	certifications: z.object({
+		required: z.array(z.string()),
+		preferred: z.array(z.string()),
+		present: z.array(z.string())
+	}),
+	recommendations: z.array(z.string())
+});
+
+// Detect industry from job description
+export async function detectIndustry(jobDescription: string): Promise<{
+	primaryIndustry: string;
+	relatedIndustries: string[];
+	confidence: number;
+}> {
+	const cacheKey = {
+		content: jobDescription.substring(0, 1000),
+		operation: 'detect_industry'
+	};
+
+	const cached = jobCache.get(cacheKey);
+	if (cached) {
+		console.log('[AI detectIndustry] Cache hit!');
+		return cached as any;
+	}
+
+	const modelConfig = selectModel('industry_detection');
+	console.log(`[AI detectIndustry] Using model: ${modelConfig.name}`);
+
+	const result = await generateObject({
+		model: anthropic(modelConfig.name),
+		schema: IndustrySchema,
+		messages: [
+			{
+				role: 'system' as const,
+				content:
+					'Industry classifier. Identify primary and related industries from job description.'
+			},
+			{
+				role: 'user' as const,
+				content: `Identify industry from job:\n\n${jobDescription}`
+			}
+		],
+		output: 'object' as const
+	});
+
+	jobCache.set(cacheKey, result.object);
+	return result.object;
+}
+
+// Industry-specific scoring
+export async function scoreForIndustry(
+	resumeContent: string,
+	jobDescription: string,
+	industry?: string
+): Promise<{
+	score: number;
+	industryFit: {
+		alignment: number;
+		terminology: string[];
+		missingElements: string[];
+	};
+	domainExpertise: {
+		level: 'entry' | 'intermediate' | 'senior' | 'expert';
+		strengths: string[];
+		gaps: string[];
+	};
+	certifications: {
+		required: string[];
+		preferred: string[];
+		present: string[];
+	};
+	recommendations: string[];
+}> {
+	// Auto-detect industry if not provided
+	let targetIndustry = industry;
+	if (!targetIndustry) {
+		const detected = await detectIndustry(jobDescription);
+		targetIndustry = detected.primaryIndustry;
+	}
+
+	const cacheKey = {
+		resume: resumeContent.substring(0, 500),
+		job: jobDescription.substring(0, 500),
+		industry: targetIndustry,
+		operation: 'industry_score'
+	};
+
+	const cached = optimizationCache.get(cacheKey);
+	if (cached) {
+		console.log('[AI scoreForIndustry] Cache hit!');
+		return cached as any;
+	}
+
+	const modelConfig = selectModel('industry_scoring');
+	console.log(`[AI scoreForIndustry] Using model: ${modelConfig.name} for ${targetIndustry}`);
+
+	const result = await generateObject({
+		model: anthropic(modelConfig.name),
+		schema: IndustryScoreSchema,
+		messages: [
+			{
+				role: 'system' as const,
+				content: SYSTEM_PROMPTS.industryScoring
+			},
+			{
+				role: 'user' as const,
+				content: USER_PROMPTS.industryScoring(resumeContent, jobDescription, targetIndustry)
+			}
+		],
+		output: 'object' as const
+	});
+
+	optimizationCache.set(cacheKey, result.object);
+	return result.object;
+}

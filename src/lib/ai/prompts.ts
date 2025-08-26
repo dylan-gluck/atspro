@@ -47,7 +47,12 @@ Return as structured list.`,
 	// ATS scoring - new prompt
 	scoreATS: `ATS scoring expert. Analyze resume-job match:
 Keyword coverage, formatting compliance, section completeness, quantified achievements.
-Return detailed analysis.`
+Return detailed analysis.`,
+
+	// Industry-specific scoring
+	industryScoring: `Industry expert. Score resume for specific industry:
+Relevant terminology, industry standards, required certifications, domain expertise.
+Apply industry-specific weights.`
 };
 
 export const USER_PROMPTS = {
@@ -74,7 +79,11 @@ export const USER_PROMPTS = {
 
 	// ATS scoring
 	scoreATS: (resume: string, job: string) =>
-		`Score resume ATS compatibility:\n\nResume:\n${resume}\n\nJob:\n${job}`
+		`Score resume ATS compatibility:\n\nResume:\n${resume}\n\nJob:\n${job}`,
+
+	// Industry-specific scoring
+	industryScoring: (resume: string, job: string, industry: string) =>
+		`Score resume for ${industry} industry:\n\nResume:\n${resume}\n\nJob:\n${job}`
 };
 
 // Helper to get token count estimate (rough approximation)
