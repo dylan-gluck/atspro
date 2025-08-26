@@ -45,7 +45,7 @@
 	// Location array management
 	let locations = $state<string[]>([]);
 	let newLocation = $state('');
-	
+
 	// Hidden form element for AI extraction
 	let extractJobForm: HTMLFormElement;
 
@@ -158,11 +158,14 @@
 	</div>
 
 	<!-- Mode Selector Tabs -->
-	<Tabs.Root value={mode} onValueChange={(v) => {
-		if (v === 'manual' || v === 'ai') {
-			mode = v;
-		}
-	}}>
+	<Tabs.Root
+		value={mode}
+		onValueChange={(v) => {
+			if (v === 'manual' || v === 'ai') {
+				mode = v;
+			}
+		}}
+	>
 		<Tabs.List class="grid w-full grid-cols-2">
 			<Tabs.Trigger value="manual" disabled={isSubmitting}>
 				<FileText class="mr-2 h-4 w-4" />
@@ -189,7 +192,9 @@
 								Company <span class="text-destructive">*</span>
 							</Label>
 							<div class="relative">
-								<Building class="text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
+								<Building
+									class="text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2"
+								/>
 								<Input
 									id="company"
 									placeholder="e.g., Google"
@@ -204,7 +209,9 @@
 								Job Title <span class="text-destructive">*</span>
 							</Label>
 							<div class="relative">
-								<Briefcase class="text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
+								<Briefcase
+									class="text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2"
+								/>
 								<Input
 									id="title"
 									placeholder="e.g., Senior Software Engineer"
@@ -235,7 +242,9 @@
 						<div class="space-y-2">
 							<Label for="salary">Salary Range</Label>
 							<div class="relative">
-								<DollarSign class="text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
+								<DollarSign
+									class="text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2"
+								/>
 								<Input
 									id="salary"
 									placeholder="e.g., $120k-$180k"
@@ -248,7 +257,9 @@
 						<div class="space-y-2">
 							<Label for="link">Job Link</Label>
 							<div class="relative">
-								<Link class="text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
+								<Link
+									class="text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2"
+								/>
 								<Input
 									id="link"
 									type="url"
@@ -266,7 +277,9 @@
 						<Label>Location(s)</Label>
 						<div class="flex gap-2">
 							<div class="relative flex-1">
-								<MapPin class="text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
+								<MapPin
+									class="text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2"
+								/>
 								<Input
 									placeholder="e.g., San Francisco, CA"
 									bind:value={newLocation}
@@ -345,9 +358,7 @@
 			<Card.Root>
 				<Card.Header>
 					<Card.Title>Extract Job Details</Card.Title>
-					<Card.Description>
-						Let AI extract job details from a URL or description
-					</Card.Description>
+					<Card.Description>Let AI extract job details from a URL or description</Card.Description>
 				</Card.Header>
 				<Card.Content class="space-y-6">
 					<div class="space-y-4">
@@ -395,9 +406,7 @@
 
 	<!-- Action Buttons -->
 	<div class="flex justify-end gap-3">
-		<Button variant="outline" onclick={handleCancel} disabled={isSubmitting}>
-			Cancel
-		</Button>
+		<Button variant="outline" onclick={handleCancel} disabled={isSubmitting}>Cancel</Button>
 		<Button onclick={handleSubmit} disabled={isSubmitting}>
 			{#if isSubmitting}
 				<Loader2 class="mr-2 h-4 w-4 animate-spin" />
@@ -416,14 +425,14 @@
 	class="hidden"
 	{...extractJob.enhance(async ({ form, data, submit }) => {
 		isSubmitting = true;
-		
+
 		try {
 			// Submit the form
 			await submit();
-			
+
 			// The form submission was successful and returned data
 			toast.success('Job extracted and added successfully!');
-			
+
 			// Navigate to the newly created job page
 			// The result is available via extractJob.result after submission
 			if (extractJob.result?.jobId) {
@@ -432,7 +441,7 @@
 		} catch (error) {
 			// An actual error occurred during extraction
 			console.error('Failed to extract job:', error);
-			
+
 			// Show appropriate error message
 			if (error instanceof Error) {
 				toast.error(error.message || 'Failed to extract job details. Please try manual entry.');
@@ -442,7 +451,7 @@
 		} finally {
 			isSubmitting = false;
 		}
-		
+
 		// Return nothing to prevent the default form behavior
 		return;
 	})}

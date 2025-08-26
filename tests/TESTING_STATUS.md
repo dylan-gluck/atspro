@@ -3,6 +3,7 @@
 ## Current Test Infrastructure ✅
 
 ### Working Tests
+
 - ✅ Basic unit test framework (Vitest)
 - ✅ Mock database tests (pg module mocking)
 - ✅ Simple utility tests
@@ -10,6 +11,7 @@
 - ✅ CI/CD pipeline (GitHub Actions)
 
 ### Test Execution
+
 ```bash
 $ bun run test
  ✓ src/demo.spec.ts (1 test)
@@ -21,6 +23,7 @@ $ bun run test
 ```
 
 ### Available Commands
+
 - `bun run test` - Run unit tests ✅
 - `bun run test:coverage` - Run with coverage ✅
 - `bun run test:watch` - Watch mode ✅
@@ -50,6 +53,7 @@ tests/
 ## Limitations & Notes
 
 ### SvelteKit Components
+
 - Component tests require SvelteKit runtime
 - Remote functions (`query`, `command`, `form`) need app context
 - Testing these requires either:
@@ -57,11 +61,13 @@ tests/
   - Extracting business logic for unit testing
 
 ### Coverage
+
 - Coverage reporting enabled but thresholds disabled
 - Low coverage expected in early development
 - Focus on critical path testing
 
 ### E2E Tests
+
 - Playwright installed with Chromium
 - Tests configured but require running dev server
 - Run with: `bun run dev` then `bun run test:e2e`
@@ -86,6 +92,7 @@ tests/
 ## Summary
 
 ✅ **Test infrastructure is functional**
+
 - All configured tests pass
 - Mock testing works properly
 - E2E framework ready to use

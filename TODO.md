@@ -24,7 +24,7 @@ Initialize progress tracking for implementation phases:
 ## Phase 1: Testing Infrastructure
 - [x] Set up Vitest unit test framework
 - [x] Create mock tests for database operations
-- [x] Set up E2E tests with Playwright  
+- [x] Set up E2E tests with Playwright
 - [x] Add test coverage reporting (thresholds disabled for development)
 - [x] Configure CI/CD with GitHub Actions
 - [x] All tests passing
@@ -66,20 +66,22 @@ bun test:unit
 Create unit tests for all remote functions in `/src/lib/services/`.
 
 Key functions to test:
+
 1. **auth.remote.ts** - Authentication functions
 2. **job.remote.ts** - Job CRUD operations
 3. **resume.remote.ts** - Resume management
 4. **ai.remote.ts** - AI integration functions
 
 Example test structure:
+
 ```typescript
 // src/lib/services/__tests__/job.remote.test.ts
-import { describe, it, expect, beforeEach } from 'vitest'
-import { extractJob, createJob, updateJob } from '../job.remote'
+import { describe, it, expect, beforeEach } from 'vitest';
+import { extractJob, createJob, updateJob } from '../job.remote';
 
 describe('Job Remote Functions', () => {
-  // Test job extraction, creation, updates, etc.
-})
+	// Test job extraction, creation, updates, etc.
+});
 ```
 
 ### 1.3 Database Integration Tests
@@ -88,12 +90,12 @@ Test database operations and SQL queries.
 
 ```typescript
 // src/lib/db/__tests__/index.test.ts
-import { describe, it, expect } from 'vitest'
-import * as db from '../index'
+import { describe, it, expect } from 'vitest';
+import * as db from '../index';
 
 describe('Database Operations', () => {
-  // Test CRUD operations for all entities
-})
+	// Test CRUD operations for all entities
+});
 ```
 
 ### 1.4 Component Tests
@@ -101,6 +103,7 @@ describe('Database Operations', () => {
 Test critical Svelte components using vitest-browser-svelte.
 
 Priority components:
+
 - JobCard component
 - ResumeEditor component
 - DocumentViewer component
@@ -117,6 +120,7 @@ Create end-to-end tests for critical user flows.
 ```
 
 Critical flows to test:
+
 1. User registration and login
 2. Resume upload and parsing
 3. Job creation and tracking
@@ -132,12 +136,14 @@ Implement the remaining core functionality as identified in the original TODO.
 Enhance the resume optimization to store markdown content in the database.
 
 Implementation tasks:
+
 1. Update database schema to add markdown field to jobDocuments
 2. Modify AI optimization to return both HTML and markdown
 3. Store markdown alongside HTML in database
 4. Update UI to support markdown viewing/editing
 
 Files to modify:
+
 - `/src/lib/db/schema.sql` - Add markdown column
 - `/src/lib/services/ai.remote.ts` - Update optimization logic
 - `/src/routes/(app)/app/jobs/[id]/+page.svelte` - Display options
@@ -147,12 +153,14 @@ Files to modify:
 Implement ATS compatibility scoring system.
 
 Components needed:
+
 1. **Keyword Analysis**: Compare resume keywords with job description
 2. **Format Checking**: Verify ATS-friendly formatting
 3. **Score Algorithm**: Calculate percentage match
 4. **Visual Display**: Progress bars and recommendations
 
 Implementation approach:
+
 ```typescript
 // src/lib/services/scoring.remote.ts
 export const calculateATSScore = command(
@@ -177,6 +185,7 @@ export const calculateATSScore = command(
 Implement web search and scraping for company research.
 
 Integration approach:
+
 1. Use WebSearch tool for finding company information
 2. Use WebFetch for scraping company websites
 3. Generate comprehensive research document
@@ -187,26 +196,28 @@ Integration approach:
 Implement PDF generation for resumes and cover letters.
 
 Options to evaluate:
+
 1. **markdown-pdf** - Simple markdown to PDF conversion
 2. **puppeteer** - HTML to PDF with better formatting control
 3. **jsPDF** - Client-side PDF generation
 
 Recommended approach:
+
 ```typescript
 // src/lib/services/export.remote.ts
-import { generatePDF } from '$lib/utils/pdf-generator'
+import { generatePDF } from '$lib/utils/pdf-generator';
 
 export const exportDocument = command(
-  v.object({
-    documentId: v.string(),
-    format: v.picklist(['pdf', 'docx', 'txt'])
-  }),
-  async ({ documentId, format }) => {
-    const document = await db.getDocument(documentId)
-    const pdf = await generatePDF(document.content)
-    return { url: pdf.url }
-  }
-)
+	v.object({
+		documentId: v.string(),
+		format: v.picklist(['pdf', 'docx', 'txt'])
+	}),
+	async ({ documentId, format }) => {
+		const document = await db.getDocument(documentId);
+		const pdf = await generatePDF(document.content);
+		return { url: pdf.url };
+	}
+);
 ```
 
 ## Phase 3: Production Readiness
@@ -222,6 +233,7 @@ bun add @sentry/sveltekit
 ```
 
 Configuration:
+
 1. Set up Sentry project
 2. Configure in `app.html` and `hooks.client.ts`
 3. Add error boundaries
@@ -233,19 +245,20 @@ Replace console.log with structured logging system.
 
 ```typescript
 // src/lib/utils/logger.ts
-import pino from 'pino'
+import pino from 'pino';
 
 export const logger = pino({
-  level: process.env.LOG_LEVEL || 'info',
-  transport: {
-    target: 'pino-pretty'
-  }
-})
+	level: process.env.LOG_LEVEL || 'info',
+	transport: {
+		target: 'pino-pretty'
+	}
+});
 ```
 
 ### 3.3 Performance Optimization
 
 Implement performance improvements:
+
 1. Code splitting for routes
 2. Lazy loading for components
 3. Image optimization
@@ -255,6 +268,7 @@ Implement performance improvements:
 ### 3.4 Security Hardening
 
 Enhance security measures:
+
 1. Implement CSRF protection
 2. Add Content Security Policy
 3. Enhanced file upload validation
@@ -338,11 +352,13 @@ The system will be ready for public launch with confidence in reliability, perfo
 ## Implementation Notes
 
 ### Priority Order
+
 1. **Critical**: Phase 1 (Testing) and Phase 2 (Core Features)
 2. **High**: Phase 3 (Production Readiness)
 3. **Medium**: Phase 4 (Feature Polish)
 
 ### Time Estimates
+
 - Phase 1: 2-3 days
 - Phase 2: 3-4 days
 - Phase 3: 2-3 days
@@ -350,17 +366,20 @@ The system will be ready for public launch with confidence in reliability, perfo
 - **Total**: 9-13 days for complete implementation
 
 ### Dependencies
+
 - Phase 2 can start in parallel with Phase 1
 - Phase 3 requires Phase 1 completion
 - Phase 4 can be deferred to post-launch
 
 ### Risk Factors
+
 1. AI API costs during testing
 2. PDF generation library compatibility
 3. OAuth provider setup complexity
 4. Database migration risks
 
 Remember to:
+
 - Commit frequently with semantic commits
 - Update tests as features are added
 - Document all API changes

@@ -12,7 +12,7 @@ ATSPro is an AI-powered ATS resume optimization platform built with SvelteKit, B
 2. **ALWAYS**: Use SvelteKit Remote Functions NOT traditional API / form actions
 3. **DEBUGGING**: Use `console.log` and `debugger` statements for debugging
 4. **TESTING**: ALWAYS use playwright mcp & test data in `.test-data/*`
-4. **TESTING**: ALWAYS run typecheck `bun run check` and tests `bun run test`
+5. **TESTING**: ALWAYS run typecheck `bun run check` and tests `bun run test`
 
 ## Key Documentation:
 

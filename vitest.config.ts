@@ -23,7 +23,7 @@ export default defineConfig({
 				'vite.config.ts',
 				'vitest.config.ts',
 				'playwright.config.ts'
-			],
+			]
 			// Thresholds disabled during development
 			// Enable these when test coverage improves
 			// thresholds: {

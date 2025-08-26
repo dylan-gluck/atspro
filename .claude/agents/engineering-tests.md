@@ -73,24 +73,28 @@ When invoked, follow these steps:
 ## Testing Frameworks by Language
 
 ### JavaScript/TypeScript
+
 - **Unit**: Jest, Vitest, Mocha
 - **Integration**: Supertest, Testing Library
 - **E2E**: Playwright, Cypress
 - **Coverage**: Jest coverage, nyc
 
 ### Python
+
 - **Unit**: pytest, unittest
 - **Integration**: pytest with fixtures
 - **E2E**: Selenium, Playwright
 - **Coverage**: pytest-cov, coverage.py
 
 ### Go
+
 - **Unit**: testing package, testify
 - **Integration**: httptest
 - **E2E**: chromedp
 - **Coverage**: go test -cover
 
 ### Rust
+
 - **Unit**: built-in test framework
 - **Integration**: integration tests
 - **Coverage**: cargo-tarpaulin
@@ -98,6 +102,7 @@ When invoked, follow these steps:
 ## Output Format
 
 ### Test Suite Structure
+
 ```
 tests/
 ├── unit/
@@ -113,6 +118,7 @@ tests/
 ```
 
 ### Coverage Report Summary
+
 ```
 File             | % Stmts | % Branch | % Funcs | % Lines | Uncovered Lines
 -----------------|---------|----------|---------|---------|----------------
@@ -122,22 +128,27 @@ All files        |   85.42 |    78.33 |   90.00 |   85.42 |
 ```
 
 ### Test Documentation Template
+
 ```markdown
 ## Test Coverage Report
 
 ### Summary
+
 - Total Coverage: X%
 - Tests Written: Y
 - Tests Passing: Z
 
 ### Key Test Scenarios
+
 1. [Scenario Name]: [Description]
 2. [Scenario Name]: [Description]
 
 ### Uncovered Areas
+
 - [File/Function]: [Reason if intentional]
 
 ### Recommendations
+
 - [Specific improvement suggestion]
 ```
 
@@ -155,6 +166,7 @@ All files        |   85.42 |    78.33 |   90.00 |   85.42 |
 ## Error Handling
 
 When encountering issues:
+
 1. **Test Failures**: Analyze failure messages, check test logic (not implementation)
 2. **Coverage Gaps**: Identify why code is uncovered, write targeted tests
 3. **Framework Issues**: Verify correct setup, check documentation

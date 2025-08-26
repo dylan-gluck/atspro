@@ -5,7 +5,7 @@
 ### Test Framework Setup
 
 1. **Unit Testing**: Vitest with jsdom environment
-2. **Component Testing**: @testing-library/svelte  
+2. **Component Testing**: @testing-library/svelte
 3. **E2E Testing**: Playwright with multi-browser support
 4. **Coverage**: @vitest/coverage-v8 with 80% thresholds
 
@@ -54,6 +54,7 @@ src/
 ### CI/CD Pipeline
 
 GitHub Actions workflow (`.github/workflows/test.yml`):
+
 - Runs on push/PR to main/develop branches
 - PostgreSQL service for integration tests
 - Unit tests with coverage reporting
@@ -75,12 +76,14 @@ GitHub Actions workflow (`.github/workflows/test.yml`):
 ### Coverage Configuration
 
 Vitest coverage thresholds (80% minimum):
+
 - Lines: 80%
 - Statements: 80%
 - Functions: 80%
 - Branches: 80%
 
 Excluded from coverage:
+
 - Test files (`*.test.ts`, `*.spec.ts`)
 - Build outputs (`.svelte-kit/`, `build/`, `dist/`)
 - Config files (`vite.config.ts`, `vitest.config.ts`, `playwright.config.ts`)
@@ -89,7 +92,7 @@ Excluded from coverage:
 
 To fully utilize the test infrastructure:
 
-1. **Fix Remote Function Tests**: 
+1. **Fix Remote Function Tests**:
    - Option 1: Extract business logic to testable functions
    - Option 2: Create integration test environment
    - Option 3: Rely on E2E tests for coverage

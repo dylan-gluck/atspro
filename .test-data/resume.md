@@ -44,6 +44,7 @@ Security Engineer with over 15 years experience catching bad-guys. Big nerd, no-
 - Managed GCP resources for cloud-based services.
 
 # Contact Info
+
 - Email: john.doe@example.com
 - Phone: +1 (123) 456-7890
 - LinkedIn: https://www.linkedin.com/in/johndoe/

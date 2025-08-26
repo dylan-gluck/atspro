@@ -1,18 +1,18 @@
 import { Pool } from 'pg';
-import { vi } from 'vitest';
+import { vi, expect } from 'vitest';
 
 // Mock pool for database testing
 export function createMockPool() {
 	const mockQuery = vi.fn();
 	const mockConnect = vi.fn();
 	const mockEnd = vi.fn();
-	
+
 	const pool = {
 		query: mockQuery,
 		connect: mockConnect,
 		end: mockEnd
 	};
-	
+
 	return { pool, mockQuery, mockConnect, mockEnd };
 }
 
@@ -49,7 +49,7 @@ export const mockDbResults = {
 		createdAt: new Date('2024-01-01'),
 		updatedAt: new Date('2024-01-01')
 	},
-	
+
 	job: {
 		id: 'job-123',
 		userId: 'user-123',
@@ -64,7 +64,7 @@ export const mockDbResults = {
 		createdAt: new Date('2024-01-01'),
 		updatedAt: new Date('2024-01-01')
 	},
-	
+
 	document: {
 		id: 'doc-123',
 		jobId: 'job-123',
@@ -75,7 +75,7 @@ export const mockDbResults = {
 		createdAt: new Date('2024-01-01'),
 		updatedAt: new Date('2024-01-01')
 	},
-	
+
 	activity: {
 		id: 'activity-123',
 		jobId: 'job-123',
@@ -91,9 +91,9 @@ export function setupTransactionMocks(mockPool: ReturnType<typeof createMockPool
 		query: vi.fn(),
 		release: vi.fn()
 	};
-	
+
 	mockPool.mockConnect.mockResolvedValue(mockClient);
-	
+
 	return { mockClient };
 }
 
@@ -103,7 +103,7 @@ export const expectedQueries = {
 		text: `SELECT * FROM "userResume" WHERE "userId" = $1`,
 		values: [userId]
 	}),
-	
+
 	createResume: (userId: string, data: any) => ({
 		text: `INSERT INTO "userResume"
        ("userId", "contactInfo", "summary", "workExperience", "education", "certifications", "skills")
@@ -119,7 +119,7 @@ export const expectedQueries = {
 			data.skills || []
 		]
 	}),
-	
+
 	listJobs: (userId: string, status?: string, limit = 20, offset = 0) => {
 		if (status) {
 			return {
@@ -132,32 +132,32 @@ export const expectedQueries = {
 			values: [userId, limit, offset]
 		};
 	},
-	
+
 	getJob: (jobId: string) => ({
 		text: `SELECT * FROM "userJobs" WHERE id = $1`,
 		values: [jobId]
 	}),
-	
+
 	createJob: (userId: string, data: any) => ({
 		text: expect.stringContaining('INSERT INTO "userJobs"'),
 		values: expect.arrayContaining([userId])
 	}),
-	
+
 	updateJobStatus: (jobId: string, status: string, appliedAt?: string) => ({
 		text: expect.stringContaining('UPDATE "userJobs" SET status'),
 		values: expect.arrayContaining([status, jobId])
 	}),
-	
+
 	deleteJob: (jobId: string) => ({
 		text: `DELETE FROM "userJobs" WHERE id = $1`,
 		values: [jobId]
 	}),
-	
+
 	getJobDocuments: (jobId: string) => ({
 		text: `SELECT * FROM "jobDocuments" WHERE "jobId" = $1 ORDER BY "createdAt" DESC`,
 		values: [jobId]
 	}),
-	
+
 	createActivity: (jobId: string, type: string, metadata: any) => ({
 		text: `INSERT INTO "jobActivity" ("jobId", type, metadata) VALUES ($1, $2, $3) RETURNING *`,
 		values: [jobId, type, JSON.stringify(metadata)]

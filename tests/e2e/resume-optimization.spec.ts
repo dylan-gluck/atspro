@@ -5,10 +5,12 @@ test.describe('Resume Optimization Workflow', () => {
 		// Start each test fresh - tests will handle their own navigation
 	});
 
-	test('should redirect to auth for unauthenticated users accessing resume page', async ({ page }) => {
+	test('should redirect to auth for unauthenticated users accessing resume page', async ({
+		page
+	}) => {
 		// Try to access resume page without auth
 		await page.goto('/app/resume');
-		
+
 		// Should redirect to sign-in
 		await expect(page).toHaveURL(/.*\/auth\/sign-in/, { timeout: 10000 });
 	});
@@ -16,7 +18,7 @@ test.describe('Resume Optimization Workflow', () => {
 	test('should redirect to auth for unauthenticated users accessing settings', async ({ page }) => {
 		// Try to access settings page without auth
 		await page.goto('/app/settings');
-		
+
 		// Should redirect to sign-in
 		await expect(page).toHaveURL(/.*\/auth\/sign-in/, { timeout: 10000 });
 	});
@@ -24,7 +26,7 @@ test.describe('Resume Optimization Workflow', () => {
 	test('should handle onboarding page access', async ({ page }) => {
 		// Try to access onboarding page without auth
 		await page.goto('/onboarding');
-		
+
 		// Onboarding might be accessible without auth or redirect to sign-in
 		try {
 			await expect(page).toHaveURL(/.*\/auth\/sign-in/, { timeout: 5000 });
@@ -37,7 +39,7 @@ test.describe('Resume Optimization Workflow', () => {
 	test('should handle direct navigation to non-existent routes', async ({ page }) => {
 		// Try to access non-existent route
 		await page.goto('/app/non-existent-page');
-		
+
 		// Should redirect to sign-in or show 404 based on app routing
 		try {
 			await expect(page).toHaveURL(/.*\/auth\/sign-in/, { timeout: 5000 });
@@ -51,10 +53,10 @@ test.describe('Resume Optimization Workflow', () => {
 		// Navigate to auth pages when already unauthenticated
 		await page.goto('/auth/sign-in');
 		await expect(page.getByPlaceholder(/name@example.com/i)).toBeVisible();
-		
+
 		await page.goto('/auth/sign-up');
 		await expect(page.getByPlaceholder(/john doe/i)).toBeVisible();
-		
+
 		await page.goto('/auth/forgot-password');
 		await expect(page.getByPlaceholder(/name@example.com/i)).toBeVisible();
 	});

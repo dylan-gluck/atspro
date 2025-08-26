@@ -140,7 +140,7 @@
 		try {
 			// Prepare updates
 			const updates: any = {};
-			
+
 			// Only include changed fields
 			if (company !== originalJob?.company) updates.company = company.trim();
 			if (title !== originalJob?.title) updates.title = title.trim();
@@ -150,7 +150,9 @@
 			if (JSON.stringify(locations) !== JSON.stringify(originalJob?.location || [])) {
 				updates.location = locations.length > 0 ? locations : null;
 			}
-			if (JSON.stringify(responsibilities) !== JSON.stringify(originalJob?.responsibilities || [])) {
+			if (
+				JSON.stringify(responsibilities) !== JSON.stringify(originalJob?.responsibilities || [])
+			) {
 				updates.responsibilities = responsibilities.length > 0 ? responsibilities : null;
 			}
 			if (JSON.stringify(qualifications) !== JSON.stringify(originalJob?.qualifications || [])) {
@@ -170,8 +172,8 @@
 
 			// Update status separately if changed
 			if (status !== originalJob?.status) {
-				await updateJobStatus({ 
-					jobId, 
+				await updateJobStatus({
+					jobId,
 					status,
 					appliedAt: status === 'applied' ? new Date().toISOString() : undefined
 				});
@@ -248,7 +250,9 @@
 							Company <span class="text-destructive">*</span>
 						</Label>
 						<div class="relative">
-							<Building class="text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
+							<Building
+								class="text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2"
+							/>
 							<Input
 								id="company"
 								placeholder="e.g., Google"
@@ -263,7 +267,9 @@
 							Job Title <span class="text-destructive">*</span>
 						</Label>
 						<div class="relative">
-							<Briefcase class="text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
+							<Briefcase
+								class="text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2"
+							/>
 							<Input
 								id="title"
 								placeholder="e.g., Senior Software Engineer"
@@ -294,7 +300,9 @@
 					<div class="space-y-2">
 						<Label for="salary">Salary Range</Label>
 						<div class="relative">
-							<DollarSign class="text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
+							<DollarSign
+								class="text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2"
+							/>
 							<Input
 								id="salary"
 								placeholder="e.g., $120k-$180k"
@@ -307,7 +315,9 @@
 					<div class="space-y-2">
 						<Label for="link">Job Link</Label>
 						<div class="relative">
-							<Link class="text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
+							<Link
+								class="text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2"
+							/>
 							<Input
 								id="link"
 								type="url"
@@ -377,7 +387,8 @@
 							}}
 						/>
 						<Button
-							onclick={() => addItem(responsibilities, newResponsibility, () => (newResponsibility = ''))}
+							onclick={() =>
+								addItem(responsibilities, newResponsibility, () => (newResponsibility = ''))}
 							variant="outline"
 							disabled={isSubmitting}
 						>
@@ -443,9 +454,7 @@
 
 		<!-- Action Buttons -->
 		<div class="flex justify-end gap-3">
-			<Button variant="outline" onclick={handleCancel} disabled={isSubmitting}>
-				Cancel
-			</Button>
+			<Button variant="outline" onclick={handleCancel} disabled={isSubmitting}>Cancel</Button>
 			<Button onclick={handleSave} disabled={isSubmitting || !hasChanges}>
 				{#if isSubmitting}
 					<Loader2 class="mr-2 h-4 w-4 animate-spin" />

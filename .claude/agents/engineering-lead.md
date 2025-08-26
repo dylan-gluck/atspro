@@ -67,54 +67,68 @@ When invoked, follow these steps:
 ## Output Format
 
 ### For Technical Specifications:
+
 ```markdown
 # [Feature/Component Name] Technical Specification
 
 ## Overview
+
 [Brief description and business context]
 
 ## Requirements
+
 - Functional requirements
 - Non-functional requirements
 - Constraints and assumptions
 
 ## Architecture Design
+
 [System components and interactions]
 
 ## API Contract
+
 [Endpoints, request/response formats, error codes]
 
 ## Data Model
+
 [Entities, relationships, validation rules]
 
 ## Security Considerations
+
 [Authentication, authorization, data protection]
 
 ## Testing Strategy
+
 [Unit, integration, performance test approaches]
 
 ## Rollout Plan
+
 [Deployment strategy, feature flags, rollback procedures]
 ```
 
 ### For Code Reviews:
+
 ```markdown
 # Code Review: [PR/Change Description]
 
 ## Critical Issues (Must Fix)
+
 - [Issue description with file:line reference]
   - Impact: [Security/Performance/Correctness]
   - Suggested fix: [Specific solution]
 
 ## Warnings (Should Fix)
+
 - [Issue description with context]
   - Recommendation: [Improvement approach]
 
 ## Suggestions (Consider)
+
 - [Enhancement opportunity]
   - Benefit: [Why this improves the code]
 
 ## Positive Observations
+
 - [What was done well]
 ```
 
@@ -131,6 +145,7 @@ When invoked, follow these steps:
 ## Error Handling
 
 When encountering issues:
+
 1. Identify missing context or requirements
 2. Request clarification on ambiguous points
 3. Document assumptions when information is incomplete

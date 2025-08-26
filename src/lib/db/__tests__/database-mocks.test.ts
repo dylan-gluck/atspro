@@ -31,7 +31,7 @@ describe('Database Mock Tests', () => {
 			mockPool.query.mockResolvedValue(mockResult);
 
 			const result = await mockPool.query('SELECT * FROM test');
-			
+
 			expect(result).toEqual(mockResult);
 			expect(mockPool.query).toHaveBeenCalledWith('SELECT * FROM test');
 		});
@@ -41,7 +41,7 @@ describe('Database Mock Tests', () => {
 			mockPool.query.mockResolvedValue(mockResult);
 
 			const result = await mockPool.query('SELECT * FROM test WHERE id = $1', [1]);
-			
+
 			expect(result).toEqual(mockResult);
 			expect(mockPool.query).toHaveBeenCalledWith('SELECT * FROM test WHERE id = $1', [1]);
 		});
@@ -50,14 +50,16 @@ describe('Database Mock Tests', () => {
 			const error = new Error('Database connection failed');
 			mockPool.query.mockRejectedValue(error);
 
-			await expect(mockPool.query('SELECT * FROM test')).rejects.toThrow('Database connection failed');
+			await expect(mockPool.query('SELECT * FROM test')).rejects.toThrow(
+				'Database connection failed'
+			);
 		});
 
 		it('should handle empty result sets', async () => {
 			mockPool.query.mockResolvedValue({ rows: [], rowCount: 0 });
 
 			const result = await mockPool.query('SELECT * FROM test WHERE id = $1', [999]);
-			
+
 			expect(result.rows).toEqual([]);
 			expect(result.rowCount).toBe(0);
 		});
@@ -72,7 +74,7 @@ describe('Database Mock Tests', () => {
 			mockPool.connect.mockResolvedValue(mockClient);
 
 			const client = await mockPool.connect();
-			
+
 			expect(client).toEqual(mockClient);
 			expect(client.query).toBeDefined();
 			expect(client.release).toBeDefined();
@@ -88,7 +90,7 @@ describe('Database Mock Tests', () => {
 			mockPool.end.mockResolvedValue(undefined);
 
 			await mockPool.end();
-			
+
 			expect(mockPool.end).toHaveBeenCalled();
 		});
 	});
@@ -104,11 +106,11 @@ describe('Database Mock Tests', () => {
 			// Begin transaction
 			const client = await mockPool.connect();
 			await client.query('BEGIN');
-			
+
 			// Perform operations
 			await client.query('INSERT INTO test (name) VALUES ($1)', ['Test']);
 			await client.query('UPDATE test SET name = $1 WHERE id = $2', ['Updated', 1]);
-			
+
 			// Commit transaction
 			await client.query('COMMIT');
 			client.release();
@@ -128,10 +130,10 @@ describe('Database Mock Tests', () => {
 
 			const client = await mockPool.connect();
 			await client.query('BEGIN');
-			
+
 			// Simulate error
 			mockClient.query.mockRejectedValueOnce(new Error('Constraint violation'));
-			
+
 			try {
 				await client.query('INSERT INTO test (name) VALUES ($1)', ['Test']);
 			} catch (error) {
@@ -147,17 +149,16 @@ describe('Database Mock Tests', () => {
 
 	describe('Common Query Patterns', () => {
 		it('should handle INSERT with RETURNING', async () => {
-			const mockResult = { 
-				rows: [{ id: 1, name: 'New Item', createdAt: new Date() }], 
-				rowCount: 1 
+			const mockResult = {
+				rows: [{ id: 1, name: 'New Item', createdAt: new Date() }],
+				rowCount: 1
 			};
 			mockPool.query.mockResolvedValue(mockResult);
 
-			const result = await mockPool.query(
-				'INSERT INTO items (name) VALUES ($1) RETURNING *',
-				['New Item']
-			);
-			
+			const result = await mockPool.query('INSERT INTO items (name) VALUES ($1) RETURNING *', [
+				'New Item'
+			]);
+
 			expect(result.rows[0]).toHaveProperty('id');
 			expect(result.rows[0]).toHaveProperty('name', 'New Item');
 		});
@@ -165,11 +166,11 @@ describe('Database Mock Tests', () => {
 		it('should handle UPDATE with affected rows', async () => {
 			mockPool.query.mockResolvedValue({ rows: [], rowCount: 3 });
 
-			const result = await mockPool.query(
-				'UPDATE items SET status = $1 WHERE category = $2',
-				['active', 'electronics']
-			);
-			
+			const result = await mockPool.query('UPDATE items SET status = $1 WHERE category = $2', [
+				'active',
+				'electronics'
+			]);
+
 			expect(result.rowCount).toBe(3);
 		});
 
@@ -177,18 +178,20 @@ describe('Database Mock Tests', () => {
 			mockPool.query.mockResolvedValue({ rows: [], rowCount: 1 });
 
 			const result = await mockPool.query('DELETE FROM items WHERE id = $1', [123]);
-			
+
 			expect(result.rowCount).toBe(1);
 		});
 
 		it('should handle COUNT queries', async () => {
-			mockPool.query.mockResolvedValue({ 
-				rows: [{ count: '42' }], 
-				rowCount: 1 
+			mockPool.query.mockResolvedValue({
+				rows: [{ count: '42' }],
+				rowCount: 1
 			});
 
-			const result = await mockPool.query('SELECT COUNT(*) FROM items WHERE status = $1', ['active']);
-			
+			const result = await mockPool.query('SELECT COUNT(*) FROM items WHERE status = $1', [
+				'active'
+			]);
+
 			expect(result.rows[0].count).toBe('42');
 		});
 
@@ -202,13 +205,16 @@ describe('Database Mock Tests', () => {
 			};
 			mockPool.query.mockResolvedValue(mockResult);
 
-			const result = await mockPool.query(`
+			const result = await mockPool.query(
+				`
 				SELECT u.id as userId, u.name as userName, o.id as orderId, o.total
 				FROM users u
 				JOIN orders o ON u.id = o.userId
 				WHERE u.id = $1
-			`, [1]);
-			
+			`,
+				[1]
+			);
+
 			expect(result.rows).toHaveLength(2);
 			expect(result.rows[0]).toHaveProperty('userName', 'John');
 		});

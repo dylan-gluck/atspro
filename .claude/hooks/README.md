@@ -11,6 +11,7 @@ Claude Code hooks are Python scripts that execute at specific points in the inte
 ### Core Event Hooks
 
 **`session_start.py`** - Session Initialization
+
 - **Triggered by**: New session startup, session resume, or session clear
 - **Purpose**: Initialize development context, load project information, and optionally announce session start
 - **Command line options**:
@@ -23,6 +24,7 @@ Claude Code hooks are Python scripts that execute at specific points in the inte
   - Session state management
 
 **`user_prompt_submit.py`** - Prompt Processing
+
 - **Triggered by**: User submitting a prompt to Claude
 - **Purpose**: Log prompts, validate input, manage session data, and optionally generate agent names
 - **Command line options**:
@@ -36,6 +38,7 @@ Claude Code hooks are Python scripts that execute at specific points in the inte
   - Agent name generation via Anthropic or Ollama
 
 **`pre_tool_use.py`** - Tool Execution Safety
+
 - **Triggered by**: Before each tool execution
 - **Purpose**: Log tool usage and provide safety validation
 - **Security features** (currently commented out for flexibility):
@@ -45,11 +48,13 @@ Claude Code hooks are Python scripts that execute at specific points in the inte
 - **Logging**: Records all tool calls with session context
 
 **`post_tool_use.py`** - Tool Execution Tracking
+
 - **Triggered by**: After each tool execution completes
 - **Purpose**: Log tool results and track execution patterns
 - **Data captured**: Tool responses, execution timing, and session context
 
 **`pre_compact.py`** - Conversation Management
+
 - **Triggered by**: Before conversation history compaction (manual or automatic)
 - **Purpose**: Backup transcripts and log compaction events
 - **Command line options**:
@@ -63,6 +68,7 @@ Claude Code hooks are Python scripts that execute at specific points in the inte
 ### Completion Hooks
 
 **`stop.py`** - Main Session Completion
+
 - **Triggered by**: End of main Claude session
 - **Purpose**: Announce completion, archive transcripts, and generate completion messages
 - **Command line options**:
@@ -74,6 +80,7 @@ Claude Code hooks are Python scripts that execute at specific points in the inte
   - Transcript archival to `logs/chat.json`
 
 **`subagent_stop.py`** - Subagent Completion
+
 - **Triggered by**: End of subagent execution
 - **Purpose**: Track subagent completion and provide audio feedback
 - **Command line options**:
@@ -82,6 +89,7 @@ Claude Code hooks are Python scripts that execute at specific points in the inte
 - **Features**: Specialized handling for orchestrated subagent workflows
 
 **`notification.py`** - User Input Alerts
+
 - **Triggered by**: When Claude needs user input
 - **Purpose**: Provide audio notifications when user attention is required
 - **Command line options**:
@@ -96,8 +104,9 @@ Claude Code hooks are Python scripts that execute at specific points in the inte
 ### Text-to-Speech Services (`utils/tts/`)
 
 **Priority-based TTS selection**:
+
 1. **ElevenLabs** (`elevenlabs_tts.py`) - Highest quality, requires API key
-2. **OpenAI** (`openai_tts.py`) - High quality, requires API key  
+2. **OpenAI** (`openai_tts.py`) - High quality, requires API key
 3. **pyttsx3** (`pyttsx3_tts.py`) - Local fallback, no API key required
 
 All TTS scripts accept text as command-line arguments and use UV for dependency management.
@@ -105,16 +114,19 @@ All TTS scripts accept text as command-line arguments and use UV for dependency 
 ### LLM Integration (`utils/llm/`)
 
 **`anth.py`** - Anthropic Integration
+
 - Fast Claude 3.5 Haiku model for completion messages and agent names
 - Generates personalized completion messages
 - Creates unique agent names for sessions
 - Command line interface: `--completion`, `--agent-name`
 
 **`oai.py`** - OpenAI Integration
+
 - GPT-based completion message generation
 - Secondary option for LLM-powered features
 
 **`ollama.py`** - Local LLM Integration
+
 - Local model support for offline development
 - Preferred for agent name generation (faster, no API costs)
 
@@ -215,6 +227,7 @@ logs/
 ### Workflow Customization
 
 Hooks support project-specific customization through:
+
 - Environment variable configuration
 - Command-line argument variations
 - Context file integration

@@ -395,11 +395,19 @@
 				</Card.Header>
 				<Card.Content>
 					<div class="space-y-2">
-						<Button variant="outline" class="w-full justify-start" onclick={() => goto('/app/jobs/new')}>
+						<Button
+							variant="outline"
+							class="w-full justify-start"
+							onclick={() => goto('/app/jobs/new')}
+						>
 							<Plus class="mr-2 size-4" />
 							Add New Job
 						</Button>
-						<Button variant="outline" class="w-full justify-start" onclick={() => goto('/app/resume')}>
+						<Button
+							variant="outline"
+							class="w-full justify-start"
+							onclick={() => goto('/app/resume')}
+						>
 							<Pencil class="mr-2 size-4" />
 							Edit Resume
 						</Button>
