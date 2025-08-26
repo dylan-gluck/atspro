@@ -1,4 +1,3 @@
-import { Pool } from 'pg';
 import type { UserResume } from '$lib/types/user-resume';
 import type {
 	UserJob,
@@ -7,21 +6,18 @@ import type {
 	JobActivityType,
 	JobStatus
 } from '$lib/types/user-job';
-import { DATABASE_URL } from '$env/static/private';
-
-// Database connection pool
-const pool = new Pool({
-	connectionString: DATABASE_URL
-});
+import { getPool } from './pool';
 
 // Resume operations
 export const resume = {
 	async get(userId: string): Promise<UserResume | null> {
+		const pool = getPool();
 		const { rows } = await pool.query(`SELECT * FROM "userResume" WHERE "userId" = $1`, [userId]);
 		return rows[0] || null;
 	},
 
 	async create(userId: string, data: any): Promise<UserResume> {
+		const pool = getPool();
 		const { rows } = await pool.query(
 			`INSERT INTO "userResume"
        ("userId", "contactInfo", "summary", "workExperience", "education", "certifications", "skills")
@@ -41,6 +37,7 @@ export const resume = {
 	},
 
 	async update(userId: string, data: any): Promise<UserResume> {
+		const pool = getPool();
 		const fields: string[] = [];
 		const values: any[] = [];
 		let idx = 1;
@@ -73,6 +70,7 @@ export const jobs = {
 		userId: string,
 		options: { status?: JobStatus; limit?: number; offset?: number } = {}
 	): Promise<{ jobs: UserJob[]; total: number }> {
+		const pool = getPool();
 		const { status, limit = 20, offset = 0 } = options;
 
 		let query = `SELECT * FROM "userJobs" WHERE "userId" = $1`;
@@ -100,11 +98,13 @@ export const jobs = {
 	},
 
 	async get(jobId: string): Promise<UserJob | null> {
+		const pool = getPool();
 		const { rows } = await pool.query(`SELECT * FROM "userJobs" WHERE "id" = $1`, [jobId]);
 		return rows[0] || null;
 	},
 
 	async create(userId: string, data: any): Promise<UserJob> {
+		const pool = getPool();
 		const { rows } = await pool.query(
 			`INSERT INTO "userJobs"
        ("userId", "company", "title", "description", "salary", "responsibilities",
@@ -131,6 +131,7 @@ export const jobs = {
 	},
 
 	async updateStatus(jobId: string, status: JobStatus, appliedAt?: Date | string): Promise<void> {
+		const pool = getPool();
 		const params: any[] = [jobId, status];
 		let query = `UPDATE "userJobs" SET "status" = $2`;
 
@@ -143,10 +144,12 @@ export const jobs = {
 	},
 
 	async updateNotes(jobId: string, notes: string): Promise<void> {
+		const pool = getPool();
 		await pool.query(`UPDATE "userJobs" SET "notes" = $2 WHERE "id" = $1`, [jobId, notes]);
 	},
 
 	async update(jobId: string, updates: any): Promise<void> {
+		const pool = getPool();
 		const fields: string[] = [];
 		const values: any[] = [];
 		let idx = 1;
@@ -168,6 +171,7 @@ export const jobs = {
 	},
 
 	async delete(jobId: string): Promise<void> {
+		const pool = getPool();
 		await pool.query(`DELETE FROM "userJobs" WHERE "id" = $1`, [jobId]);
 	}
 };
@@ -175,6 +179,7 @@ export const jobs = {
 // Document operations
 export const documents = {
 	async list(jobId: string): Promise<JobDocument[]> {
+		const pool = getPool();
 		const { rows } = await pool.query(
 			`SELECT * FROM "jobDocuments" WHERE "jobId" = $1 ORDER BY "createdAt" DESC`,
 			[jobId]
@@ -183,6 +188,7 @@ export const documents = {
 	},
 
 	async get(documentId: string): Promise<JobDocument | null> {
+		const pool = getPool();
 		const { rows } = await pool.query(`SELECT * FROM "jobDocuments" WHERE "id" = $1`, [documentId]);
 		return rows[0] || null;
 	},
@@ -193,6 +199,7 @@ export const documents = {
 		content: string,
 		metadata?: any
 	): Promise<JobDocument> {
+		const pool = getPool();
 		// Get next version
 		const { rows: versionRows } = await pool.query(
 			`SELECT COALESCE(MAX("version"), 0) + 1 as version
@@ -233,6 +240,7 @@ export const activity = {
 		limit = 50,
 		offset = 0
 	): Promise<{ items: JobActivity[]; total: number }> {
+		const pool = getPool();
 		const [itemsResult, countResult] = await Promise.all([
 			pool.query(
 				`SELECT * FROM "jobActivity" WHERE "jobId" = $1 ORDER BY "createdAt" DESC LIMIT $2 OFFSET $3`,
@@ -248,6 +256,7 @@ export const activity = {
 	},
 
 	async create(jobId: string, type: JobActivityType, metadata?: any): Promise<JobActivity> {
+		const pool = getPool();
 		const description = generateActivityDescription(type, metadata);
 
 		const { rows } = await pool.query(
