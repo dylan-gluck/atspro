@@ -5,11 +5,6 @@
 # Packages
 node_modules
 
-# Test coverage
-coverage
-playwright-report
-test-results
-
 # Output
 .output
 .vercel
@@ -31,3 +26,5 @@ Thumbs.db
 # Vite
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+coverage/
+.playwright-mcp

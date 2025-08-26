@@ -8,6 +8,7 @@ import {
 } from '$lib/ai';
 import { requireAuth, checkRateLimit, ErrorCodes, measurePerformance } from './utils';
 import { getJob } from './job.remote';
+import { calculateATSScore } from './scoring.remote';
 
 // Get document content
 export const getDocument = query(v.pipe(v.string(), v.uuid()), async (documentId) => {
@@ -54,14 +55,26 @@ export const optimizeResume = command(optimizeSchema, async ({ jobId }) => {
 		return await optimizeResumeWithAI(resume, job);
 	});
 
-	// Format optimized content as markdown
-	const formattedContent = formatOptimizedResume(optimized);
+	// Format optimized content - always generate markdown from the structured data
+	// Don't use optimized.markdown as it contains analysis/summary from AI
+	const markdown = formatOptimizedResume(optimized);
+	const html = formatOptimizedResumeAsHTML(optimized);
 
-	// Store as document
-	const doc = await db.createJobDocument(jobId, 'resume', formattedContent, {
-		atsScore: optimized.score,
+	// Calculate detailed ATS scores
+	const atsAnalysis = await calculateATSScore({
+		resumeContent: JSON.stringify(resume),
+		jobDescription: JSON.stringify(job),
+		optimizedContent: markdown
+	});
+
+	// Store as document with both HTML content and markdown in metadata
+	const doc = await db.createJobDocument(jobId, 'resume', html, {
+		atsScore: atsAnalysis.optimizedScore || optimized.score,
+		originalScore: atsAnalysis.originalScore,
 		matchedKeywords: optimized.keywords,
-		originalResumeId: resume.id
+		originalResumeId: resume.id,
+		markdown: markdown,
+		atsAnalysis: atsAnalysis
 	});
 
 	// Create activity
@@ -80,9 +93,12 @@ export const optimizeResume = command(optimizeSchema, async ({ jobId }) => {
 	return {
 		documentId: doc.id,
 		documents,
-		optimizationScore: optimized.score,
+		optimizationScore: atsAnalysis.optimizedScore || optimized.score,
+		originalScore: atsAnalysis.originalScore,
 		matchedKeywords: optimized.keywords,
-		version: doc.version
+		version: doc.version,
+		atsAnalysis: atsAnalysis,
+		recommendations: atsAnalysis.recommendations
 	};
 });
 
@@ -112,17 +128,22 @@ export const generateCoverLetter = command(
 		}
 
 		// Generate with AI
-		const coverLetter = await measurePerformance('generate_cover_letter', async () => {
+		const coverLetterMarkdown = await measurePerformance('generate_cover_letter', async () => {
 			return await generateCoverLetterWithAI(resume, job, tone);
 		});
 
-		// Store document
-		const doc = await db.createJobDocument(jobId, 'cover', coverLetter, {
+		// Convert markdown to HTML
+		const { marked } = await import('marked');
+		const coverLetterHTML = await marked(coverLetterMarkdown);
+
+		// Store document with both HTML and markdown
+		const doc = await db.createJobDocument(jobId, 'cover', coverLetterHTML, {
 			tone,
 			generatedFrom: {
 				resumeId: resume.id,
 				jobId: job.id
-			}
+			},
+			markdown: coverLetterMarkdown
 		});
 
 		// Create activity
@@ -137,7 +158,7 @@ export const generateCoverLetter = command(
 		return {
 			documentId: doc.id,
 			type: 'cover',
-			content: coverLetter,
+			content: coverLetterHTML,
 			version: doc.version,
 			tone
 		};
@@ -161,13 +182,18 @@ export const generateCompanyResearch = command(companyResearchSchema, async ({ j
 		error(404, 'Job not found');
 	}
 
-	// Generate research content
-	const research = await generateCompanyResearchContent(job);
+	// Generate research content (markdown)
+	const researchMarkdown = await generateCompanyResearchContent(job);
 
-	// Store document
-	const doc = await db.createJobDocument(jobId, 'research', research, {
+	// Convert markdown to HTML
+	const { marked } = await import('marked');
+	const researchHTML = await marked(researchMarkdown);
+
+	// Store document with both HTML and markdown
+	const doc = await db.createJobDocument(jobId, 'research', researchHTML, {
 		company: job.company,
-		generatedAt: new Date().toISOString()
+		generatedAt: new Date().toISOString(),
+		markdown: researchMarkdown
 	});
 
 	// Create activity
@@ -182,7 +208,7 @@ export const generateCompanyResearch = command(companyResearchSchema, async ({ j
 	return {
 		documentId: doc.id,
 		type: 'research',
-		content: research,
+		content: researchHTML,
 		version: doc.version
 	};
 });
@@ -257,11 +283,145 @@ function formatOptimizedResume(optimized: any): string {
 	return content;
 }
 
-// Helper function to generate company research
+// Helper function to format optimized resume as HTML
+function formatOptimizedResumeAsHTML(optimized: any): string {
+	const { contactInfo, summary, workExperience, education, certifications, skills } = optimized;
+
+	let html = `<div class="resume">`;
+	html += `<header class="resume-header">`;
+	html += `<h1>${contactInfo.fullName}</h1>`;
+	html += `<div class="contact-info">`;
+
+	if (contactInfo.email) html += `<span>Email: ${contactInfo.email}</span>`;
+	if (contactInfo.phone) html += `<span>Phone: ${contactInfo.phone}</span>`;
+	if (contactInfo.address) html += `<span>Location: ${contactInfo.address}</span>`;
+
+	html += `</div>`;
+
+	if (contactInfo.links?.length > 0) {
+		html += `<div class="links">`;
+		contactInfo.links.forEach((link: any) => {
+			html += `<a href="${link.url}" target="_blank">${link.name}</a>`;
+		});
+		html += `</div>`;
+	}
+	html += `</header>`;
+
+	if (summary) {
+		html += `<section class="resume-section"><h2>Summary</h2><p>${summary}</p></section>`;
+	}
+
+	if (workExperience?.length > 0) {
+		html += `<section class="resume-section"><h2>Work Experience</h2>`;
+		workExperience.forEach((exp: any) => {
+			html += `<div class="experience-item">`;
+			html += `<h3>${exp.position} at ${exp.company}</h3>`;
+			if (exp.startDate || exp.endDate) {
+				html += `<p class="dates">${exp.startDate || ''} - ${exp.isCurrent ? 'Present' : exp.endDate || ''}</p>`;
+			}
+			if (exp.description) {
+				html += `<p>${exp.description}</p>`;
+			}
+			if (exp.responsibilities?.length > 0) {
+				html += `<ul>`;
+				exp.responsibilities.forEach((resp: string) => {
+					html += `<li>${resp}</li>`;
+				});
+				html += `</ul>`;
+			}
+			html += `</div>`;
+		});
+		html += `</section>`;
+	}
+
+	if (education?.length > 0) {
+		html += `<section class="resume-section"><h2>Education</h2>`;
+		education.forEach((edu: any) => {
+			html += `<div class="education-item">`;
+			html += `<h3>${edu.degree} in ${edu.fieldOfStudy || 'General Studies'}</h3>`;
+			html += `<p>${edu.institution}`;
+			if (edu.graduationDate) html += ` - ${edu.graduationDate}`;
+			html += `</p>`;
+			if (edu.gpa) html += `<p>GPA: ${edu.gpa}</p>`;
+			if (edu.honors?.length > 0) {
+				html += `<p>Honors: ${edu.honors.join(', ')}</p>`;
+			}
+			html += `</div>`;
+		});
+		html += `</section>`;
+	}
+
+	if (certifications?.length > 0) {
+		html += `<section class="resume-section"><h2>Certifications</h2><ul>`;
+		certifications.forEach((cert: any) => {
+			html += `<li><strong>${cert.name}</strong> - ${cert.issuer}`;
+			if (cert.dateObtained) html += ` (${cert.dateObtained})`;
+			html += `</li>`;
+		});
+		html += `</ul></section>`;
+	}
+
+	if (skills?.length > 0) {
+		html += `<section class="resume-section"><h2>Skills</h2><p>${skills.join(', ')}</p></section>`;
+	}
+
+	html += `</div>`;
+	return html;
+}
+
+// Helper function to generate company research with AI
 async function generateCompanyResearchContent(job: any): Promise<string> {
-	// This would typically call an AI service or web scraping
-	// For now, return a structured template
-	return `# Company Research: ${job.company}
+	// Import AI functions
+	const { generateText } = await import('ai');
+	const { createAnthropic } = await import('@ai-sdk/anthropic');
+	const { ANTHROPIC_API_KEY } = await import('$env/static/private');
+
+	const anthropic = createAnthropic({
+		apiKey: ANTHROPIC_API_KEY
+	});
+
+	try {
+		// Generate comprehensive research using AI
+		const result = await generateText({
+			model: anthropic('claude-3-5-sonnet-20241022'),
+			messages: [
+				{
+					role: 'system' as const,
+					content: `You are an expert company researcher and career advisor. Generate a comprehensive research document about the company and role that will help a job applicant prepare for their application and interview.
+
+Structure your response in markdown format with the following sections:
+1. Company Overview - Brief history, mission, values, size, and market position
+2. Products/Services - What the company offers and their main revenue streams  
+3. Company Culture - Work environment, values, and what employees say
+4. Recent News & Developments - Latest announcements, achievements, challenges
+5. Role Analysis - Breakdown of the specific position requirements and expectations
+6. Interview Preparation Tips - Specific advice for this company and role
+7. Compensation Insights - Salary ranges and benefits if available
+8. Growth Opportunities - Career paths and development at this company
+
+Be specific and actionable. Focus on information that would genuinely help someone prepare for this opportunity.`
+				},
+				{
+					role: 'user' as const,
+					content: `Generate a comprehensive research document for this job opportunity:
+
+Company: ${job.company}
+Role: ${job.title}
+Description: ${job.description}
+Location: ${job.location?.join(', ') || 'Not specified'}
+Salary: ${job.salary || 'Not disclosed'}
+Qualifications: ${job.qualifications?.join('\n') || 'Not specified'}
+
+Provide actionable insights that would help a candidate succeed in their application and interview process.`
+				}
+			]
+		});
+
+		return result.text;
+	} catch (error) {
+		console.error('Error generating company research:', error);
+		// Fallback to template if AI fails
+		return `# Company Research: ${job.company}
 
 ## About ${job.company}
 [Company overview would be generated here based on web research]
@@ -291,4 +451,5 @@ ${job.logistics?.join('\n') || ''}
 ## Additional Notes
 ${job.additionalInfo?.join('\n') || 'No additional information available'}
 `;
+	}
 }

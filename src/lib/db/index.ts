@@ -208,10 +208,18 @@ export const documents = {
 
 		// Create new document
 		const { rows } = await pool.query(
-			`INSERT INTO "jobDocuments" ("jobId", "type", "content", "version", "metadata")
-       VALUES ($1, $2, $3, $4, $5)
+			`INSERT INTO "jobDocuments" ("jobId", "type", "content", "contentMarkdown", "atsScore", "version", "metadata")
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
        RETURNING *`,
-			[jobId, type, content, versionRows[0].version, metadata ? JSON.stringify(metadata) : null]
+			[
+				jobId,
+				type,
+				content,
+				metadata?.markdown || null, // Store markdown in dedicated column
+				metadata?.atsScore || null, // Store ATS score in dedicated column
+				versionRows[0].version,
+				metadata ? JSON.stringify(metadata) : null
+			]
 		);
 
 		return rows[0];

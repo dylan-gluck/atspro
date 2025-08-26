@@ -46,6 +46,9 @@
 	} from '$lib/services/document.remote';
 	import { getJobActivity } from '$lib/services/activity.remote';
 	import { getResume } from '$lib/services/resume.remote';
+	import { exportDocument } from '$lib/services/export.remote';
+	import * as Dialog from '$lib/components/ui/dialog';
+	import { marked } from 'marked';
 
 	// Get job ID from URL
 	let jobId = $derived(page.params.id);
@@ -76,6 +79,11 @@
 	let generateResumeLoading = $state(false);
 	let generateCoverLoading = $state(false);
 	let generateResearchLoading = $state(false);
+
+	// Document viewer state
+	let viewDialogOpen = $state(false);
+	let viewedDocument = $state<JobDocument | null>(null);
+	let downloadingDocId = $state<string | null>(null);
 
 	// Tab state
 	let activeTab = $state('overview');
@@ -240,6 +248,43 @@
 			console.error(error);
 		} finally {
 			generateResearchLoading = false;
+		}
+	}
+
+	async function handleViewDocument(doc: JobDocument) {
+		viewedDocument = doc;
+		viewDialogOpen = true;
+	}
+
+	async function handleDownloadDocument(doc: JobDocument) {
+		downloadingDocId = doc.id;
+		try {
+			const result = await exportDocument({
+				documentId: doc.id,
+				format: 'pdf'
+			});
+
+			// Create download link
+			const link = document.createElement('a');
+			if ('url' in result) {
+				link.href = result.url;
+				link.download = `${getDocumentTypeLabel(doc.type).replace(' ', '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
+			} else {
+				// Handle content-based response (markdown/text)
+				const blob = new Blob([result.content], { type: 'text/plain' });
+				link.href = URL.createObjectURL(blob);
+				link.download = result.filename;
+			}
+			document.body.appendChild(link);
+			link.click();
+			document.body.removeChild(link);
+
+			toast.success('Document downloaded successfully');
+		} catch (error) {
+			toast.error('Failed to download document');
+			console.error(error);
+		} finally {
+			downloadingDocId = null;
 		}
 	}
 
@@ -591,13 +636,29 @@
 											</div>
 										</div>
 										<div class="flex gap-2">
-											<Button variant="outline" size="sm" class="gap-2">
+											<Button
+												variant="outline"
+												size="sm"
+												class="gap-2"
+												onclick={() => handleViewDocument(doc)}
+											>
 												<Eye class="h-4 w-4" />
 												View
 											</Button>
-											<Button variant="outline" size="sm" class="gap-2">
-												<Download class="h-4 w-4" />
-												Download
+											<Button
+												variant="outline"
+												size="sm"
+												class="gap-2"
+												onclick={() => handleDownloadDocument(doc)}
+												disabled={downloadingDocId === doc.id}
+											>
+												{#if downloadingDocId === doc.id}
+													<Loader2 class="h-4 w-4 animate-spin" />
+													Downloading...
+												{:else}
+													<Download class="h-4 w-4" />
+													Download
+												{/if}
 											</Button>
 										</div>
 									</div>
@@ -686,3 +747,95 @@
 		</AlertDialog.Footer>
 	</AlertDialog.Content>
 </AlertDialog.Root>
+
+<!-- Document Viewer Dialog -->
+<Dialog.Root bind:open={viewDialogOpen}>
+	<Dialog.Content class="flex max-h-[90vh] max-w-[90vw] flex-col overflow-hidden sm:max-w-4xl">
+		<Dialog.Header class="flex-shrink-0 border-b pb-4">
+			<div class="flex items-start justify-between">
+				<div class="flex items-start gap-3">
+					<div
+						class="{viewedDocument?.type === 'resume'
+							? 'bg-blue-100 dark:bg-blue-900/30'
+							: viewedDocument?.type === 'cover'
+								? 'bg-green-100 dark:bg-green-900/30'
+								: 'bg-purple-100 dark:bg-purple-900/30'} rounded-lg p-2"
+					>
+						<FileText
+							class="h-5 w-5 {viewedDocument?.type === 'resume'
+								? 'text-blue-600 dark:text-blue-400'
+								: viewedDocument?.type === 'cover'
+									? 'text-green-600 dark:text-green-400'
+									: 'text-purple-600 dark:text-purple-400'}"
+						/>
+					</div>
+					<div>
+						<Dialog.Title class="text-xl font-semibold">
+							{viewedDocument ? getDocumentTypeLabel(viewedDocument.type) : 'Document'}
+						</Dialog.Title>
+						<div class="mt-1 flex items-center gap-4">
+							{#if viewedDocument}
+								<span class="text-muted-foreground text-sm">
+									Version {viewedDocument.version}
+								</span>
+								<span class="text-muted-foreground text-sm">
+									Created {new Date(viewedDocument.createdAt).toLocaleDateString()}
+								</span>
+								{#if viewedDocument.metadata?.atsScore}
+									<Badge variant="secondary" class="gap-1">
+										<CheckCircle2 class="h-3 w-3" />
+										ATS Score: {viewedDocument.metadata.atsScore}%
+									</Badge>
+								{/if}
+								{#if viewedDocument.metadata?.tone}
+									<Badge variant="outline">
+										{viewedDocument.metadata.tone} tone
+									</Badge>
+								{/if}
+							{/if}
+						</div>
+					</div>
+				</div>
+				<div class="flex gap-2">
+					<Button
+						variant="outline"
+						size="sm"
+						onclick={() => viewedDocument && handleDownloadDocument(viewedDocument)}
+						disabled={downloadingDocId === viewedDocument?.id}
+					>
+						{#if downloadingDocId === viewedDocument?.id}
+							<Loader2 class="mr-2 h-4 w-4 animate-spin" />
+							Downloading...
+						{:else}
+							<Download class="mr-2 h-4 w-4" />
+							Download PDF
+						{/if}
+					</Button>
+				</div>
+			</div>
+		</Dialog.Header>
+		<div class="flex-1 overflow-y-auto px-1">
+			<div class="py-6">
+				{#if viewedDocument}
+					{#if viewedDocument.metadata?.markdown}
+						<div class="document-content">
+							{@html marked(viewedDocument.metadata.markdown)}
+						</div>
+					{:else if viewedDocument.content}
+						<div class="document-content">
+							{@html viewedDocument.content}
+						</div>
+					{:else}
+						<div class="flex flex-col items-center justify-center py-12 text-center">
+							<FileText class="text-muted-foreground/50 mb-4 h-12 w-12" />
+							<p class="text-muted-foreground">No content available</p>
+							<p class="text-muted-foreground mt-1 text-sm">
+								This document may still be generating
+							</p>
+						</div>
+					{/if}
+				{/if}
+			</div>
+		</div>
+	</Dialog.Content>
+</Dialog.Root>
