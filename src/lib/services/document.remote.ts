@@ -67,21 +67,25 @@ export const optimizeResume = command(optimizeSchema, async ({ jobId }) => {
 		optimizedContent: markdown
 	});
 
-	// Store as document with both HTML content and markdown in metadata
-	const doc = await db.createJobDocument(jobId, 'resume', html, {
-		atsScore: atsAnalysis.optimizedScore || optimized.score,
-		originalScore: atsAnalysis.originalScore,
-		matchedKeywords: optimized.keywords,
-		originalResumeId: resume.id,
-		markdown: markdown,
-		atsAnalysis: atsAnalysis
-	});
+	// Store document and create activity in a transaction for atomicity
+	const doc = await db.transaction(async (tx) => {
+		const newDoc = await tx.createJobDocument(jobId, 'resume', html, {
+			atsScore: atsAnalysis.optimizedScore || optimized.score,
+			originalScore: atsAnalysis.originalScore,
+			matchedKeywords: optimized.keywords,
+			originalResumeId: resume.id,
+			markdown: markdown,
+			atsAnalysis: atsAnalysis
+		});
 
-	// Create activity
-	await db.createActivity(jobId, 'document_generated', {
-		type: 'resume',
-		score: optimized.score,
-		keywordCount: optimized.keywords.length
+		// Create activity
+		await tx.createActivity(jobId, 'document_generated', {
+			type: 'resume',
+			score: optimized.score,
+			keywordCount: optimized.keywords.length
+		});
+
+		return newDoc;
 	});
 
 	// Get all documents for response
@@ -136,20 +140,24 @@ export const generateCoverLetter = command(
 		const { marked } = await import('marked');
 		const coverLetterHTML = await marked(coverLetterMarkdown);
 
-		// Store document with both HTML and markdown
-		const doc = await db.createJobDocument(jobId, 'cover', coverLetterHTML, {
-			tone,
-			generatedFrom: {
-				resumeId: resume.id,
-				jobId: job.id
-			},
-			markdown: coverLetterMarkdown
-		});
+		// Store document and create activity in a transaction for atomicity
+		const doc = await db.transaction(async (tx) => {
+			const newDoc = await tx.createJobDocument(jobId, 'cover', coverLetterHTML, {
+				tone,
+				generatedFrom: {
+					resumeId: resume.id,
+					jobId: job.id
+				},
+				markdown: coverLetterMarkdown
+			});
 
-		// Create activity
-		await db.createActivity(jobId, 'document_generated', {
-			type: 'cover',
-			tone
+			// Create activity
+			await tx.createActivity(jobId, 'document_generated', {
+				type: 'cover',
+				tone
+			});
+
+			return newDoc;
 		});
 
 		// Refresh job details
@@ -189,17 +197,21 @@ export const generateCompanyResearch = command(companyResearchSchema, async ({ j
 	const { marked } = await import('marked');
 	const researchHTML = await marked(researchMarkdown);
 
-	// Store document with both HTML and markdown
-	const doc = await db.createJobDocument(jobId, 'research', researchHTML, {
-		company: job.company,
-		generatedAt: new Date().toISOString(),
-		markdown: researchMarkdown
-	});
+	// Store document and create activity in a transaction for atomicity
+	const doc = await db.transaction(async (tx) => {
+		const newDoc = await tx.createJobDocument(jobId, 'research', researchHTML, {
+			company: job.company,
+			generatedAt: new Date().toISOString(),
+			markdown: researchMarkdown
+		});
 
-	// Create activity
-	await db.createActivity(jobId, 'document_generated', {
-		type: 'research',
-		company: job.company
+		// Create activity
+		await tx.createActivity(jobId, 'document_generated', {
+			type: 'research',
+			company: job.company
+		});
+
+		return newDoc;
 	});
 
 	// Refresh job details

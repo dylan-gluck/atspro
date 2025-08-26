@@ -89,12 +89,16 @@ export const extractJob = form(async (data) => {
 		extracted.link = jobUrl;
 	}
 
-	// Store in database
-	const job = await db.createUserJob(userId, extracted);
+	// Store in database with transaction for atomicity
+	const job = await db.transaction(async (tx) => {
+		const newJob = await tx.createUserJob(userId, extracted);
 
-	// Create initial activity
-	await db.createActivity(job.id, 'job_added', {
-		source: jobUrl ? 'url' : 'manual'
+		// Create initial activity
+		await tx.createActivity(newJob.id, 'job_added', {
+			source: jobUrl ? 'url' : 'manual'
+		});
+
+		return newJob;
 	});
 
 	// Single-flight mutation: refresh jobs list
@@ -121,21 +125,24 @@ export const updateJobStatus = command(updateStatusSchema, async ({ jobId, statu
 		error(404, 'Job not found');
 	}
 
-	// Update status
-	await db.updateJobStatus(jobId, status as JobStatus, appliedAt);
+	// Update status with transaction for atomicity
+	await db.transaction(async (tx) => {
+		// Update status
+		await tx.updateJobStatus(jobId, status as JobStatus, appliedAt);
 
-	// Create activity record
-	await db.createActivity(jobId, 'status_change', {
-		previousStatus: job.status,
-		newStatus: status
-	});
-
-	// If applied, create additional activity
-	if (status === 'applied' && appliedAt) {
-		await db.createActivity(jobId, 'applied', {
-			appliedAt
+		// Create activity record
+		await tx.createActivity(jobId, 'status_change', {
+			previousStatus: job.status,
+			newStatus: status
 		});
-	}
+
+		// If applied, create additional activity
+		if (status === 'applied' && appliedAt) {
+			await tx.createActivity(jobId, 'applied', {
+				appliedAt
+			});
+		}
+	});
 
 	// Refresh affected queries
 	await Promise.all([getJob(jobId).refresh(), getJobs({}).refresh()]);
@@ -164,13 +171,16 @@ export const updateJobNotes = command(updateNotesSchema, async ({ jobId, notes }
 		error(404, 'Job not found');
 	}
 
-	// Update notes
-	await db.updateJobNotes(jobId, notes);
+	// Update notes with transaction for atomicity
+	await db.transaction(async (tx) => {
+		// Update notes
+		await tx.updateJobNotes(jobId, notes);
 
-	// Create activity if notes were added (not just edited)
-	if (!job.notes && notes) {
-		await db.createActivity(jobId, 'note_added');
-	}
+		// Create activity if notes were added (not just edited)
+		if (!job.notes && notes) {
+			await tx.createActivity(jobId, 'note_added');
+		}
+	});
 
 	// Refresh job details
 	await getJob(jobId).refresh();
@@ -218,20 +228,24 @@ export const createJob = command(createJobSchema, async (jobData) => {
 		appliedAt: jobData.status === 'applied' ? new Date() : null
 	};
 
-	// Create job in database
-	const job = await db.createUserJob(userId, jobToCreate);
+	// Create job in database with transaction for atomicity
+	const job = await db.transaction(async (tx) => {
+		const newJob = await tx.createUserJob(userId, jobToCreate);
 
-	// Create initial activity
-	await db.createActivity(job.id, 'job_added', {
-		source: 'manual'
-	});
-
-	// If status is applied, create applied activity
-	if (jobData.status === 'applied') {
-		await db.createActivity(job.id, 'applied', {
-			appliedAt: new Date()
+		// Create initial activity
+		await tx.createActivity(newJob.id, 'job_added', {
+			source: 'manual'
 		});
-	}
+
+		// If status is applied, create applied activity
+		if (jobData.status === 'applied') {
+			await tx.createActivity(newJob.id, 'applied', {
+				appliedAt: new Date()
+			});
+		}
+
+		return newJob;
+	});
 
 	// Refresh jobs list
 	await getJobs({}).refresh();
@@ -267,12 +281,15 @@ export const updateJob = command(updateJobSchema, async ({ jobId, ...updates }) 
 		error(404, 'Job not found');
 	}
 
-	// Update job in database
-	await db.updateJob(jobId, updates);
+	// Update job in database with transaction for atomicity
+	await db.transaction(async (tx) => {
+		// Update job
+		await tx.updateJob(jobId, updates);
 
-	// Create activity record
-	await db.createActivity(jobId, 'job_updated', {
-		updatedFields: Object.keys(updates)
+		// Create activity record
+		await tx.createActivity(jobId, 'job_updated', {
+			updatedFields: Object.keys(updates)
+		});
 	});
 
 	// Refresh affected queries

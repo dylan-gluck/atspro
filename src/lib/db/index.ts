@@ -302,7 +302,121 @@ export const db = {
 		const result = await activity.list(jobId, 0, 0);
 		return result.total;
 	},
-	createActivity: activity.create
+	createActivity: activity.create,
+
+	// Transaction support for atomic operations
+	transaction: async <T>(
+		callback: (tx: {
+			createUserJob: typeof jobs.create;
+			updateJobStatus: typeof jobs.updateStatus;
+			updateJobNotes: typeof jobs.updateNotes;
+			updateJob: typeof jobs.update;
+			createJobDocument: typeof documents.create;
+			createActivity: typeof activity.create;
+		}) => Promise<T>
+	): Promise<T> => {
+		return await drizzleDb.transaction(async (tx) => {
+			// Create transaction-aware versions of all operations
+			const txOps = {
+				createUserJob: async (userId: string, data: any) => {
+					const insertData: NewUserJob = {
+						userId,
+						company: data.company || '',
+						title: data.title || '',
+						description: data.description || '',
+						salary: data.salary,
+						responsibilities: data.responsibilities,
+						qualifications: data.qualifications,
+						logistics: data.logistics,
+						location: data.location,
+						additionalInfo: data.additionalInfo,
+						link: data.link,
+						status: data.status || 'tracked',
+						notes: data.notes
+					};
+					const result = await tx.insert(userJobs).values(insertData).returning();
+					return result[0] as UserJob;
+				},
+
+				updateJobStatus: async (jobId: string, status: JobStatus, appliedAt?: Date | string) => {
+					const updateData: any = { status };
+					if (appliedAt) {
+						updateData.appliedAt = appliedAt instanceof Date ? appliedAt : new Date(appliedAt);
+					}
+					await tx.update(userJobs).set(updateData).where(eq(userJobs.id, jobId));
+				},
+
+				updateJobNotes: async (jobId: string, notes: string) => {
+					await tx.update(userJobs).set({ notes }).where(eq(userJobs.id, jobId));
+				},
+
+				updateJob: async (jobId: string, updates: any) => {
+					const updateData: any = {};
+					Object.entries(updates).forEach(([key, value]) => {
+						if (value !== undefined && key !== 'id' && key !== 'userId') {
+							updateData[key] = value;
+						}
+					});
+					if (Object.keys(updateData).length > 0) {
+						await tx.update(userJobs).set(updateData).where(eq(userJobs.id, jobId));
+					}
+				},
+
+				createJobDocument: async (
+					jobId: string,
+					type: JobDocument['type'],
+					content: string,
+					metadata?: any
+				) => {
+					// Get next version
+					const versionResult = await tx
+						.select({
+							version: sql<number>`COALESCE(MAX("version"), 0) + 1`
+						})
+						.from(jobDocuments)
+						.where(and(eq(jobDocuments.jobId, jobId), eq(jobDocuments.type, type)));
+
+					const version = versionResult[0]?.version || 1;
+
+					// Deactivate old versions
+					await tx
+						.update(jobDocuments)
+						.set({ isActive: false })
+						.where(and(eq(jobDocuments.jobId, jobId), eq(jobDocuments.type, type)));
+
+					// Create new document
+					const insertData: NewJobDocument = {
+						jobId,
+						type,
+						content,
+						contentMarkdown: metadata?.markdown || null,
+						atsScore: metadata?.atsScore || null,
+						version,
+						metadata: metadata || null
+					};
+
+					const result = await tx.insert(jobDocuments).values(insertData).returning();
+					return result[0] as JobDocument;
+				},
+
+				createActivity: async (jobId: string, type: JobActivityType, metadata?: any) => {
+					const description = generateActivityDescription(type, metadata);
+
+					const insertData: NewJobActivity = {
+						jobId,
+						type: type as ActivityType,
+						description,
+						metadata: metadata || null
+					};
+
+					const result = await tx.insert(jobActivity).values(insertData).returning();
+					return result[0] as JobActivity;
+				}
+			};
+
+			return await callback(txOps);
+		});
+	}
 };
 
 export default db;
