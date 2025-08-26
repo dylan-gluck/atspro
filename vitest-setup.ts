@@ -39,16 +39,21 @@ vi.mock('$app/environment', () => ({
 vi.mock('$app/server', () => ({
 	query: vi.fn((schema, handler) => {
 		// Return the handler directly for testing
-		return handler;
+		return handler || schema;
 	}),
 	command: vi.fn((schema, handler) => {
 		// Return the handler directly for testing
-		return handler;
+		return handler || schema;
 	}),
 	form: vi.fn((handler) => {
 		// Return the handler directly for testing
+		// Make it callable by returning the handler function
+		if (typeof handler === 'function') {
+			return handler;
+		}
 		return handler;
-	})
+	}),
+	getRequestEvent: vi.fn()
 }));
 
 // Mock fetch for server-side tests
