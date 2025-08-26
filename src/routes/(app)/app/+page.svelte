@@ -19,7 +19,8 @@
 		Clock,
 		ArrowRight,
 		ChevronRight,
-		Loader2
+		Loader2,
+		Pencil
 	} from 'lucide-svelte';
 	import { getJobs } from '$lib/services/job.remote';
 	import { getDashboardActivity } from '$lib/services/activity.remote';
@@ -47,7 +48,10 @@
 		},
 		{
 			title: 'Applications Sent',
-			value: jobs.filter((j: UserJob) => j.status === 'applied' || j.status === 'interviewing' || j.status === 'offered').length,
+			value: jobs.filter(
+				(j: UserJob) =>
+					j.status === 'applied' || j.status === 'interviewing' || j.status === 'offered'
+			).length,
 			icon: Send,
 			change: calculateWeeklyChange('applied'),
 			changeType: 'positive' as const
@@ -86,42 +90,48 @@
 		}))
 	);
 
-
 	// Helper functions
 	function calculateWeeklyChange(type: string): string {
 		// This would need to compare with data from a week ago
 		// For now, return placeholder
 		const weekAgo = new Date();
 		weekAgo.setDate(weekAgo.getDate() - 7);
-		
+
 		let count = 0;
 		if (type === 'total') {
 			count = jobs.filter((j: UserJob) => new Date(j.createdAt) > weekAgo).length;
 		} else if (type === 'applied') {
 			count = jobs.filter((j: UserJob) => j.appliedAt && new Date(j.appliedAt) > weekAgo).length;
 		} else if (type === 'interviewing') {
-			count = jobs.filter((j: UserJob) => j.status === 'interviewing' && new Date(j.updatedAt) > weekAgo).length;
+			count = jobs.filter(
+				(j: UserJob) => j.status === 'interviewing' && new Date(j.updatedAt) > weekAgo
+			).length;
 		}
-		
+
 		return count > 0 ? `+${count} this week` : 'No change';
 	}
 
 	function calculateResponseRate(): string {
-		const appliedCount = jobs.filter((j: UserJob) => j.status === 'applied' || j.status === 'interviewing' || j.status === 'offered').length;
-		const responseCount = jobs.filter((j: UserJob) => j.status === 'interviewing' || j.status === 'offered').length;
-		
+		const appliedCount = jobs.filter(
+			(j: UserJob) =>
+				j.status === 'applied' || j.status === 'interviewing' || j.status === 'offered'
+		).length;
+		const responseCount = jobs.filter(
+			(j: UserJob) => j.status === 'interviewing' || j.status === 'offered'
+		).length;
+
 		if (appliedCount === 0) return '0%';
-		
+
 		const rate = Math.round((responseCount / appliedCount) * 100);
 		return `${rate}%`;
 	}
 
 	function formatDate(date: Date | string): string {
 		const d = new Date(date);
-		return d.toLocaleDateString('en-US', { 
-			year: 'numeric', 
-			month: 'short', 
-			day: 'numeric' 
+		return d.toLocaleDateString('en-US', {
+			year: 'numeric',
+			month: 'short',
+			day: 'numeric'
 		});
 	}
 
@@ -137,7 +147,7 @@
 		if (diffMins < 60) return `${diffMins} minute${diffMins > 1 ? 's' : ''} ago`;
 		if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
 		if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
-		
+
 		return formatDate(d);
 	}
 
@@ -158,9 +168,11 @@
 		}
 	}
 
-	function formatActivityMessage(activity: JobActivity & { jobTitle: string; jobCompany: string }): string {
+	function formatActivityMessage(
+		activity: JobActivity & { jobTitle: string; jobCompany: string }
+	): string {
 		const jobInfo = activity.jobTitle ? ` for ${activity.jobTitle} at ${activity.jobCompany}` : '';
-		
+
 		switch (activity.type) {
 			case 'job_added':
 				return `Added new job${jobInfo}`;
@@ -220,8 +232,8 @@
 		</div>
 		<div class="flex gap-2">
 			<Button variant="outline">
-				<Upload class="mr-2 size-4" />
-				Upload Resume
+				<Pencil class="mr-2 size-4" />
+				Edit Resume
 			</Button>
 			<Button>
 				<Plus class="mr-2 size-4" />
@@ -387,16 +399,8 @@
 							Add New Job
 						</Button>
 						<Button variant="outline" class="w-full justify-start">
-							<Upload class="mr-2 size-4" />
-							Upload Resume
-						</Button>
-						<Button variant="outline" class="w-full justify-start">
-							<FileText class="mr-2 size-4" />
-							Generate Cover Letter
-						</Button>
-						<Button variant="outline" class="w-full justify-start">
-							<TrendingUp class="mr-2 size-4" />
-							Optimize Resume
+							<Pencil class="mr-2 size-4" />
+							Edit Resume
 						</Button>
 					</div>
 				</Card.Content>

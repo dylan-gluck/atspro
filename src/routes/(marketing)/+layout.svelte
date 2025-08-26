@@ -1,6 +1,5 @@
 <script lang="ts">
 	import '$lib/app.css';
-	import favicon from '$lib/assets/favicon.svg';
 	import { goto } from '$app/navigation';
 	import { preventDefault } from 'svelte/legacy';
 	import { Button } from '$lib/components/ui/button';
@@ -28,9 +27,6 @@
 	}
 </script>
 
-<svelte:head>
-	<link rel="icon" href={favicon} />
-</svelte:head>
 
 <div class="flex min-h-screen flex-col">
 	<!-- Header Navigation -->

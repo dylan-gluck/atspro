@@ -30,9 +30,73 @@ Better-Auth handles all authentication with PostgreSQL storage:
 
 ### Key Implementation Notes
 
-1. **ALWAYS**: Use svelte 5 syntax
-2. **ALWAYS**: Use sveltekit Remote Functions NOT traditional api / form actions.
-3. **DEBUGGING**: Use `console.log` and `debugger` statements for debugging.
+1. **ALWAYS**: Use Svelte 5 syntax with runes (`$state`, `$derived`, `$effect`)
+2. **ALWAYS**: Use SvelteKit Remote Functions NOT traditional API / form actions
+3. **DEBUGGING**: Use `console.log` and `debugger` statements for debugging
+
+### Critical Svelte 5 & SvelteKit Syntax
+
+#### Svelte 5 Runes
+```svelte
+<script>
+  // State management
+  let count = $state(0);  // NOT $state<number>(0) - no generics in runes!
+  let doubled = $derived(count * 2);
+
+  // Effects must return void
+  $effect(() => {
+    // For async operations, use IIFE
+    (async () => {
+      const data = await fetchData();
+      // process data
+    })();
+  });
+</script>
+```
+
+#### Remote Functions (Form with File Upload)
+```svelte
+<script>
+  import { extractResume } from '$lib/services/resume.remote';
+
+  // CRITICAL: Forms with file inputs MUST have enctype
+  // Without this, file uploads will fail silently!
+</script>
+
+<form
+  enctype="multipart/form-data"  <!-- REQUIRED for file uploads -->
+  {...extractResume.enhance(async ({ form, data, submit }) => {
+    // Handle submission
+    const result = await submit();
+  })}
+>
+  <input type="file" name="document" />
+</form>
+```
+
+#### Button Click Handlers
+```svelte
+<!-- ALWAYS use arrow functions for onclick handlers -->
+<button onclick={() => handleClick()}>Click</button>
+
+<!-- NOT this (will cause type errors) -->
+<button onclick={handleClick}>Click</button>
+```
+
+### Troubleshooting Guide
+
+#### Remote Function Not Working (405 Error)
+1. Clear `.svelte-kit` folder and restart dev server
+2. For forms with files, MUST have `enctype="multipart/form-data"`
+
+#### TypeScript Errors with Runes
+- Never use generics with `$state` (use `$state(value)` not `$state<T>(value)`)
+- `$effect` must return void - use IIFE for async operations
+- Always use arrow functions for event handlers
+
+#### Database Array Errors
+- PostgreSQL `TEXT[]` columns need special handling
+- Pass JavaScript arrays directly, don't JSON.stringify them. The pg driver will handle the conversion automatically
 
 ## Key Docs:
 
