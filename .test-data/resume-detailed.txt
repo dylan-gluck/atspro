@@ -1,0 +1,127 @@
+SARAH JOHNSON
+Senior Software Engineer | Full-Stack Developer
+
+Contact Information:
+Email: sarah.johnson@example.com
+Phone: +1 (555) 123-4567
+Location: San Francisco, CA 94102
+LinkedIn: https://linkedin.com/in/sarahjohnson
+GitHub: https://github.com/sarahjdev
+Portfolio: https://sarahjohnson.dev
+
+PROFESSIONAL SUMMARY
+Accomplished Senior Software Engineer with 8+ years of experience designing and developing scalable web applications and distributed systems. Expert in modern JavaScript frameworks, cloud architecture, and DevOps practices. Proven track record of leading cross-functional teams and delivering high-impact solutions that drive business growth. Passionate about mentoring junior developers and fostering inclusive engineering cultures.
+
+WORK EXPERIENCE
+
+Senior Software Engineer
+TechCorp Inc. | San Francisco, CA
+March 2021 - Present
+• Lead architect for microservices migration reducing system latency by 40% and improving deployment frequency by 300%
+• Mentored team of 6 junior developers, resulting in 100% promotion rate within 18 months
+• Implemented CI/CD pipeline using GitHub Actions, Docker, and Kubernetes, reducing deployment time from 2 hours to 15 minutes
+• Developed real-time analytics dashboard processing 50M+ events daily using React, Node.js, and Apache Kafka
+• Collaborated with product team to define technical requirements and deliver features ahead of schedule
+• Technologies: React, TypeScript, Node.js, PostgreSQL, Redis, AWS, Kubernetes, GraphQL
+
+Software Engineer II
+DataStream Solutions | San Jose, CA
+June 2018 - February 2021
+• Built RESTful APIs serving 10M+ requests daily with 99.9% uptime
+• Optimized database queries reducing page load time by 60% through strategic indexing and query optimization
+• Implemented automated testing suite increasing code coverage from 45% to 92%
+• Led migration from monolithic architecture to microservices using Docker and Kubernetes
+• Developed machine learning pipeline for customer churn prediction improving retention by 25%
+• Technologies: Python, Django, React, PostgreSQL, MongoDB, AWS, Docker, Jenkins
+
+Software Developer
+StartupXYZ | Palo Alto, CA
+August 2016 - May 2018
+• Developed full-stack web applications using React and Node.js serving 100K+ active users
+• Integrated third-party payment APIs processing $2M+ in transactions monthly
+• Implemented real-time chat functionality using WebSockets and Redis
+• Reduced bug reports by 70% through comprehensive unit and integration testing
+• Participated in agile development process with 2-week sprints
+• Technologies: JavaScript, React, Express.js, MySQL, Redis, Stripe API, Socket.io
+
+Junior Developer
+WebDev Agency | San Francisco, CA
+January 2015 - July 2016
+• Created responsive websites for 20+ clients using HTML5, CSS3, and JavaScript
+• Developed WordPress plugins and themes for e-commerce clients
+• Collaborated with designers to implement pixel-perfect UI components
+• Maintained and updated client websites ensuring optimal performance
+• Technologies: HTML, CSS, JavaScript, jQuery, WordPress, PHP, MySQL
+
+EDUCATION
+
+Master of Science in Computer Science
+Stanford University | Stanford, CA
+September 2013 - June 2015
+GPA: 3.8/4.0
+Relevant Coursework: Machine Learning, Distributed Systems, Advanced Algorithms, Database Systems
+Thesis: "Optimizing Distributed Query Processing in Cloud Environments"
+
+Bachelor of Science in Computer Engineering
+University of California, Berkeley | Berkeley, CA
+September 2009 - May 2013
+GPA: 3.6/4.0
+Dean's List: Fall 2011, Spring 2012, Fall 2012
+Relevant Coursework: Data Structures, Operating Systems, Computer Networks, Software Engineering
+
+TECHNICAL SKILLS
+
+Programming Languages:
+JavaScript, TypeScript, Python, Java, Go, SQL, HTML, CSS
+
+Frontend Technologies:
+React, Redux, Next.js, Vue.js, Angular, Webpack, Babel, SASS/SCSS, Tailwind CSS
+
+Backend Technologies:
+Node.js, Express.js, Django, FastAPI, Spring Boot, GraphQL, REST APIs
+
+Databases:
+PostgreSQL, MySQL, MongoDB, Redis, Elasticsearch, DynamoDB
+
+Cloud & DevOps:
+AWS (EC2, S3, Lambda, RDS, CloudFormation), Google Cloud Platform, Docker, Kubernetes, Terraform, CI/CD, GitHub Actions, Jenkins
+
+Tools & Practices:
+Git, Agile/Scrum, TDD, Microservices, System Design, Performance Optimization, Security Best Practices
+
+CERTIFICATIONS
+
+AWS Certified Solutions Architect - Professional
+Amazon Web Services | Issued: March 2022 | Expires: March 2025
+Credential ID: AWS-PSA-2022-3456
+
+Google Cloud Professional Cloud Architect
+Google Cloud | Issued: June 2021 | Expires: June 2024
+Credential ID: GCP-PCA-2021-7890
+
+Certified Kubernetes Administrator (CKA)
+Cloud Native Computing Foundation | Issued: January 2021
+Credential ID: CKA-2021-001234
+
+PROJECTS & ACHIEVEMENTS
+
+Open Source Contributions:
+• React-Query-Plus: Maintained popular data fetching library with 5K+ GitHub stars
+• Contributed to React, Node.js, and Kubernetes documentation
+• Created npm packages downloaded 100K+ times monthly
+
+Conference Speaking:
+• "Scaling Microservices in Production" - ReactConf 2023
+• "Building Resilient Systems with Kubernetes" - KubeCon 2022
+• "Performance Optimization Strategies" - JSConf 2021
+
+Awards & Recognition:
+• Employee of the Year - TechCorp Inc. (2022)
+• Hackathon Winner - TechCrunch Disrupt (2020)
+• Outstanding Graduate Student Award - Stanford University (2015)
+
+ADDITIONAL INFORMATION
+
+Languages: English (Native), Spanish (Conversational), Mandarin (Basic)
+Interests: Open source contribution, Technical writing, Mentoring, Rock climbing, Photography
+Volunteer: Code.org instructor teaching programming to high school students (2019-Present)

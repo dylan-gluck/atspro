@@ -1,129 +1,236 @@
-# Claude Code Hooks - Cross-Agent Observability
+# Claude Code Hooks
 
-This directory contains hooks for monitoring and tracking multi-agent workflows in Claude Code.
+This directory contains hooks that execute automatically in response to Claude Code events. These hooks provide extensible automation, logging, and workflow enhancements throughout the development process.
 
-## Hook Configuration
+## Overview
 
-Hooks are configured in `.claude/hooks.json` and provide observability for:
+Claude Code hooks are Python scripts that execute at specific points in the interaction lifecycle. They receive structured JSON input via stdin and can optionally provide output to modify behavior or add context. All hooks fail gracefully to ensure Claude Code remains functional even if individual hooks encounter errors.
 
-- **Agent lifecycle** - Track agent creation, execution, and completion
-- **Memory operations** - Monitor context storage and retrieval
-- **Code changes** - Log file modifications and edits
-- **Session activity** - Track user interactions and workflow progress
+## Available Hooks
 
-## Hook Scripts
+### Core Event Hooks
 
-### Session Management
-- `session-start.sh` - Initialize session tracking and logging
-- `subagent-complete.sh` - Track subagent completion and aggregate results
+**`session_start.py`** - Session Initialization
 
-### Agent Observability  
-- `pre-agent-task.sh` - Log agent initiation with task details
-- `post-agent-task.sh` - Track agent completion and success status
+- **Triggered by**: New session startup, session resume, or session clear
+- **Purpose**: Initialize development context, load project information, and optionally announce session start
+- **Command line options**:
+  - `--load-context`: Load development context from project files (CONTEXT.md, TODO.md, GitHub issues)
+  - `--announce`: Use TTS to announce session start
+- **Features**:
+  - Git status integration (current branch, uncommitted changes)
+  - Context file loading (.claude/CONTEXT.md, TODO.md)
+  - GitHub issues integration via `gh` CLI
+  - Session state management
 
-### Memory Tracking
-- `pre-memory-operation.sh` - Monitor memory store/retrieve operations
-- `post-memory-operation.sh` - Log memory operation completion
+**`user_prompt_submit.py`** - Prompt Processing
 
-### Code Change Monitoring
-- `code-change-tracker.sh` - Track file modifications (Write/Edit/MultiEdit)
-- `prompt-tracker.sh` - Monitor user prompt submissions
+- **Triggered by**: User submitting a prompt to Claude
+- **Purpose**: Log prompts, validate input, manage session data, and optionally generate agent names
+- **Command line options**:
+  - `--validate`: Enable prompt validation for security patterns
+  - `--log-only`: Log prompts without validation
+  - `--store-last-prompt`: Store prompt for status display
+  - `--name-agent`: Generate agent name for the session using LLM
+- **Features**:
+  - Session data management in JSON format
+  - Prompt validation and blocking capabilities
+  - Agent name generation via Anthropic or Ollama
 
-### Monitoring
-- `monitor.sh` - Real-time dashboard for observability data
+**`pre_tool_use.py`** - Tool Execution Safety
 
-## Usage
+- **Triggered by**: Before each tool execution
+- **Purpose**: Log tool usage and provide safety validation
+- **Security features** (currently commented out for flexibility):
+  - Dangerous `rm -rf` command detection
+  - `.env` file access protection
+  - Comprehensive pattern matching for unsafe operations
+- **Logging**: Records all tool calls with session context
 
-### View Real-Time Dashboard
+**`post_tool_use.py`** - Tool Execution Tracking
+
+- **Triggered by**: After each tool execution completes
+- **Purpose**: Log tool results and track execution patterns
+- **Data captured**: Tool responses, execution timing, and session context
+
+**`pre_compact.py`** - Conversation Management
+
+- **Triggered by**: Before conversation history compaction (manual or automatic)
+- **Purpose**: Backup transcripts and log compaction events
+- **Command line options**:
+  - `--backup`: Create timestamped backup of transcript before compaction
+  - `--verbose`: Display detailed compaction information
+- **Features**:
+  - Automatic transcript backups to `logs/transcript_backups/`
+  - Compaction trigger tracking (manual vs automatic)
+  - Custom instruction preservation
+
+### Completion Hooks
+
+**`stop.py`** - Main Session Completion
+
+- **Triggered by**: End of main Claude session
+- **Purpose**: Announce completion, archive transcripts, and generate completion messages
+- **Command line options**:
+  - `--chat`: Convert transcript to chat.json format
+  - `--notify`: Enable TTS completion announcement
+- **Features**:
+  - Intelligent TTS service selection (ElevenLabs > OpenAI > pyttsx3)
+  - LLM-generated completion messages with personalization
+  - Transcript archival to `logs/chat.json`
+
+**`subagent_stop.py`** - Subagent Completion
+
+- **Triggered by**: End of subagent execution
+- **Purpose**: Track subagent completion and provide audio feedback
+- **Command line options**:
+  - `--chat`: Archive subagent transcript
+  - `--notify`: Announce subagent completion
+- **Features**: Specialized handling for orchestrated subagent workflows
+
+**`notification.py`** - User Input Alerts
+
+- **Triggered by**: When Claude needs user input
+- **Purpose**: Provide audio notifications when user attention is required
+- **Command line options**:
+  - `--notify`: Enable TTS notifications
+- **Features**:
+  - Engineer name personalization (30% chance to include name)
+  - Intelligent TTS service selection
+  - Contextual notification filtering
+
+## Utility Framework
+
+### Text-to-Speech Services (`utils/tts/`)
+
+**Priority-based TTS selection**:
+
+1. **ElevenLabs** (`elevenlabs_tts.py`) - Highest quality, requires API key
+2. **OpenAI** (`openai_tts.py`) - High quality, requires API key
+3. **pyttsx3** (`pyttsx3_tts.py`) - Local fallback, no API key required
+
+All TTS scripts accept text as command-line arguments and use UV for dependency management.
+
+### LLM Integration (`utils/llm/`)
+
+**`anth.py`** - Anthropic Integration
+
+- Fast Claude 3.5 Haiku model for completion messages and agent names
+- Generates personalized completion messages
+- Creates unique agent names for sessions
+- Command line interface: `--completion`, `--agent-name`
+
+**`oai.py`** - OpenAI Integration
+
+- GPT-based completion message generation
+- Secondary option for LLM-powered features
+
+**`ollama.py`** - Local LLM Integration
+
+- Local model support for offline development
+- Preferred for agent name generation (faster, no API costs)
+
+## Configuration
+
+### Environment Variables
+
 ```bash
-./.claude/hooks/monitor.sh
+# TTS Services (optional)
+ELEVENLABS_API_KEY=your_elevenlabs_key
+OPENAI_API_KEY=your_openai_key
+
+# LLM Services (optional)
+ANTHROPIC_API_KEY=your_anthropic_key
+
+# Personalization (optional)
+ENGINEER_NAME=your_name
 ```
 
-### Check Session Logs
+### Hook Activation
+
+Hooks are automatically executed by Claude Code based on events. Command-line options control specific behaviors:
+
 ```bash
-# Current session log
-cat .claude/logs/session_$(cat .claude/logs/current_session.id).log
-
-# All logs
-ls .claude/logs/
+# Example hook configurations in Claude Code settings
+session_start.py --load-context --announce
+user_prompt_submit.py --name-agent --store-last-prompt
+pre_compact.py --backup --verbose
+stop.py --chat --notify
 ```
 
-### View Agent Activity
-```bash
-# Agent tracking JSON
-jq '.' .claude/logs/agent_tracking.json
+## Logging and Data Management
 
-# Memory operations
-jq '.' .claude/logs/memory_operations.json
+### Log Directory Structure
 
-# Code changes
-jq '.' .claude/logs/code_changes.json
+```
+logs/
+├── session_start.json       # Session initialization events
+├── user_prompt_submit.json  # User prompts and validation
+├── pre_tool_use.json       # Tool execution requests
+├── post_tool_use.json      # Tool execution results
+├── pre_compact.json        # Compaction events
+├── stop.json               # Session completions
+├── subagent_stop.json      # Subagent completions
+├── notification.json       # User notification events
+├── chat.json               # Archived conversation transcripts
+└── transcript_backups/     # Pre-compaction transcript backups
 ```
 
-## Log Structure
+### Session Data Storage
 
-### Session Logs (`session_YYYYMMDD_HHMMSS.log`)
 ```
-2025-08-18 12:34:56 [SESSION_START] Session initialized: 20250818_123456
-2025-08-18 12:35:01 [AGENT_START] Agent: fullstack-eng | Task: Implement user auth
-2025-08-18 12:35:15 [MEMORY_PRE] Operation: store | Key: auth_spec
-2025-08-18 12:35:30 [CODE_CHANGE] Tool: Write | File: auth.py
-2025-08-18 12:36:00 [AGENT_COMPLETE] Agent: fullstack-eng | Success: true
+.claude/data/sessions/
+└── {session_id}.json       # Session-specific data with prompts and agent names
 ```
 
-### Agent Tracking JSON
-```json
-{
-  "active_agents": [
-    {
-      "agent": "frontend-eng",
-      "task": "Create login form",
-      "started_at": "2025-08-18T12:35:00Z"
-    }
-  ],
-  "completed_agents": [
-    {
-      "agent": "fullstack-eng", 
-      "task": "Implement user auth",
-      "completed_at": "2025-08-18T12:36:00Z",
-      "success": true
-    }
-  ]
-}
-```
+## Integration Examples
 
-## Installation
+### Development Workflow Enhancement
 
-To enable hooks in your Claude Code settings:
+1. **Session Start**: Load project context, announce readiness via TTS
+2. **Prompt Processing**: Generate agent name, validate input, log interaction
+3. **Tool Safety**: Monitor dangerous operations, log all tool usage
+4. **Compaction Safety**: Backup transcripts before context compression
+5. **Completion**: Generate personalized completion message, archive session
 
-1. Copy hooks configuration to your settings:
-```bash
-# Add to ~/.claude/settings.json
-cat .claude/hooks.json
-```
+### Team Orchestration Support
 
-2. Ensure scripts are executable:
-```bash
-chmod +x .claude/hooks/*.sh
-```
+- Subagent completion tracking for multi-agent workflows
+- Session data management for agent identity persistence
+- Comprehensive logging for debugging complex orchestrations
 
-3. Test hooks with a simple operation:
-```bash
-# This should trigger hooks and create logs
-echo "test" > /tmp/test.txt
-```
+### Security and Safety
 
-## Integration with Workflows
+- Dangerous command detection (configurable)
+- Environment file protection
+- Comprehensive audit logging
+- Graceful error handling to prevent workflow interruption
 
-Hooks automatically integrate with workflow execution:
+## Extension Patterns
 
-- **Workflow start** - Session initialization and agent tracking
-- **Step execution** - Agent lifecycle and memory operations  
-- **Progress tracking** - Code changes and completion status
-- **Workflow completion** - Final summaries and cleanup
+### Adding New Hooks
 
-The observability data enables:
-- **Debugging** - Track where workflows fail or slow down
-- **Optimization** - Identify bottlenecks in agent coordination  
-- **Auditing** - Complete history of all operations and changes
-- **Monitoring** - Real-time visibility into active workflows
+1. Create Python script with UV shebang and dependencies
+2. Accept JSON input via stdin
+3. Use command-line arguments for configuration
+4. Log events to `logs/{hook_name}.json`
+5. Fail gracefully with appropriate exit codes
+6. Follow existing naming and structure conventions
+
+### Custom TTS/LLM Integration
+
+1. Add new service script to appropriate `utils/` subdirectory
+2. Follow priority-based selection pattern
+3. Include fallback mechanisms
+4. Support command-line testing interface
+
+### Workflow Customization
+
+Hooks support project-specific customization through:
+
+- Environment variable configuration
+- Command-line argument variations
+- Context file integration
+- External tool integration (git, gh, etc.)
+
+This hooks system provides a comprehensive foundation for automating and enhancing Claude Code workflows while maintaining flexibility and reliability.

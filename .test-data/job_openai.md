@@ -18,25 +18,23 @@ This role is based in **San Francisco, CA.** We use a hybrid work model of 3 day
 
 **In this role, you will:**
 
--   Design, implement, and evaluate large-scale ML pipelines and core system components.
+- Design, implement, and evaluate large-scale ML pipelines and core system components.
 
--   Build and integrate infrastructure to support model training, experimentation, and deployment.
+- Build and integrate infrastructure to support model training, experimentation, and deployment.
 
--   Collaborate with research scientists to translate algorithmic ideas into robust, performant systems.
+- Collaborate with research scientists to translate algorithmic ideas into robust, performant systems.
 
--   Own projects end-to-end—from prototype to large-scale production—balancing iteration speed with reliability
-
+- Own projects end-to-end—from prototype to large-scale production—balancing iteration speed with reliability
 
 **You might thrive in this role if you:**
 
--   Have taken ML systems from concept to production at scale.
+- Have taken ML systems from concept to production at scale.
 
--   Have strong software engineering fundamentals (distributed systems, data storage, performance optimization) alongside applied ML skills.
+- Have strong software engineering fundamentals (distributed systems, data storage, performance optimization) alongside applied ML skills.
 
--   Are comfortable working across boundaries of research, engineering, and infrastructure.
+- Are comfortable working across boundaries of research, engineering, and infrastructure.
 
--   Enjoy both deep technical problem-solving and the scrappy execution required in a zero-to-one environment.
-
+- Enjoy both deep technical problem-solving and the scrappy execution required in a zero-to-one environment.
 
 **About OpenAI**
 

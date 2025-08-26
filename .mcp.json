@@ -1,52 +1,31 @@
 {
-  "mcpServers": {
-    "sequential-thinking": {
-      "type": "stdio",
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"],
-      "env": {}
-    },
-    "playwright": {
-      "command": "npx",
-      "args": ["@playwright/mcp@latest"]
-    },
-    "postgres": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-postgres",
-        "postgresql://atspro_user:dev_password_change_in_prod@localhost:5432/atspro"
-      ]
-    },
-    "docker-mcp": {
-      "command": "uvx",
-      "args": ["docker-mcp"]
-    },
-    "language-server-ts": {
-      "command": "mcp-language-server",
-      "args": [
-        "--workspace",
-        "/Users/dylan/Workspace/projects/atspro/apps/web",
-        "--lsp",
-        "typescript-language-server",
-        "--",
-        "--stdio"
-      ]
-    },
-    "language-server-py": {
-      "command": "mcp-language-server",
-      "args": [
-        "--workspace",
-        "/Users/dylan/Workspace/projects/atspro/apps/api",
-        "--lsp",
-        "pyright-langserver",
-        "--",
-        "--stdio"
-      ]
-    },
-    "shadcn-ui": {
-      "command": "npx",
-      "args": ["@jpisnice/shadcn-ui-mcp-server"]
-    }
-  }
+	"mcpServers": {
+		"playwright": {
+			"command": "npx",
+			"args": ["@playwright/mcp@latest"]
+		},
+		"postgres": {
+			"command": "npx",
+			"args": [
+				"-y",
+				"@modelcontextprotocol/server-postgres",
+				"postgresql://postgres:postgres@localhost/atspro"
+			]
+		},
+		"language-server-ts": {
+			"command": "mcp-language-server",
+			"args": [
+				"--workspace",
+				"/Users/dylan/Workspace/projects/atspro-bun",
+				"--lsp",
+				"typescript-language-server",
+				"--",
+				"--stdio"
+			]
+		},
+		"shadcn-ui": {
+			"command": "npx",
+			"args": ["@jpisnice/shadcn-ui-mcp-server", "--framework", "svelte"]
+		}
+	}
 }

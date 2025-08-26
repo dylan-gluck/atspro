@@ -1,14 +1,33 @@
-node_modules/
-.next/
-.turbo/
-dist/
-build/
+# Logs
+.claude/logs
+.claude/sessions
+
+# Packages
+node_modules
+
+# Test coverage
+coverage
+playwright-report
+test-results
+
+# Output
+.output
+.vercel
+.netlify
+.wrangler
+/.svelte-kit
+/build
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env
 .env
 .env.*
 !.env.example
-coverage/
-.DS_Store
-*.log
-.vscode/
-.idea/
-.ropeproject/
+!.env.test
+
+# Vite
+vite.config.js.timestamp-*
+vite.config.ts.timestamp-*

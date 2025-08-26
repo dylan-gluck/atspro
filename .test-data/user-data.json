@@ -1,15 +1,16 @@
 {
-  "name": "John Doe",
-  "email": "jdoex@example.com",
-  "password": "Test123!",
-  "account_exists": true,
-  "onboarding_complete": false,
-  "resume_pdf": ".test-data/resume.pdf",
-  "resume_md": ".test-data/resume.md",
-  "job_urls": [
-    "https://x.company/careers/7997375002/",
-    "https://x.company/careers/7843266002/",
-    "https://openai.com/careers/research-engineer/"
-  ],
-  "job_docs": [".test-data/job_openai.md"]
+	"name": "John Doe",
+	"email": "jdoex@example.com",
+	"password": "Test123!",
+	"account_exists": true,
+	"onboarding_complete": false,
+	"resume_txt": ".test-data/resume.txt",
+	"resume_pdf": ".test-data/resume.pdf",
+	"job_urls": [
+		"https://job-boards.greenhouse.io/anthropic/jobs/4738189008",
+		"https://job-boards.greenhouse.io/anthropic/jobs/4811414008",
+		"https://job-boards.greenhouse.io/anthropic/jobs/4816199008",
+		"https://job-boards.greenhouse.io/anthropic/jobs/4018206008"
+	],
+	"job_docs": [".test-data/job_openai.md"]
 }
