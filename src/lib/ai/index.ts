@@ -12,6 +12,7 @@ import type { Job } from '$lib/types/job';
 import { selectModel, usageTracker } from './model-selector';
 import type { AITask } from './types';
 import { resumeCache, jobCache, optimizationCache, coverLetterCache } from './cache';
+import { SYSTEM_PROMPTS, USER_PROMPTS } from './prompts';
 
 // Initialize AI providers
 const anthropic = createAnthropic({
@@ -125,8 +126,7 @@ export async function extractResume(content: string | Buffer, fileType: string):
 			messages: [
 				{
 					role: 'system' as const,
-					content:
-						'You are an expert resume parser. Extract all information from this resume and return structured data with contact info, summary, work experience, education, certifications, and skills. Be thorough and accurate.'
+					content: SYSTEM_PROMPTS.extractResume
 				},
 				{
 					role: 'user' as const,
@@ -134,7 +134,7 @@ export async function extractResume(content: string | Buffer, fileType: string):
 						? [
 								{
 									type: 'text' as const,
-									text: 'Extract all information from this resume PDF. Parse every section carefully including contact info, summary, all work experiences, education, certifications, and skills.'
+									text: USER_PROMPTS.extractResume.pdf
 								},
 								{
 									type: 'file' as const,
@@ -145,7 +145,7 @@ export async function extractResume(content: string | Buffer, fileType: string):
 						: [
 								{
 									type: 'text' as const,
-									text: `Extract all information from this resume text. Parse every section carefully including contact info, summary, all work experiences, education, certifications, and skills.\n\nResume:\n${content}`
+									text: USER_PROMPTS.extractResume.text + content
 								}
 							]
 				}
@@ -195,15 +195,14 @@ export async function extractJob(content: string): Promise<Job> {
 		messages: [
 			{
 				role: 'system' as const,
-				content:
-					'You are an expert job posting analyzer. Extract all relevant information from job postings including company, title, description, salary, responsibilities, qualifications, logistics, location, and any additional information.'
+				content: SYSTEM_PROMPTS.extractJob
 			},
 			{
 				role: 'user' as const,
 				content: [
 					{
 						type: 'text' as const,
-						text: `Extract all information from this job posting. Be thorough and capture all details about the position, requirements, and company.\n\nJob Posting:\n${content}`
+						text: USER_PROMPTS.extractJob + content
 					}
 				]
 			}
@@ -251,31 +250,14 @@ export async function optimizeResume(
 		messages: [
 			{
 				role: 'system' as const,
-				content: `You are an expert ATS (Applicant Tracking System) optimization specialist. Your task is to optimize resumes to maximize their compatibility with ATS systems while maintaining authenticity.
-
-Transform the resume by:
-1. Rewriting section content for optimal ATS parsing and readability
-2. Incorporating key terminology and keywords from the job description naturally throughout
-3. Reformatting any elements that might cause ATS parsing issues
-4. Enhancing content to emphasize relevant skills, experiences, and achievements
-5. Ensuring all dates are in consistent, ATS-friendly format
-6. Using industry-standard section headings
-7. Quantifying achievements where possible
-
-Maintain the authenticity and truthfulness of all experiences while optimizing for ATS systems.`
+				content: SYSTEM_PROMPTS.optimizeResume
 			},
 			{
 				role: 'user' as const,
 				content: [
 					{
 						type: 'text' as const,
-						text: `Optimize this resume for the given job description. Include an ATS compatibility score (0-100) and list the most important keywords incorporated.
-
-Resume:
-${JSON.stringify(resume, null, 2)}
-
-Job Description:
-${JSON.stringify(job, null, 2)}`
+						text: USER_PROMPTS.optimizeResume(resume, job)
 					}
 				]
 			}
@@ -311,12 +293,6 @@ export async function generateCoverLetter(
 		return cached as string;
 	}
 
-	const toneMap = {
-		professional: 'formal and professional',
-		enthusiastic: 'energetic and passionate',
-		conversational: 'friendly yet professional'
-	};
-
 	// Use model selector - cover letters need the powerful model
 	const modelConfig = selectModel('generate_cover_letter');
 	console.log(`[AI generateCoverLetter] Cache miss. Using model: ${modelConfig.name}`);
@@ -326,27 +302,11 @@ export async function generateCoverLetter(
 		messages: [
 			{
 				role: 'system' as const,
-				content: `You are an expert cover letter writer who creates compelling, personalized cover letters that are ${toneMap[tone]}. Write cover letters that:
-
-1. Demonstrate clear understanding of the company and role
-2. Highlight relevant experiences and achievements from the resume
-3. Show enthusiasm and cultural fit
-4. Include specific examples and quantifiable results
-5. Follow professional business letter format
-6. Maintain the specified tone throughout
-7. End with a strong call to action
-
-The cover letter should be concise (250-400 words) and impactful.`
+				content: SYSTEM_PROMPTS.coverLetter[tone]
 			},
 			{
 				role: 'user' as const,
-				content: `Write a compelling cover letter for this job application:
-
-Resume:
-${JSON.stringify(resume, null, 2)}
-
-Job:
-${JSON.stringify(job, null, 2)}`
+				content: USER_PROMPTS.generateCoverLetter(resume, job)
 			}
 		]
 	});

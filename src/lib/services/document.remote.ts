@@ -388,6 +388,7 @@ async function generateCompanyResearchContent(job: any): Promise<string> {
 	const { createAnthropic } = await import('@ai-sdk/anthropic');
 	const { ANTHROPIC_API_KEY } = await import('$env/static/private');
 	const { selectModel } = await import('$lib/ai/model-selector');
+	const { SYSTEM_PROMPTS } = await import('$lib/ai/prompts');
 
 	const anthropic = createAnthropic({
 		apiKey: ANTHROPIC_API_KEY
@@ -404,19 +405,7 @@ async function generateCompanyResearchContent(job: any): Promise<string> {
 			messages: [
 				{
 					role: 'system' as const,
-					content: `You are an expert company researcher and career advisor. Generate a comprehensive research document about the company and role that will help a job applicant prepare for their application and interview.
-
-Structure your response in markdown format with the following sections:
-1. Company Overview - Brief history, mission, values, size, and market position
-2. Products/Services - What the company offers and their main revenue streams  
-3. Company Culture - Work environment, values, and what employees say
-4. Recent News & Developments - Latest announcements, achievements, challenges
-5. Role Analysis - Breakdown of the specific position requirements and expectations
-6. Interview Preparation Tips - Specific advice for this company and role
-7. Compensation Insights - Salary ranges and benefits if available
-8. Growth Opportunities - Career paths and development at this company
-
-Be specific and actionable. Focus on information that would genuinely help someone prepare for this opportunity.`
+					content: SYSTEM_PROMPTS.companyResearch
 				},
 				{
 					role: 'user' as const,
