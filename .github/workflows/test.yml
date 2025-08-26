@@ -32,8 +32,19 @@ jobs:
         with:
           bun-version: latest
 
+      - name: Configure npm registry
+        run: |
+          echo "registry=https://registry.npmjs.org/" >> ~/.npmrc
+          echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" >> ~/.npmrc || true
+
+      - name: Clear Bun cache
+        run: |
+          bun pm cache rm
+          rm -rf ~/.bun/install/cache
+
       - name: Install dependencies
-        run: bun install
+        run: |
+          bun install --no-cache || bun install --no-cache
 
       - name: Setup environment
         run: |
@@ -92,8 +103,19 @@ jobs:
         with:
           bun-version: latest
 
+      - name: Configure npm registry
+        run: |
+          echo "registry=https://registry.npmjs.org/" >> ~/.npmrc
+          echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" >> ~/.npmrc || true
+
+      - name: Clear Bun cache
+        run: |
+          bun pm cache rm
+          rm -rf ~/.bun/install/cache
+
       - name: Install dependencies
-        run: bun install
+        run: |
+          bun install --no-cache || bun install --no-cache
 
       - name: Setup environment
         run: |

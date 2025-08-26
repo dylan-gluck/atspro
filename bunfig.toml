@@ -1,0 +1,29 @@
+[install]
+# Use the official npm registry
+registry = "https://registry.npmjs.org/"
+
+# Increase timeout for slow connections
+timeout = 60000
+
+# Retry failed requests
+retry = 3
+
+# Cache configuration
+cache = true
+
+[install.lockfile]
+# Save exact versions to lockfile
+save = true
+
+[install.scopes]
+# Ensure proper resolution for scoped packages
+"@sveltejs" = { registry = "https://registry.npmjs.org/" }
+"@ai-sdk" = { registry = "https://registry.npmjs.org/" }
+"@playwright" = { registry = "https://registry.npmjs.org/" }
+"@testing-library" = { registry = "https://registry.npmjs.org/" }
+"@types" = { registry = "https://registry.npmjs.org/" }
+"@tailwindcss" = { registry = "https://registry.npmjs.org/" }
+"@rollup" = { registry = "https://registry.npmjs.org/" }
+"@sinclair" = { registry = "https://registry.npmjs.org/" }
+"@typeschema" = { registry = "https://registry.npmjs.org/" }
+"@isaacs" = { registry = "https://registry.npmjs.org/" }
