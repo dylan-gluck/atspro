@@ -55,8 +55,8 @@ ATSPro is a comprehensive career advancement platform built to help job seekers 
 ### 1. Clone the Repository
 
 ```bash
-git clone <repository-url>
-cd atspro-bun
+git clone https://github.com/dylan-gluck/atspro
+cd atspro
 ```
 
 ### 2. Install Dependencies
@@ -73,8 +73,8 @@ Create a `.env` file in the root directory:
 # Database
 DATABASE_URL="postgresql://username:password@localhost:5432/atspro"
 
-# OpenAI API (for AI features)
-OPENAI_API_KEY="your-openai-api-key"
+# Anthropic API (for AI features)
+ANTHROPIC_API_KEY="your-anthropic-api-key"
 
 # Application
 PUBLIC_APP_URL="http://localhost:5173"
@@ -198,7 +198,7 @@ bun run build
 Ensure all production environment variables are configured:
 
 - `DATABASE_URL`: Production PostgreSQL connection string
-- `OPENAI_API_KEY`: OpenAI API key for AI features
+- `ANTHROPIC_API_KEY`: Anthropic API key for AI features
 - `PUBLIC_APP_URL`: Production application URL
 
 ### Database Migration
