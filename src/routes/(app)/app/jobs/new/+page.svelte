@@ -295,6 +295,9 @@
 											e.preventDefault();
 											addLocation();
 										}
+										if (e.key === 'Escape') {
+											newLocation = '';
+										}
 									}}
 								/>
 							</div>

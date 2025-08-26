@@ -20,6 +20,7 @@
 	import ModeToggle from '@/components/mode-toggle.svelte';
 	import { authClient } from '$lib/auth-client';
 	import type { LayoutData } from './$types';
+	import KeyboardShortcuts from '$lib/components/keyboard-shortcuts.svelte';
 
 	let { children, data }: { children: any; data: LayoutData } = $props();
 
@@ -45,14 +46,11 @@
 	}
 </script>
 
+<KeyboardShortcuts />
+
 <Sidebar.Provider>
 	<!-- Skip to main content link for keyboard navigation -->
-	<a
-		href="#app-main-content"
-		class="bg-primary text-primary-foreground sr-only z-50 rounded-md px-4 py-2 focus:not-sr-only focus:absolute focus:left-4 focus:top-4"
-	>
-		Skip to main content
-	</a>
+	<a href="#app-main-content" class="skip-link" tabindex="0"> Skip to main content </a>
 
 	<div class="flex h-screen w-full">
 		<!-- Sidebar -->
