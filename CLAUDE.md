@@ -11,14 +11,8 @@ ATSPro is an AI-powered ATS resume optimization platform built with SvelteKit, B
 1. **ALWAYS**: Use Svelte 5 syntax with runes (`$state`, `$derived`, `$effect`)
 2. **ALWAYS**: Use SvelteKit Remote Functions NOT traditional API / form actions
 3. **DEBUGGING**: Use `console.log` and `debugger` statements for debugging
-
-### Critical Svelte 5 & SvelteKit Syntax
-
-#### TypeScript Errors with Runes
-
-- Never use generics with `$state` (use `$state(value)` not `$state<T>(value)`)
-- `$effect` must return void - use IIFE for async operations
-- Always use arrow functions for event handlers
+4. **TESTING**: ALWAYS use playwright mcp & test data in `.test-data/*`
+4. **TESTING**: ALWAYS run typecheck `bun run check` and tests `bun run test`
 
 ## Key Documentation:
 
@@ -34,7 +28,7 @@ Reference when working on related features:
 
 ## MCP Servers
 
-- `mcp__postgres__query` Use for confirming db changes
+- `mcp__postgres__query` Use for confirming db changes, Read only
 - `mcp__playwright__*` Use for testing features while developing & running end-to-end tests.
-- `mcp__language-server-ts__*` Use for complex parsing & mutations across codebase, eg rename symbol.
+- `mcp__language-server-ts__*` Always use for finding symbols and references across project
 - `mcp__shadcn-ui__*` Always use when building new views

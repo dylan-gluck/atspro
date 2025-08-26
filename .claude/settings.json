@@ -1,4 +1,93 @@
 {
 	"enableAllProjectMcpServers": true,
-	"enabledMcpjsonServers": ["postgres", "language-server-ts", "shadcn-ui", "playwright"]
+	"enabledMcpjsonServers": ["postgres", "language-server-ts", "shadcn-ui", "playwright"],
+	"hooks": {
+		"SessionStart": [
+			{
+				"matcher": "",
+				"hooks": [
+					{
+						"type": "command",
+						"command": "uv run $CLAUDE_PROJECT_DIR/.claude/hooks/session_start.py"
+					}
+				]
+			}
+		],
+		"UserPromptSubmit": [
+			{
+				"hooks": [
+					{
+						"type": "command",
+						"command": "uv run $CLAUDE_PROJECT_DIR/.claude/hooks/user_prompt_submit.py --log-only --store-last-prompt"
+					}
+				]
+			}
+		],
+		"PreToolUse": [
+			{
+				"matcher": "",
+				"hooks": [
+					{
+						"type": "command",
+						"command": "uv run $CLAUDE_PROJECT_DIR/.claude/hooks/pre_tool_use.py"
+					}
+				]
+			}
+		],
+		"PostToolUse": [
+			{
+				"matcher": "",
+				"hooks": [
+					{
+						"type": "command",
+						"command": "uv run $CLAUDE_PROJECT_DIR/.claude/hooks/post_tool_use.py"
+					}
+				]
+			}
+		],
+		"SubagentStop": [
+			{
+				"matcher": "",
+				"hooks": [
+					{
+						"type": "command",
+						"command": "uv run $CLAUDE_PROJECT_DIR/.claude/hooks/subagent_stop.py"
+					}
+				]
+			}
+		],
+		"Stop": [
+			{
+				"matcher": "",
+				"hooks": [
+					{
+						"type": "command",
+						"command": "uv run $CLAUDE_PROJECT_DIR/.claude/hooks/stop.py --chat"
+					}
+				]
+			}
+		],
+		"Notification": [
+			{
+				"matcher": "",
+				"hooks": [
+					{
+						"type": "command",
+						"command": "uv run $CLAUDE_PROJECT_DIR/.claude/hooks/notification.py"
+					}
+				]
+			}
+		],
+		"PreCompact": [
+			{
+				"matcher": "",
+				"hooks": [
+					{
+						"type": "command",
+						"command": "uv run $CLAUDE_PROJECT_DIR/.claude/hooks/pre_compact.py"
+					}
+				]
+			}
+		]
+	}
 }

@@ -1,4 +1,14 @@
+# Logs
+.claude/logs
+.claude/sessions
+
+# Packages
 node_modules
+
+# Test coverage
+coverage
+playwright-report
+test-results
 
 # Output
 .output
