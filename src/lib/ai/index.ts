@@ -11,6 +11,7 @@ import type { UserJob } from '$lib/types/user-job';
 import type { Job } from '$lib/types/job';
 import { selectModel, usageTracker } from './model-selector';
 import type { AITask } from './types';
+import { resumeCache, jobCache, optimizationCache, coverLetterCache } from './cache';
 
 // Initialize AI providers
 const anthropic = createAnthropic({
@@ -96,11 +97,25 @@ export async function extractResume(content: string | Buffer, fileType: string):
 	const isPDF = fileType === 'application/pdf';
 	console.log('[AI extractResume] Is PDF:', isPDF);
 
+	// Create cache key from content hash
+	const cacheKey = {
+		content: content.toString().substring(0, 1000), // Use first 1000 chars for cache key
+		fileType,
+		isPDF
+	};
+
+	// Check cache first
+	const cached = resumeCache.get(cacheKey);
+	if (cached) {
+		console.log('[AI extractResume] Cache hit! Returning cached result');
+		return cached as Resume;
+	}
+
 	try {
 		// Use model selector for cost optimization
 		const modelConfig = selectModel('extract_resume');
 		console.log(
-			`[AI extractResume] Using model: ${modelConfig.name} (cost: $${modelConfig.costPerMillion.input}/$${modelConfig.costPerMillion.output} per 1M tokens)`
+			`[AI extractResume] Cache miss. Using model: ${modelConfig.name} (cost: $${modelConfig.costPerMillion.input}/$${modelConfig.costPerMillion.output} per 1M tokens)`
 		);
 		const startTime = Date.now();
 
@@ -144,6 +159,10 @@ export async function extractResume(content: string | Buffer, fileType: string):
 			JSON.stringify(result.object).substring(0, 200) + '...'
 		);
 
+		// Cache the result
+		resumeCache.set(cacheKey, result.object);
+		console.log('[AI extractResume] Result cached for future use');
+
 		return result.object;
 	} catch (error) {
 		console.error('[AI extractResume] Error during extraction:', error);
@@ -153,9 +172,22 @@ export async function extractResume(content: string | Buffer, fileType: string):
 
 // Extract job from content
 export async function extractJob(content: string): Promise<Job> {
+	// Create cache key from content hash
+	const cacheKey = {
+		content: content.substring(0, 1000), // Use first 1000 chars for cache key
+		operation: 'extract_job'
+	};
+
+	// Check cache first
+	const cached = jobCache.get(cacheKey);
+	if (cached) {
+		console.log('[AI extractJob] Cache hit! Returning cached result');
+		return cached as Job;
+	}
+
 	// Use model selector for cost optimization
 	const modelConfig = selectModel('extract_job');
-	console.log(`[AI extractJob] Using model: ${modelConfig.name}`);
+	console.log(`[AI extractJob] Cache miss. Using model: ${modelConfig.name}`);
 
 	const result = await generateObject({
 		model: anthropic(modelConfig.name),
@@ -179,6 +211,10 @@ export async function extractJob(content: string): Promise<Job> {
 		output: 'object' as const
 	});
 
+	// Cache the result
+	jobCache.set(cacheKey, result.object);
+	console.log('[AI extractJob] Result cached for future use');
+
 	return result.object;
 }
 
@@ -187,9 +223,23 @@ export async function optimizeResume(
 	resume: UserResume | Resume,
 	job: UserJob | Job
 ): Promise<Resume & { score: number; keywords: string[]; markdown?: string }> {
+	// Create cache key from resume and job content
+	const cacheKey = {
+		resumeId: JSON.stringify(resume).substring(0, 500),
+		jobId: JSON.stringify(job).substring(0, 500),
+		operation: 'optimize_resume'
+	};
+
+	// Check cache first
+	const cached = optimizationCache.get(cacheKey);
+	if (cached) {
+		console.log('[AI optimizeResume] Cache hit! Returning cached result');
+		return cached as Resume & { score: number; keywords: string[]; markdown?: string };
+	}
+
 	// Use model selector - optimization needs the powerful model
 	const modelConfig = selectModel('optimize_resume');
-	console.log(`[AI optimizeResume] Using model: ${modelConfig.name}`);
+	console.log(`[AI optimizeResume] Cache miss. Using model: ${modelConfig.name}`);
 
 	const result = await generateObject({
 		model: anthropic(modelConfig.name),
@@ -233,6 +283,10 @@ ${JSON.stringify(job, null, 2)}`
 		output: 'object' as const
 	});
 
+	// Cache the result
+	optimizationCache.set(cacheKey, result.object);
+	console.log('[AI optimizeResume] Result cached for future use');
+
 	return result.object;
 }
 
@@ -242,6 +296,21 @@ export async function generateCoverLetter(
 	job: UserJob | Job,
 	tone: 'professional' | 'enthusiastic' | 'conversational' = 'professional'
 ): Promise<string> {
+	// Create cache key from resume, job and tone
+	const cacheKey = {
+		resumeId: JSON.stringify(resume).substring(0, 500),
+		jobId: JSON.stringify(job).substring(0, 500),
+		tone,
+		operation: 'generate_cover_letter'
+	};
+
+	// Check cache first
+	const cached = coverLetterCache.get(cacheKey);
+	if (cached) {
+		console.log('[AI generateCoverLetter] Cache hit! Returning cached result');
+		return cached as string;
+	}
+
 	const toneMap = {
 		professional: 'formal and professional',
 		enthusiastic: 'energetic and passionate',
@@ -250,7 +319,7 @@ export async function generateCoverLetter(
 
 	// Use model selector - cover letters need the powerful model
 	const modelConfig = selectModel('generate_cover_letter');
-	console.log(`[AI generateCoverLetter] Using model: ${modelConfig.name}`);
+	console.log(`[AI generateCoverLetter] Cache miss. Using model: ${modelConfig.name}`);
 
 	const result = await generateText({
 		model: anthropic(modelConfig.name),
@@ -281,6 +350,10 @@ ${JSON.stringify(job, null, 2)}`
 			}
 		]
 	});
+
+	// Cache the result
+	coverLetterCache.set(cacheKey, result.text);
+	console.log('[AI generateCoverLetter] Result cached for future use');
 
 	return result.text;
 }

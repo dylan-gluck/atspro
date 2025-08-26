@@ -13,7 +13,11 @@
 - [x] **[P2.1] AI Model Selection**: Implement intelligent model selection (save ~$700/month)
   - [x] Use claude-3-haiku for extraction/scoring
   - [x] Reserve claude-3.5-sonnet for optimization only
-- [ ] **[P2.2] Result Caching**: Add LRU cache for AI responses
+- [x] **[P2.2] Result Caching**: Add LRU cache for AI responses
+  - [x] Implemented LRU cache with configurable TTL and size limits
+  - [x] Separate caches for resume, job, optimization, and cover letter operations
+  - [x] Cache metrics tracking (hit rate, cost savings, evictions)
+  - [x] Cache management endpoints for monitoring and clearing
 - [ ] **[P2.3] Prompt Optimization**: Reduce token usage in system prompts
 - [ ] **[P2.4] Rate Limiting**: Implement tier-based rate limiting
 
