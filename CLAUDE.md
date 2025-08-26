@@ -15,6 +15,7 @@ ATSPro is an AI-powered ATS resume optimization platform built with SvelteKit, B
 ### Critical Svelte 5 & SvelteKit Syntax
 
 #### TypeScript Errors with Runes
+
 - Never use generics with `$state` (use `$state(value)` not `$state<T>(value)`)
 - `$effect` must return void - use IIFE for async operations
 - Always use arrow functions for event handlers
@@ -24,6 +25,7 @@ ATSPro is an AI-powered ATS resume optimization platform built with SvelteKit, B
 Always Read: @TODO.md
 
 Reference when working on related features:
+
 - Bun: `.claude/docs/bun/*`
 - Svelte: `.claude/docs/svelte/*`
 - Sveltekit: `.claude/docs/sveltekit/*`
@@ -31,6 +33,7 @@ Reference when working on related features:
 - Vercel AI SDK: `.claude/docs/ai-sdk/*`
 
 ## MCP Servers
+
 - `mcp__postgres__query` Use for confirming db changes
 - `mcp__playwright__*` Use for testing features while developing & running end-to-end tests.
 - `mcp__language-server-ts__*` Use for complex parsing & mutations across codebase, eg rename symbol.

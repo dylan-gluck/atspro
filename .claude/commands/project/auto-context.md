@@ -1,7 +1,7 @@
 ---
 allowed-tools: Task
 description: Automatically analyze project structure with optional search scope using parallel research agents
-argument-hint: "[scope: all|data-models|api|frontend|backend|tests|docs|config|<directory-path>]"
+argument-hint: '[scope: all|data-models|api|frontend|backend|tests|docs|config|<directory-path>]'
 ---
 
 # Auto-Context Project Analysis
@@ -29,9 +29,11 @@ Spawn parallel research-project agents to comprehensively analyze the codebase s
 Deploy parallel research-project agents with the following specialized analysis tasks:
 
 ### Agent 1: Project Structure & Architecture
+
 **Task**: Analyze overall project structure, identify technology stack, and map architectural patterns.
 
 **Instructions**:
+
 - Use LS and Glob tools to map directory structure up to 3 levels deep
 - Identify project type through package managers and configuration files
 - Determine primary programming languages, frameworks, and build tools
@@ -40,9 +42,11 @@ Deploy parallel research-project agents with the following specialized analysis 
 - Scope filtering: For specific scopes, focus only on relevant directories
 
 ### Agent 2: Dependencies & Configuration
+
 **Task**: Extract dependency information, build configuration, and development setup details.
 
 **Instructions**:
+
 - Locate and analyze package management files (package.json, requirements.txt, etc.)
 - Extract major dependencies and development tools
 - Identify build scripts, CI/CD configurations, and deployment settings
@@ -50,9 +54,11 @@ Deploy parallel research-project agents with the following specialized analysis 
 - Scope filtering: For "config" scope, focus exclusively on configuration files
 
 ### Agent 3: Code Organization & Patterns
+
 **Task**: Analyze code structure, naming conventions, and implementation patterns.
 
 **Instructions**:
+
 - Use Grep to identify common patterns, class structures, and function signatures
 - Analyze import/export patterns and module organization
 - Identify coding conventions and style patterns
@@ -60,9 +66,11 @@ Deploy parallel research-project agents with the following specialized analysis 
 - Scope filtering: Apply search patterns based on scope (e.g., "data-models" searches for schema/model files)
 
 ### Agent 4: Documentation & Context
+
 **Task**: Extract existing documentation, comments, and contextual information.
 
 **Instructions**:
+
 - Read README files, documentation directories, and inline comments
 - Identify TODO comments, known issues, and development notes
 - Extract API documentation, usage examples, and setup guides
@@ -72,26 +80,31 @@ Deploy parallel research-project agents with the following specialized analysis 
 ## Specialized Scope Instructions
 
 ### Data Models Scope
+
 - Search for: `*.model.*, *Schema*, *Entity*, migrations/*, database/*`
 - Focus on: Database schemas, ORM models, data validation, relationships
 - Extract: Table structures, field definitions, constraints, relationships
 
 ### API Scope
+
 - Search for: `*route*, *controller*, *api*, *endpoint*, *service*`
 - Focus on: REST endpoints, GraphQL schemas, API documentation, middleware
 - Extract: Route definitions, request/response schemas, authentication
 
 ### Frontend Scope
+
 - Search for: `*component*, *view*, *page*, *.css, *.scss, *styles*`
 - Focus on: UI components, styling, state management, routing
 - Extract: Component hierarchy, styling patterns, user interactions
 
 ### Backend Scope
+
 - Search for: `*service*, *business*, *logic*, *worker*, *job*`
 - Focus on: Business logic, data processing, background jobs, integrations
 - Extract: Service architectures, data flow, external integrations
 
 ### Tests Scope
+
 - Search for: `*test*, *spec*, __tests__/*, cypress/*, playwright/*`
 - Focus on: Test suites, test utilities, mocking, coverage
 - Extract: Testing strategies, test patterns, coverage areas

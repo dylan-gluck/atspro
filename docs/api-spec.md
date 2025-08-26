@@ -545,7 +545,7 @@ Updates the notes field for a specific job.
 
 ```typescript
 {
-  notes: string
+	notes: string;
 }
 ```
 

@@ -253,7 +253,7 @@ export const db = {
 	getUserResume: resume.get,
 	createUserResume: resume.create,
 	updateUserResume: resume.update,
-	
+
 	// Job operations
 	jobs,
 	getUserJobs: async (userId: string, options?: any) => {
@@ -269,13 +269,13 @@ export const db = {
 	updateJobStatus: jobs.updateStatus,
 	updateJobNotes: jobs.updateNotes,
 	deleteJob: jobs.delete,
-	
+
 	// Document operations
 	documents,
 	getJobDocuments: documents.list,
 	getDocument: documents.get,
 	createJobDocument: documents.create,
-	
+
 	// Activity operations
 	activity,
 	getJobActivities: async (jobId: string, options?: any) => {

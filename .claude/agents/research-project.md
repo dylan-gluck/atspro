@@ -84,6 +84,7 @@ When invoked, follow these steps:
 # Project Analysis: [Project Name]
 
 ## Quick Facts
+
 - **Type**: [Web App/Library/API/CLI/etc.]
 - **Primary Language**: [Language]
 - **Framework**: [If applicable]
@@ -91,40 +92,49 @@ When invoked, follow these steps:
 - **Test Coverage**: [Estimated %]
 
 ## Structure Overview
+
 [Hierarchical overview of key directories]
 
 ## Technology Stack
+
 ### Core Technologies
+
 - [Technology]: [Version/Usage]
 
 ### Dependencies
+
 - **Production**: [Count] dependencies
 - **Development**: [Count] dev dependencies
 - **Key Libraries**: [List top 5-10]
 
 ## Architecture Insights
+
 - **Pattern**: [MVC/Microservices/Monolith/etc.]
 - **Entry Points**: [Main files/routes]
 - **Data Layer**: [Database/Storage approach]
 - **API Design**: [REST/GraphQL/RPC/etc.]
 
 ## Code Quality Indicators
+
 - **Testing**: [Test framework, coverage estimate]
 - **Documentation**: [Level of documentation]
 - **Code Organization**: [Assessment]
 - **Consistency**: [Naming/structure consistency]
 
 ## Key Findings
+
 1. [Most important finding]
 2. [Second important finding]
 3. [Additional findings...]
 
 ## Recommendations
+
 - [Actionable recommendation 1]
 - [Actionable recommendation 2]
 - [Additional recommendations...]
 
 ## File Statistics
+
 - Total Files: [Count]
 - Code Files: [Count]
 - Test Files: [Count]
@@ -147,6 +157,7 @@ When invoked, follow these steps:
 ## Error Handling
 
 When encountering issues:
+
 1. **Large Directories**: Sample representative files rather than analyzing everything
 2. **Binary Files**: Skip binary files, note their presence in summary
 3. **Access Denied**: Note restricted directories without failing
@@ -156,6 +167,7 @@ When encountering issues:
 ## Special Capabilities
 
 ### Efficient Pattern Search
+
 ```bash
 # Find all TypeScript/JavaScript files with specific patterns
 rg -t ts -t js "^(export|import)" --stats
@@ -168,6 +180,7 @@ rg "^import .* from ['\"](\.[^'\"]+)['\"]" -o -r '$1' | sort | uniq
 ```
 
 ### Configuration Analysis
+
 ```bash
 # Parse package.json for dependencies
 jq '.dependencies | keys' package.json
@@ -180,6 +193,7 @@ rg "process\.env\.\w+" -o | sort | uniq
 ```
 
 ### Project Metrics
+
 ```bash
 # Count lines of code by language
 rg --stats "." | tail -20
@@ -194,6 +208,7 @@ du -sh */ | sort -h
 ## Default Behavior
 
 Unless explicitly instructed otherwise:
+
 - **DO NOT** create or modify files
 - **DO NOT** write summary files unless requested
 - **DO** provide comprehensive analysis to parent agent

@@ -87,28 +87,37 @@ Structure documentation with clear hierarchy:
 # Component/Feature Name
 
 ## Overview
+
 Brief description of purpose and functionality
 
 ## Installation/Setup
+
 Step-by-step setup instructions
 
 ## Usage
+
 ### Basic Usage
+
 Simple examples to get started
 
 ### Advanced Usage
+
 Complex scenarios and configurations
 
 ## API Reference
+
 Detailed API documentation with parameters and returns
 
 ## Examples
+
 Practical, runnable code examples
 
 ## Troubleshooting
+
 Common issues and solutions
 
 ## Related Documentation
+
 Links to relevant resources
 ```
 
@@ -126,6 +135,7 @@ Links to relevant resources
 ## Error Handling
 
 When encountering issues:
+
 1. Identify missing or outdated documentation sections
 2. Flag inconsistencies between code and documentation
 3. Create documentation stubs for undocumented features

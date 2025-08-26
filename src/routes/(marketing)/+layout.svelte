@@ -27,7 +27,6 @@
 	}
 </script>
 
-
 <div class="flex min-h-screen flex-col">
 	<!-- Header Navigation -->
 	<header

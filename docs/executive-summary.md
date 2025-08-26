@@ -36,4 +36,4 @@ For ambitious professionals who refuse to let outdated hiring systems determine 
 
 ---
 
-*ATSPro.com – Where Careers Take Flight*
+_ATSPro.com – Where Careers Take Flight_

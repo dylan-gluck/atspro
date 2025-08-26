@@ -1,52 +1,37 @@
-# John Doe
+JOHN DOE
+Software Engineer
 
-Security Engineer with over 15 years experience catching bad-guys. Big nerd, no-grass-toucher, basically am a computer.
+Email: john.doe@example.com
+Phone: (555) 123-4567
+Location: San Francisco, CA
 
-# Skills
+SUMMARY
+Experienced software engineer with 5+ years developing web applications using modern technologies. Passionate about creating scalable, efficient solutions and leading technical teams.
 
-- Python
-- Java
-- C++
-- JavaScript
-- Bash
-- SQL
-- Git
-- Docker
-- Kubernetes
-- AWS
-- Azure
-- GCP
+EXPERIENCE
 
-# Education
+Senior Software Engineer | TechCorp Inc. | 2021 - Present
+• Led development of microservices architecture serving 1M+ users
+• Implemented CI/CD pipelines reducing deployment time by 60%
+• Mentored 3 junior developers and conducted technical interviews
+• Technologies: React, Node.js, Python, Docker, Kubernetes
 
-- Bachelor of Science in Computer Science, University of California, Berkeley, 2005-2009
-- Master of Science in Computer Science, Stanford University, 2010-2012
+Software Engineer | StartupXYZ | 2019 - 2021
+• Built real-time dashboard using React and WebSocket connections
+• Optimized database queries improving application performance by 40%
+• Collaborated with product team to deliver features on tight deadlines
+• Technologies: React, Express.js, MongoDB, Redis
 
-# Experience
+EDUCATION
+Bachelor of Science in Computer Science
+University of California, Berkeley | 2015 - 2019
 
-- Security Engineer, Google, 2013-2018
-- Senior Security Engineer, Facebook, 2019-2022
-- Principal Security Engineer, Amazon, 2023-present
+SKILLS
+• Programming Languages: JavaScript, Python, TypeScript, Java
+• Frameworks: React, Node.js, Express.js, Django
+• Databases: PostgreSQL, MongoDB, Redis
+• Tools: Docker, Kubernetes, Git, AWS
 
-# Projects
-
-- Developed a Python-based security tool for detecting malware in cloud environments.
-- Implemented a Java-based security framework for securing web applications.
-- Created a C++ library for analyzing network traffic patterns.
-- Built a JavaScript-based security dashboard for monitoring system health.
-- Wrote Bash scripts for automating security audits.
-- Designed and implemented SQL queries for data analysis.
-- Managed Git repositories for version control.
-- Deployed Docker containers for containerized applications.
-- Configured Kubernetes clusters for scalable deployments.
-- Managed AWS infrastructure for cloud-based services.
-- Deployed Azure resources for scalable cloud solutions.
-- Managed GCP resources for cloud-based services.
-
-# Contact Info
-- Email: john.doe@example.com
-- Phone: +1 (123) 456-7890
-- LinkedIn: https://www.linkedin.com/in/johndoe/
-- GitHub: https://github.com/johndoe
-- Website: https://www.johndoe.com
-- Twitter: https://twitter.com/johndoe
+CERTIFICATIONS
+• AWS Certified Solutions Architect - Associate (2022)
+• Certified Kubernetes Administrator (2023)

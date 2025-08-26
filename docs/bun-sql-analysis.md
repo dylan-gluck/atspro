@@ -1,6 +1,7 @@
 # Bun SQL vs node-postgres (pg) Analysis
 
 ## Current Setup
+
 - **Package**: `pg` v8.16.3
 - **Usage**: Direct Pool connection in `src/lib/db/index.ts` and `src/lib/auth.ts`
 - **Better-Auth**: Requires a pg-compatible Pool object
@@ -8,17 +9,21 @@
 ## Bun SQL Capabilities (Tested)
 
 ### ✅ Working Features
+
 1. **Basic Queries**: Template literal syntax works perfectly
+
    ```ts
    const result = await db`SELECT * FROM users WHERE id = ${userId}`;
    ```
 
 2. **Parameterized Queries**: Native parameter interpolation
+
    ```ts
    const user = await db`SELECT * FROM users WHERE id = ${id}`;
    ```
 
 3. **Connection Management**: Simple connection creation and closing
+
    ```ts
    const db = new SQL(DATABASE_URL);
    db.close();
@@ -27,6 +32,7 @@
 4. **Result Format**: Returns arrays with metadata (count, command)
 
 ### ⚠️ Limitations Found
+
 1. **No Connection Pooling**: Bun SQL doesn't expose connection pool management
 2. **Transaction Syntax**: Different from pg (uses `sql.begin` instead of `BEGIN/COMMIT`)
 3. **No Pool Interface**: Can't drop-in replace `new Pool()` for Better-Auth
@@ -35,6 +41,7 @@
 ## Migration Analysis
 
 ### src/lib/db/index.ts Migration Effort: **HIGH**
+
 ```typescript
 // Current (pg)
 const pool = new Pool({ connectionString: DATABASE_URL });
@@ -47,17 +54,19 @@ const rows = await db`SELECT * FROM "userResume" WHERE "userId" = ${userId}`;
 ```
 
 **Issues**:
+
 - All 15+ database functions would need refactoring
 - Different parameterization syntax ($1 vs template literals)
 - Different result structure (array vs {rows: []})
 - No connection pooling for concurrent requests
 
 ### src/lib/auth.ts Migration Effort: **BLOCKED**
+
 ```typescript
 // Current (Better-Auth expects pg Pool)
 export const auth = betterAuth({
-  database: new Pool({ connectionString: DATABASE_URL }),
-  // ...
+	database: new Pool({ connectionString: DATABASE_URL })
+	// ...
 });
 
 // Bun SQL - NOT COMPATIBLE
@@ -70,11 +79,13 @@ export const auth = betterAuth({
 ## Performance Comparison
 
 ### Bun SQL Advantages
+
 - **Native C++ bindings**: Potentially faster for simple queries
 - **Zero dependencies**: Smaller bundle, faster startup
 - **Built into runtime**: No separate driver needed
 
-### pg Advantages  
+### pg Advantages
+
 - **Connection pooling**: Essential for production scalability
 - **Battle-tested**: Used in millions of production apps
 - **Ecosystem compatibility**: Works with ORMs, Better-Auth, etc.

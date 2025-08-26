@@ -29,11 +29,21 @@
 		Eye,
 		Loader2
 	} from 'lucide-svelte';
-	import type { UserJob, JobStatus, JobDocument, JobActivity, JobActivityType } from '$lib/types/user-job';
-	
+	import type {
+		UserJob,
+		JobStatus,
+		JobDocument,
+		JobActivity,
+		JobActivityType
+	} from '$lib/types/user-job';
+
 	// Import remote functions
 	import { getJob, updateJobStatus, updateJobNotes, deleteJob } from '$lib/services/job.remote';
-	import { optimizeResume, generateCoverLetter, generateCompanyResearch } from '$lib/services/document.remote';
+	import {
+		optimizeResume,
+		generateCoverLetter,
+		generateCompanyResearch
+	} from '$lib/services/document.remote';
 	import { getJobActivity } from '$lib/services/activity.remote';
 	import { getResume } from '$lib/services/resume.remote';
 
@@ -69,7 +79,7 @@
 
 	// Tab state
 	let activeTab = $state('overview');
-	
+
 	// Status update loading
 	let statusLoading = $state(false);
 
@@ -163,7 +173,7 @@
 			goto('/app/resume');
 			return;
 		}
-		
+
 		generateResumeLoading = true;
 		try {
 			if (!jobId) {
@@ -173,7 +183,7 @@
 			const result = await optimizeResume({
 				jobId
 			});
-			
+
 			toast.success(`Resume optimized! ATS Score: ${result.optimizationScore}%`);
 			// Refresh job data to get new documents
 			if (jobQuery) await jobQuery.refresh();
@@ -191,14 +201,14 @@
 			goto('/app/resume');
 			return;
 		}
-		
+
 		generateCoverLoading = true;
 		try {
 			if (!jobId) {
 				toast.error('Job ID is missing');
 				return;
 			}
-			
+
 			const result = await generateCoverLetter({
 				jobId,
 				tone: 'professional'
@@ -213,7 +223,7 @@
 			generateCoverLoading = false;
 		}
 	}
-	
+
 	async function generateResearch() {
 		generateResearchLoading = true;
 		try {
@@ -235,7 +245,7 @@
 
 	async function updateStatus(newStatus: JobStatus) {
 		if (!job) return;
-		
+
 		statusLoading = true;
 		try {
 			if (!jobId) {
@@ -247,7 +257,7 @@
 				status: newStatus,
 				appliedAt: newStatus === 'applied' && !job.appliedAt ? new Date().toISOString() : undefined
 			});
-			
+
 			toast.success(`Status updated to ${newStatus}`);
 			// Data will auto-refresh via single-flight mutation
 		} catch (error) {
@@ -278,12 +288,12 @@
 
 	async function saveNotes() {
 		if (!job) return;
-		
+
 		notesLoading = true;
 		try {
 			if (!jobId) {
-			toast.error('Job ID is missing');
-			return;
+				toast.error('Job ID is missing');
+				return;
 			}
 			await updateJobNotes({ jobId, notes });
 			toast.success('Notes saved');
@@ -330,319 +340,327 @@
 	</div>
 {:else}
 	<div class="container mx-auto space-y-6 p-6">
-	<!-- Header -->
-	<div class="flex flex-col items-start justify-between gap-4 sm:flex-row">
-		<div class="flex items-start gap-4">
-			<Button onclick={() => goto('/app/jobs')} variant="ghost" size="icon">
-				<ArrowLeft class="h-4 w-4" />
-			</Button>
-			<div>
-				<div class="mb-2 flex items-center gap-3">
-					<h1 class="text-3xl font-bold">{job.company}</h1>
-					<Badge variant={getStatusBadgeVariant(job.status)} class="text-xs">
-						{job.status}
-					</Badge>
-				</div>
-				<p class="text-muted-foreground text-xl">{job.title}</p>
-				<div class="text-muted-foreground mt-3 flex flex-wrap gap-4 text-sm">
-					{#if job.location && job.location.length > 0}
-						<div class="flex items-center gap-1">
-							<MapPin class="h-4 w-4" />
-							{job.location.join(', ')}
-						</div>
-					{/if}
-					{#if job.salary}
-						<div class="flex items-center gap-1">
-							<DollarSign class="h-4 w-4" />
-							{job.salary}
-						</div>
-					{/if}
-					{#if job.appliedAt}
-						<div class="flex items-center gap-1">
-							<Calendar class="h-4 w-4" />
-							Applied {formatDate(job.appliedAt)}
-						</div>
-					{/if}
-				</div>
-			</div>
-		</div>
-
-		<div class="flex gap-2">
-			<Button onclick={() => goto(`/app/jobs/${jobId}/edit`)} variant="outline" class="gap-2">
-				<Edit class="h-4 w-4" />
-				Edit
-			</Button>
-			<Button
-				variant="outline"
-				onclick={() => (deleteDialogOpen = true)}
-				class="text-destructive hover:text-destructive gap-2"
-			>
-				<Trash2 class="h-4 w-4" />
-				Delete
-			</Button>
-		</div>
-	</div>
-
-	<!-- Action Buttons -->
-	<Card.Root>
-		<Card.Content class="pt-6">
-			<div class="flex flex-col gap-4 sm:flex-row">
-				<Select.Root 
-					type="single"
-					onValueChange={(v: string | undefined) => {
-						if (v) updateStatus(v as JobStatus);
-					}}
-				>
-					<Select.Trigger class="w-full sm:w-[200px]">
-						<span>Update Status</span>
-					</Select.Trigger>
-					<Select.Content>
-						<Select.Item value="tracked">Tracked</Select.Item>
-						<Select.Item value="applied">Applied</Select.Item>
-						<Select.Item value="interviewing">Interviewing</Select.Item>
-						<Select.Item value="offered">Offered</Select.Item>
-						<Select.Item value="rejected">Rejected</Select.Item>
-						<Select.Item value="withdrawn">Withdrawn</Select.Item>
-					</Select.Content>
-				</Select.Root>
-
-				<div class="flex flex-1 gap-2">
-					<Button
-						onclick={generateOptimizedResume}
-						disabled={generateResumeLoading}
-						class="flex-1 gap-2 sm:flex-initial"
-					>
-						{#if generateResumeLoading}
-							<Loader2 class="h-4 w-4 animate-spin" />
-							Generating...
-						{:else}
-							<Sparkles class="h-4 w-4" />
-							Generate Resume
-						{/if}
-					</Button>
-					<Button
-						onclick={handleGenerateCoverLetter}
-						disabled={generateCoverLoading}
-						variant="outline"
-						class="flex-1 gap-2 sm:flex-initial"
-					>
-						{#if generateCoverLoading}
-							<Loader2 class="h-4 w-4 animate-spin" />
-							Generating...
-						{:else}
-							<FileText class="h-4 w-4" />
-							Generate Cover Letter
-						{/if}
-					</Button>
-					<Button
-						onclick={generateResearch}
-						disabled={generateResearchLoading}
-						variant="outline"
-						class="flex-1 gap-2 sm:flex-initial"
-					>
-						{#if generateResearchLoading}
-							<Loader2 class="h-4 w-4 animate-spin" />
-							Generating...
-						{:else}
-							<Building class="h-4 w-4" />
-							Company Research
-						{/if}
-					</Button>
-				</div>
-
-				{#if job.link}
-					<Button onclick={() => job.link && window.open(job.link, '_blank')} variant="outline" class="gap-2">
-						<ExternalLink class="h-4 w-4" />
-						View Posting
-					</Button>
-				{/if}
-			</div>
-		</Card.Content>
-	</Card.Root>
-
-	<!-- Tabs Content -->
-	<Tabs.Root bind:value={activeTab} class="w-full">
-		<Tabs.List class="grid w-full grid-cols-4">
-			<Tabs.Trigger value="overview">Overview</Tabs.Trigger>
-			<Tabs.Trigger value="documents">Documents</Tabs.Trigger>
-			<Tabs.Trigger value="activity">Activity</Tabs.Trigger>
-			<Tabs.Trigger value="notes">Notes</Tabs.Trigger>
-		</Tabs.List>
-
-		<Tabs.Content value="overview" class="mt-6 space-y-6">
-			<Card.Root>
-				<Card.Header>
-					<Card.Title>Job Description</Card.Title>
-				</Card.Header>
-				<Card.Content>
-					<div class="prose prose-sm max-w-none">
-						{#each job.description.split('\n') as paragraph}
-							{#if paragraph.startsWith('###')}
-								<h3 class="mb-2 mt-4 text-lg font-semibold">{paragraph.replace('### ', '')}</h3>
-							{:else if paragraph.trim()}
-								<p class="mb-4">{paragraph}</p>
-							{/if}
-						{/each}
+		<!-- Header -->
+		<div class="flex flex-col items-start justify-between gap-4 sm:flex-row">
+			<div class="flex items-start gap-4">
+				<Button onclick={() => goto('/app/jobs')} variant="ghost" size="icon">
+					<ArrowLeft class="h-4 w-4" />
+				</Button>
+				<div>
+					<div class="mb-2 flex items-center gap-3">
+						<h1 class="text-3xl font-bold">{job.company}</h1>
+						<Badge variant={getStatusBadgeVariant(job.status)} class="text-xs">
+							{job.status}
+						</Badge>
 					</div>
-				</Card.Content>
-			</Card.Root>
-
-			{#if job.responsibilities && job.responsibilities.length > 0}
-				<Card.Root>
-					<Card.Header>
-						<Card.Title>Responsibilities</Card.Title>
-					</Card.Header>
-					<Card.Content>
-						<ul class="space-y-2">
-							{#each job.responsibilities as item}
-								<li class="flex items-start gap-2">
-									<span class="text-primary mt-1">"</span>
-									<span>{item}</span>
-								</li>
-							{/each}
-						</ul>
-					</Card.Content>
-				</Card.Root>
-			{/if}
-
-			{#if job.qualifications && job.qualifications.length > 0}
-				<Card.Root>
-					<Card.Header>
-						<Card.Title>Qualifications</Card.Title>
-					</Card.Header>
-					<Card.Content>
-						<ul class="space-y-2">
-							{#each job.qualifications as item}
-								<li class="flex items-start gap-2">
-									<span class="text-primary mt-1">"</span>
-									<span>{item}</span>
-								</li>
-							{/each}
-						</ul>
-					</Card.Content>
-				</Card.Root>
-			{/if}
-
-			{#if job.logistics && job.logistics.length > 0}
-				<Card.Root>
-					<Card.Header>
-						<Card.Title>Benefits & Logistics</Card.Title>
-					</Card.Header>
-					<Card.Content>
-						<ul class="space-y-2">
-							{#each job.logistics as item}
-								<li class="flex items-start gap-2">
-									<span class="text-primary mt-1">"</span>
-									<span>{item}</span>
-								</li>
-							{/each}
-						</ul>
-					</Card.Content>
-				</Card.Root>
-			{/if}
-		</Tabs.Content>
-
-		<Tabs.Content value="documents" class="mt-6">
-			<Card.Root>
-				<Card.Header>
-					<Card.Title>Generated Documents</Card.Title>
-					<Card.Description>AI-optimized documents for this position</Card.Description>
-				</Card.Header>
-				<Card.Content>
-					{#if documents.length === 0}
-						<p class="text-muted-foreground py-8 text-center">
-							No documents generated yet. Use the buttons above to generate an optimized resume or
-							cover letter.
-						</p>
-					{:else}
-						<div class="space-y-4">
-							{#each documents as doc}
-								<div
-									class="hover:bg-muted/50 flex items-center justify-between rounded-lg border p-4"
-								>
-									<div class="flex items-center gap-4">
-										<div class="bg-primary/10 rounded-lg p-2">
-											<FileCheck class="text-primary h-5 w-5" />
-										</div>
-										<div>
-											<p class="font-medium">{getDocumentTypeLabel(doc.type)}</p>
-											<p class="text-muted-foreground text-sm">
-												Version {doc.version} • Created {formatDate(doc.createdAt)}
-											</p>
-											{#if doc.metadata?.atsScore}
-												<p class="text-primary mt-1 text-sm">
-													ATS Score: {doc.metadata.atsScore}%
-												</p>
-											{/if}
-										</div>
-									</div>
-									<div class="flex gap-2">
-										<Button variant="outline" size="sm" class="gap-2">
-											<Eye class="h-4 w-4" />
-											View
-										</Button>
-										<Button variant="outline" size="sm" class="gap-2">
-											<Download class="h-4 w-4" />
-											Download
-										</Button>
-									</div>
-								</div>
-							{/each}
-						</div>
-					{/if}
-				</Card.Content>
-			</Card.Root>
-		</Tabs.Content>
-
-		<Tabs.Content value="activity" class="mt-6">
-			<Card.Root>
-				<Card.Header>
-					<Card.Title>Activity Timeline</Card.Title>
-					<Card.Description>Track all actions and updates for this application</Card.Description>
-				</Card.Header>
-				<Card.Content>
-					<div class="space-y-4">
-						{#each activities as activity, i}
-							{@const Icon = getActivityIcon(activity.type)}
-							<div class="flex gap-4">
-								<div class="flex flex-col items-center">
-									<div class="bg-primary/10 rounded-full p-2">
-										<Icon class="text-primary h-4 w-4" />
-									</div>
-									{#if i < activities.length - 1}
-										<div class="bg-border mt-2 h-16 w-0.5"></div>
-									{/if}
-								</div>
-								<div class="flex-1 pb-8">
-									<p class="font-medium">{activity.description}</p>
-									<p class="text-muted-foreground text-sm">
-										{formatActivityDate(activity.createdAt)}
-									</p>
-								</div>
+					<p class="text-muted-foreground text-xl">{job.title}</p>
+					<div class="text-muted-foreground mt-3 flex flex-wrap gap-4 text-sm">
+						{#if job.location && job.location.length > 0}
+							<div class="flex items-center gap-1">
+								<MapPin class="h-4 w-4" />
+								{job.location.join(', ')}
 							</div>
-						{/each}
+						{/if}
+						{#if job.salary}
+							<div class="flex items-center gap-1">
+								<DollarSign class="h-4 w-4" />
+								{job.salary}
+							</div>
+						{/if}
+						{#if job.appliedAt}
+							<div class="flex items-center gap-1">
+								<Calendar class="h-4 w-4" />
+								Applied {formatDate(job.appliedAt)}
+							</div>
+						{/if}
 					</div>
-				</Card.Content>
-			</Card.Root>
-		</Tabs.Content>
+				</div>
+			</div>
 
-		<Tabs.Content value="notes" class="mt-6">
-			<Card.Root>
-				<Card.Header>
-					<Card.Title>Notes</Card.Title>
-					<Card.Description>
-						Keep track of important details and thoughts about this position
-					</Card.Description>
-				</Card.Header>
-				<Card.Content>
-					<Textarea bind:value={notes} placeholder="Add your notes here..." class="min-h-[200px]" />
-					<Button onclick={() => saveNotes()} disabled={notesLoading} class="mt-4">
-						{notesLoading ? 'Saving...' : 'Save Notes'}
-					</Button>
-				</Card.Content>
-			</Card.Root>
-		</Tabs.Content>
-	</Tabs.Root>
+			<div class="flex gap-2">
+				<Button onclick={() => goto(`/app/jobs/${jobId}/edit`)} variant="outline" class="gap-2">
+					<Edit class="h-4 w-4" />
+					Edit
+				</Button>
+				<Button
+					variant="outline"
+					onclick={() => (deleteDialogOpen = true)}
+					class="text-destructive hover:text-destructive gap-2"
+				>
+					<Trash2 class="h-4 w-4" />
+					Delete
+				</Button>
+			</div>
+		</div>
+
+		<!-- Action Buttons -->
+		<Card.Root>
+			<Card.Content class="pt-6">
+				<div class="flex flex-col gap-4 sm:flex-row">
+					<Select.Root
+						type="single"
+						onValueChange={(v: string | undefined) => {
+							if (v) updateStatus(v as JobStatus);
+						}}
+					>
+						<Select.Trigger class="w-full sm:w-[200px]">
+							<span>Update Status</span>
+						</Select.Trigger>
+						<Select.Content>
+							<Select.Item value="tracked">Tracked</Select.Item>
+							<Select.Item value="applied">Applied</Select.Item>
+							<Select.Item value="interviewing">Interviewing</Select.Item>
+							<Select.Item value="offered">Offered</Select.Item>
+							<Select.Item value="rejected">Rejected</Select.Item>
+							<Select.Item value="withdrawn">Withdrawn</Select.Item>
+						</Select.Content>
+					</Select.Root>
+
+					<div class="flex flex-1 gap-2">
+						<Button
+							onclick={generateOptimizedResume}
+							disabled={generateResumeLoading}
+							class="flex-1 gap-2 sm:flex-initial"
+						>
+							{#if generateResumeLoading}
+								<Loader2 class="h-4 w-4 animate-spin" />
+								Generating...
+							{:else}
+								<Sparkles class="h-4 w-4" />
+								Generate Resume
+							{/if}
+						</Button>
+						<Button
+							onclick={handleGenerateCoverLetter}
+							disabled={generateCoverLoading}
+							variant="outline"
+							class="flex-1 gap-2 sm:flex-initial"
+						>
+							{#if generateCoverLoading}
+								<Loader2 class="h-4 w-4 animate-spin" />
+								Generating...
+							{:else}
+								<FileText class="h-4 w-4" />
+								Generate Cover Letter
+							{/if}
+						</Button>
+						<Button
+							onclick={generateResearch}
+							disabled={generateResearchLoading}
+							variant="outline"
+							class="flex-1 gap-2 sm:flex-initial"
+						>
+							{#if generateResearchLoading}
+								<Loader2 class="h-4 w-4 animate-spin" />
+								Generating...
+							{:else}
+								<Building class="h-4 w-4" />
+								Company Research
+							{/if}
+						</Button>
+					</div>
+
+					{#if job.link}
+						<Button
+							onclick={() => job.link && window.open(job.link, '_blank')}
+							variant="outline"
+							class="gap-2"
+						>
+							<ExternalLink class="h-4 w-4" />
+							View Posting
+						</Button>
+					{/if}
+				</div>
+			</Card.Content>
+		</Card.Root>
+
+		<!-- Tabs Content -->
+		<Tabs.Root bind:value={activeTab} class="w-full">
+			<Tabs.List class="grid w-full grid-cols-4">
+				<Tabs.Trigger value="overview">Overview</Tabs.Trigger>
+				<Tabs.Trigger value="documents">Documents</Tabs.Trigger>
+				<Tabs.Trigger value="activity">Activity</Tabs.Trigger>
+				<Tabs.Trigger value="notes">Notes</Tabs.Trigger>
+			</Tabs.List>
+
+			<Tabs.Content value="overview" class="mt-6 space-y-6">
+				<Card.Root>
+					<Card.Header>
+						<Card.Title>Job Description</Card.Title>
+					</Card.Header>
+					<Card.Content>
+						<div class="prose prose-sm max-w-none">
+							{#each job.description.split('\n') as paragraph}
+								{#if paragraph.startsWith('###')}
+									<h3 class="mb-2 mt-4 text-lg font-semibold">{paragraph.replace('### ', '')}</h3>
+								{:else if paragraph.trim()}
+									<p class="mb-4">{paragraph}</p>
+								{/if}
+							{/each}
+						</div>
+					</Card.Content>
+				</Card.Root>
+
+				{#if job.responsibilities && job.responsibilities.length > 0}
+					<Card.Root>
+						<Card.Header>
+							<Card.Title>Responsibilities</Card.Title>
+						</Card.Header>
+						<Card.Content>
+							<ul class="space-y-2">
+								{#each job.responsibilities as item}
+									<li class="flex items-start gap-2">
+										<span class="text-primary mt-1">"</span>
+										<span>{item}</span>
+									</li>
+								{/each}
+							</ul>
+						</Card.Content>
+					</Card.Root>
+				{/if}
+
+				{#if job.qualifications && job.qualifications.length > 0}
+					<Card.Root>
+						<Card.Header>
+							<Card.Title>Qualifications</Card.Title>
+						</Card.Header>
+						<Card.Content>
+							<ul class="space-y-2">
+								{#each job.qualifications as item}
+									<li class="flex items-start gap-2">
+										<span class="text-primary mt-1">"</span>
+										<span>{item}</span>
+									</li>
+								{/each}
+							</ul>
+						</Card.Content>
+					</Card.Root>
+				{/if}
+
+				{#if job.logistics && job.logistics.length > 0}
+					<Card.Root>
+						<Card.Header>
+							<Card.Title>Benefits & Logistics</Card.Title>
+						</Card.Header>
+						<Card.Content>
+							<ul class="space-y-2">
+								{#each job.logistics as item}
+									<li class="flex items-start gap-2">
+										<span class="text-primary mt-1">"</span>
+										<span>{item}</span>
+									</li>
+								{/each}
+							</ul>
+						</Card.Content>
+					</Card.Root>
+				{/if}
+			</Tabs.Content>
+
+			<Tabs.Content value="documents" class="mt-6">
+				<Card.Root>
+					<Card.Header>
+						<Card.Title>Generated Documents</Card.Title>
+						<Card.Description>AI-optimized documents for this position</Card.Description>
+					</Card.Header>
+					<Card.Content>
+						{#if documents.length === 0}
+							<p class="text-muted-foreground py-8 text-center">
+								No documents generated yet. Use the buttons above to generate an optimized resume or
+								cover letter.
+							</p>
+						{:else}
+							<div class="space-y-4">
+								{#each documents as doc}
+									<div
+										class="hover:bg-muted/50 flex items-center justify-between rounded-lg border p-4"
+									>
+										<div class="flex items-center gap-4">
+											<div class="bg-primary/10 rounded-lg p-2">
+												<FileCheck class="text-primary h-5 w-5" />
+											</div>
+											<div>
+												<p class="font-medium">{getDocumentTypeLabel(doc.type)}</p>
+												<p class="text-muted-foreground text-sm">
+													Version {doc.version} • Created {formatDate(doc.createdAt)}
+												</p>
+												{#if doc.metadata?.atsScore}
+													<p class="text-primary mt-1 text-sm">
+														ATS Score: {doc.metadata.atsScore}%
+													</p>
+												{/if}
+											</div>
+										</div>
+										<div class="flex gap-2">
+											<Button variant="outline" size="sm" class="gap-2">
+												<Eye class="h-4 w-4" />
+												View
+											</Button>
+											<Button variant="outline" size="sm" class="gap-2">
+												<Download class="h-4 w-4" />
+												Download
+											</Button>
+										</div>
+									</div>
+								{/each}
+							</div>
+						{/if}
+					</Card.Content>
+				</Card.Root>
+			</Tabs.Content>
+
+			<Tabs.Content value="activity" class="mt-6">
+				<Card.Root>
+					<Card.Header>
+						<Card.Title>Activity Timeline</Card.Title>
+						<Card.Description>Track all actions and updates for this application</Card.Description>
+					</Card.Header>
+					<Card.Content>
+						<div class="space-y-4">
+							{#each activities as activity, i}
+								{@const Icon = getActivityIcon(activity.type)}
+								<div class="flex gap-4">
+									<div class="flex flex-col items-center">
+										<div class="bg-primary/10 rounded-full p-2">
+											<Icon class="text-primary h-4 w-4" />
+										</div>
+										{#if i < activities.length - 1}
+											<div class="bg-border mt-2 h-16 w-0.5"></div>
+										{/if}
+									</div>
+									<div class="flex-1 pb-8">
+										<p class="font-medium">{activity.description}</p>
+										<p class="text-muted-foreground text-sm">
+											{formatActivityDate(activity.createdAt)}
+										</p>
+									</div>
+								</div>
+							{/each}
+						</div>
+					</Card.Content>
+				</Card.Root>
+			</Tabs.Content>
+
+			<Tabs.Content value="notes" class="mt-6">
+				<Card.Root>
+					<Card.Header>
+						<Card.Title>Notes</Card.Title>
+						<Card.Description>
+							Keep track of important details and thoughts about this position
+						</Card.Description>
+					</Card.Header>
+					<Card.Content>
+						<Textarea
+							bind:value={notes}
+							placeholder="Add your notes here..."
+							class="min-h-[200px]"
+						/>
+						<Button onclick={() => saveNotes()} disabled={notesLoading} class="mt-4">
+							{notesLoading ? 'Saving...' : 'Save Notes'}
+						</Button>
+					</Card.Content>
+				</Card.Root>
+			</Tabs.Content>
+		</Tabs.Root>
 	</div>
 {/if}
 

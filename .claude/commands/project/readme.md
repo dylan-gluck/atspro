@@ -13,6 +13,7 @@ Recursively analyze the project and update all README documents with accurate in
 ### Execution Strategy
 
 This command coordinates multiple engineering-writer agents to:
+
 1. Discover all README files in the project (or specified scope)
 2. Analyze corresponding code directories
 3. Update each README with accurate, current information
@@ -21,6 +22,7 @@ This command coordinates multiple engineering-writer agents to:
 ### Task Coordination
 
 #### Phase 1: Discovery
+
 First, identify all README files that need updating:
 
 ```bash
@@ -33,6 +35,7 @@ fi
 ```
 
 #### Phase 2: Parallel Analysis & Updates
+
 Spawn engineering-writer agents for each discovered README location:
 
 ```task
@@ -123,6 +126,7 @@ Each spawned agent should:
 ### Quality Checks
 
 Each engineering-writer agent should ensure:
+
 - ✅ All code references are accurate
 - ✅ File paths are correct
 - ✅ Dependencies are current

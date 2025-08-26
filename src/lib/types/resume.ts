@@ -35,7 +35,7 @@ export interface Education {
 
 export interface Certification {
 	name: string;
-	issuer: string;
+	issuer?: string | null;
 	dateObtained?: string | null;
 	expirationDate?: string | null;
 	credentialId?: string | null;

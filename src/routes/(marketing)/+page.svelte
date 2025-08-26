@@ -78,7 +78,8 @@
 					</h1>
 					<p class="text-muted-foreground max-w-2xl text-lg md:text-xl">
 						85% of qualified candidates never get past ATS filters. Our platform increases your ATS
-						pass rate from 15% to 85%, delivering a <strong>400% increase in interview rates</strong>.
+						pass rate from 15% to 85%, delivering a <strong>400% increase in interview rates</strong
+						>.
 					</p>
 				</div>
 
@@ -202,8 +203,8 @@
 					</div>
 					<CardTitle>ATS Resume Optimization</CardTitle>
 					<CardDescription>
-						Automatically optimize your resume for any job posting using advanced AI to match
-						resume keywords and beat ATS filters. Create ATS friendly resumes that get noticed.
+						Automatically optimize your resume for any job posting using advanced AI to match resume
+						keywords and beat ATS filters. Create ATS friendly resumes that get noticed.
 					</CardDescription>
 				</CardHeader>
 				<CardContent>
@@ -338,8 +339,8 @@
 					</div>
 					<CardTitle>Interview Preparation</CardTitle>
 					<CardDescription>
-						Get ready for interviews with AI-generated questions, answers, and personalized coaching.
-						Boost your success rate after optimizing your ATS friendly resume.
+						Get ready for interviews with AI-generated questions, answers, and personalized
+						coaching. Boost your success rate after optimizing your ATS friendly resume.
 					</CardDescription>
 				</CardHeader>
 				<CardContent>
@@ -598,9 +599,7 @@
 					<div class="pt-4">
 						<span class="text-3xl font-bold">$19</span>
 						<span class="text-muted-foreground">/month</span>
-						<div class="text-sm text-muted-foreground mt-1">
-							or $190/year (save $38)
-						</div>
+						<div class="text-muted-foreground mt-1 text-sm">or $190/year (save $38)</div>
 					</div>
 				</CardHeader>
 				<CardContent class="space-y-4">
@@ -643,11 +642,11 @@
 						</li>
 					</ul>
 					<div class="space-y-2">
-						<p class="text-xs text-muted-foreground italic">
+						<p class="text-muted-foreground text-xs italic">
 							"Sarah increased her interview rate by 400% with Professional"
 						</p>
-						<Button class="w-full relative" onclick={() => goto('/auth/signup')}>
-							<Badge class="absolute -top-2 -right-2 bg-green-500">50% OFF</Badge>
+						<Button class="relative w-full" onclick={() => goto('/auth/signup')}>
+							<Badge class="absolute -right-2 -top-2 bg-green-500">50% OFF</Badge>
 							Start Professional Trial
 						</Button>
 					</div>
@@ -662,9 +661,7 @@
 					<div class="pt-4">
 						<span class="text-3xl font-bold">$39</span>
 						<span class="text-muted-foreground">/month</span>
-						<div class="text-sm text-muted-foreground mt-1">
-							or $390/year (save $78)
-						</div>
+						<div class="text-muted-foreground mt-1 text-sm">or $390/year (save $78)</div>
 					</div>
 				</CardHeader>
 				<CardContent class="space-y-4">
@@ -710,8 +707,8 @@
 							<span>Advanced analytics & ROI tracking</span>
 						</li>
 					</ul>
-					<Button class="w-full relative" onclick={() => goto('/auth/signup')}>
-						<Badge class="absolute -top-2 -right-2 bg-green-500">50% OFF</Badge>
+					<Button class="relative w-full" onclick={() => goto('/auth/signup')}>
+						<Badge class="absolute -right-2 -top-2 bg-green-500">50% OFF</Badge>
 						Start Premium Trial
 					</Button>
 				</CardContent>
@@ -721,7 +718,7 @@
 		<div class="mt-8 text-center">
 			<Badge variant="secondary" class="px-4 py-2">
 				<Sparkles class="mr-2 h-4 w-4" />
-			Limited Time: 50% off first 3 months for Professional/Premium plans
+				Limited Time: 50% off first 3 months for Professional/Premium plans
 			</Badge>
 		</div>
 	</div>
@@ -748,8 +745,7 @@
 					size="lg"
 					variant="outline"
 					href="#features"
-					onclick={preventDefault(scrollIntoView)}
-					>View All Features</Button
+					onclick={preventDefault(scrollIntoView)}>View All Features</Button
 				>
 			</div>
 			<p class="text-muted-foreground text-sm">

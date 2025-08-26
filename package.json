@@ -16,6 +16,7 @@
 		"test": "npm run test:unit -- --run"
 	},
 	"devDependencies": {
+		"@ai-sdk/anthropic": "^2.0.6",
 		"@ai-sdk/openai": "^2.0.20",
 		"@ai-sdk/svelte": "^3.0.23",
 		"@internationalized/date": "^3.8.1",

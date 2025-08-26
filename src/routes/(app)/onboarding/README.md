@@ -5,6 +5,7 @@ A guided 5-step onboarding process that helps new users set up their profile and
 ## Overview
 
 The onboarding flow is designed to create a smooth first-time user experience by:
+
 - Introducing ATSPro's key features and benefits
 - Collecting resume data through file upload or manual entry
 - Allowing users to review and refine extracted information
@@ -21,9 +22,11 @@ The onboarding flow is designed to create a smooth first-time user experience by
 ## 5-Step Onboarding Process
 
 ### Step 1: Welcome & Introduction
+
 **Purpose**: Introduce ATSPro features and set expectations
 
 **Content**:
+
 - Welcome message with ATSPro branding
 - Key feature highlights:
   - AI-powered resume optimization
@@ -35,9 +38,11 @@ The onboarding flow is designed to create a smooth first-time user experience by
 **Navigation**: Always allows proceeding to next step
 
 ### Step 2: Resume Upload
+
 **Purpose**: Collect user's resume document for AI extraction
 
 **Features**:
+
 - **File Upload Methods**:
   - Drag and drop interface
   - Click to browse file picker
@@ -48,11 +53,12 @@ The onboarding flow is designed to create a smooth first-time user experience by
   - DOCX files are rejected with conversion suggestion
 - **Upload States**:
   - Idle: Shows upload area with instructions
-  - File Selected: Displays file info with remove option  
+  - File Selected: Displays file info with remove option
   - Extracting: Loading indicator with progress feedback
   - Error: Clear error messages with retry options
 
 **Data Processing**:
+
 - Uses `extractResume` remote function for AI-powered extraction
 - Handles different file types (PDF as Buffer, text files as string)
 - Rate limited to 10 extractions per hour per user
@@ -60,40 +66,47 @@ The onboarding flow is designed to create a smooth first-time user experience by
 
 **Security**: Files are processed securely with encryption and never shared without consent
 
-**Navigation**: 
+**Navigation**:
+
 - Previous: Returns to welcome step
 - Next: Only enabled when file is uploaded and not currently processing
 
 ### Step 3: Review & Edit Information
+
 **Purpose**: Allow users to verify and correct AI-extracted resume data
 
 **Data Fields**:
+
 - **Contact Information**:
   - Full Name (required for navigation)
   - Email address
-  - Phone number  
+  - Phone number
   - Location/Address
 - **Professional Summary**: Multi-line text area for career overview
 - **Skills**: Display extracted skills as tags/badges
 - **Additional Data**: Work experience, education, certifications (extracted but not editable in onboarding)
 
 **Form Validation**:
+
 - Full name is required to proceed
 - Real-time validation with visual feedback
 - Two-way data binding with resume state
 
 **Navigation**:
+
 - Previous: Returns to upload step
 - Next: Enabled when full name is provided
 
 ### Step 4: Profile Preferences (Optional)
+
 **Purpose**: Gather user preferences for personalized experience
 
 **Preferences Collected**:
+
 - **Target Job Role**: Text input for desired position
 - **Experience Level**: Dropdown selection:
   - Entry Level (0-2 years)
-  - Mid Level (2-5 years)  
+  - Mid Level (2-5 years)
   - Senior Level (5-10 years)
   - Executive (10+ years)
 - **Email Notifications**:
@@ -101,20 +114,24 @@ The onboarding flow is designed to create a smooth first-time user experience by
   - Weekly Career Tips: Resume and interview guidance
 
 **User Experience**:
+
 - All fields are optional
 - Skip option available with prominent button
 - Clear descriptions for each preference
 - Default values set for optimal user experience
 
 **Navigation**:
+
 - Previous: Returns to review step
 - Skip: Saves resume and completes onboarding
 - Finish: Saves all data and advances to success step
 
 ### Step 5: Success & Next Steps
+
 **Purpose**: Confirm completion and guide users toward first actions
 
 **Content**:
+
 - Success confirmation with celebratory design
 - Clear "What's Next" guidance:
   1. Find a job posting
@@ -127,7 +144,8 @@ The onboarding flow is designed to create a smooth first-time user experience by
 ## Progress Tracking & Navigation
 
 ### Progress Indicator
-- **Visual Progress Bar**: Shows completion percentage (currentStep / 5 * 100)
+
+- **Visual Progress Bar**: Shows completion percentage (currentStep / 5 \* 100)
 - **Step Indicators**: Numbered circles with completion states:
   - Active: Primary color with step number
   - Completed: Check mark icon with muted primary color
@@ -135,7 +153,8 @@ The onboarding flow is designed to create a smooth first-time user experience by
 - **Connecting Lines**: Visual connection between step indicators
 
 ### Navigation Controls
-- **Previous Button**: 
+
+- **Previous Button**:
   - Disabled on first step
   - Disabled during processing states
   - Returns to previous step with data preservation
@@ -146,6 +165,7 @@ The onboarding flow is designed to create a smooth first-time user experience by
 - **Skip Option**: Only available on optional steps (step 4)
 
 ### Navigation Rules
+
 - **Step 1**: Always allows forward navigation
 - **Step 2**: Requires file upload and successful extraction
 - **Step 3**: Requires full name to be provided
@@ -155,7 +175,8 @@ The onboarding flow is designed to create a smooth first-time user experience by
 ## Form Validation & Error Handling
 
 ### Client-Side Validation
-- **File Upload**: 
+
+- **File Upload**:
   - Type validation with specific error messages
   - Size validation (10MB maximum)
   - Real-time feedback during drag/drop
@@ -163,7 +184,8 @@ The onboarding flow is designed to create a smooth first-time user experience by
 - **Visual Feedback**: Invalid states shown with appropriate styling
 
 ### Server-Side Integration
-- **Rate Limiting**: 
+
+- **Rate Limiting**:
   - 10 resume extractions per hour
   - 30 resume updates per hour
   - Clear error messages when limits exceeded
@@ -171,6 +193,7 @@ The onboarding flow is designed to create a smooth first-time user experience by
 - **Data Validation**: Server-side validation using Valibot schemas
 
 ### Error States & Recovery
+
 - **Network Errors**: Clear messaging with retry options
 - **Validation Errors**: Inline error display with guidance
 - **Processing Failures**: Graceful degradation with alternative paths
@@ -179,16 +202,19 @@ The onboarding flow is designed to create a smooth first-time user experience by
 ## Integration with User Profile Setup
 
 ### Database Operations
+
 - **Resume Creation**: Uses `createUserResume()` via `extractResume` remote function
 - **Resume Updates**: Uses `updateUserResume()` via `updateResume` remote function
 - **Data Structure**: Follows `Resume` type from `$lib/types/resume.ts`
 
 ### State Management
+
 - **Svelte 5 Runes**: Modern reactive state with `$state`, `$derived`, `$effect`
 - **Data Persistence**: Resume data maintained throughout flow
 - **Session Integration**: Tied to authenticated user session
 
 ### Remote Function Integration
+
 - **extractResume**: Handles file upload and AI-powered data extraction
 - **updateResume**: Saves final resume data and user preferences
 - **Error Handling**: Comprehensive error handling with user feedback
@@ -197,11 +223,13 @@ The onboarding flow is designed to create a smooth first-time user experience by
 ## Technical Implementation
 
 ### Component Architecture
+
 - **Single Page Component**: All steps contained in `/onboarding/+page.svelte`
 - **Snippet-Based Steps**: Each step implemented as Svelte snippet for maintainability
 - **Reactive State**: Centralized state management with computed derivations
 
 ### File Processing Flow
+
 1. File validation (type, size)
 2. File content extraction (PDF → Buffer, text → string)
 3. AI-powered resume parsing
@@ -209,12 +237,14 @@ The onboarding flow is designed to create a smooth first-time user experience by
 5. State update and navigation
 
 ### Security Considerations
+
 - **File Upload Security**: Type and size validation prevents malicious uploads
 - **Rate Limiting**: Prevents abuse of expensive AI operations
 - **Authentication**: All operations require valid user authentication
 - **Data Encryption**: Resume data stored securely with encryption
 
 ### Accessibility Features
+
 - **Keyboard Navigation**: Full keyboard support for all interactions
 - **Screen Reader Support**: Proper ARIA labels and descriptions
 - **Visual Feedback**: Clear indication of current state and available actions

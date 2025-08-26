@@ -28,7 +28,7 @@
 	import type { Resume } from '$lib/types/resume';
 	import { goto } from '$app/navigation';
 	import { extractResume, updateResume } from '$lib/services/resume.remote';
-	
+
 	$effect(() => {
 		console.log('[onboarding] extractResume object:', extractResume);
 		console.log('[onboarding] extractResume properties:', Object.keys(extractResume));
@@ -48,7 +48,7 @@
 	let fileError = $state<string | null>(null);
 	let isExtracting = $state(false);
 	let isSaving = $state(false);
-	
+
 	// Reference to hidden form and file input for programmatic submission
 	let extractResumeForm: HTMLFormElement;
 	let hiddenFileInput: HTMLInputElement;
@@ -108,7 +108,7 @@
 				const dataTransfer = new DataTransfer();
 				dataTransfer.items.add(uploadedFile);
 				hiddenFileInput.files = dataTransfer.files;
-				
+
 				// Submit the form
 				extractResumeForm.requestSubmit();
 			}
@@ -368,7 +368,9 @@
 						id="file-upload"
 					/>
 					<label for="file-upload" class="cursor-pointer">
-						<span class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2">
+						<span
+							class="ring-offset-background focus-visible:ring-ring border-input bg-background hover:bg-accent hover:text-accent-foreground inline-flex h-10 items-center justify-center gap-2 whitespace-nowrap rounded-md border px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0"
+						>
 							Choose File
 						</span>
 					</label>
@@ -389,7 +391,7 @@
 				your consent.
 			</AlertDescription>
 		</Alert>
-		
+
 		<!-- Hidden form for extracting resume -->
 		<form
 			class="hidden"
@@ -399,15 +401,23 @@
 				console.log('[enhance] Form action:', form.action);
 				console.log('[enhance] Form method:', form.method);
 				console.log('[enhance] Starting form submission');
-				console.log('[enhance] FormData entries:', Array.from(data.entries()).map(([k, v]) => `${k}: ${v instanceof File ? `File(${v.name}, ${v.size} bytes)` : v}`));
-				
+				console.log(
+					'[enhance] FormData entries:',
+					Array.from(data.entries()).map(([k, v]) => {
+						if (v && typeof v === 'object' && 'name' in v && 'size' in v) {
+							return `${k}: File(${(v as File).name}, ${(v as File).size} bytes)`;
+						}
+						return `${k}: ${v}`;
+					})
+				);
+
 				isExtracting = true;
 				fileError = null;
-				
+
 				try {
 					const result = await submit();
 					console.log('[enhance] Submit result:', result);
-					
+
 					// Update resume data with extracted fields
 					if (extractResume.result?.extractedFields) {
 						resumeData = extractResume.result.extractedFields;
@@ -470,7 +480,11 @@
 
 			<div class="space-y-2">
 				<Label for="address">Location</Label>
-				<Input id="address" bind:value={resumeData.contactInfo!.address} placeholder="City, State" />
+				<Input
+					id="address"
+					bind:value={resumeData.contactInfo!.address}
+					placeholder="City, State"
+				/>
 			</div>
 
 			<div class="space-y-2">

@@ -147,7 +147,7 @@
 	async function handleGithubLogin() {
 		loading = true;
 		try {
-			// TODO: Implement GitHub OAuth  
+			// TODO: Implement GitHub OAuth
 			error = 'GitHub login is not yet configured';
 		} catch (err: any) {
 			error = err?.message || 'Failed to login with GitHub';

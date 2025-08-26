@@ -219,7 +219,8 @@ Better Auth provides a `useSession` hook to easily access session data on the cl
 
 <Tabs items={["React", "Vue","Svelte", "Solid", "Vanilla"]} defaultValue="React">
 <Tab value="React">
-```tsx title="user.tsx"
+
+````tsx title="user.tsx"
 import { authClient } from "@/lib/auth-client" // import the auth client // [!code highlight]
 
     export function User(){
@@ -309,7 +310,7 @@ If you prefer not to use the hook, you can use the `getSession` method provided 
 import { authClient } from '@/lib/auth-client'; // import the auth client // [!code highlight]
 
 const { data: session, error } = await authClient.getSession();
-```
+````
 
 You can also use it with client-side data-fetching libraries like [TanStack Query](https://tanstack.com/query/latest).
 
@@ -321,7 +322,8 @@ The server provides a `session` object that you can use to access the session da
 
 <Tabs items={["Next.js", "Nuxt", "Svelte", "Astro", "Hono", "TanStack"]}>
 <Tab value="Next.js">
-```ts title="server.ts"
+
+````ts title="server.ts"
 import { auth } from "./auth"; // path to your Better Auth server instance
 import { headers } from "next/headers";
 
@@ -539,3 +541,4 @@ Below is an example of how to add two factor authentication using two factor plu
     Next step: See the <Link href="/docs/plugins/2fa">two factor plugin documentation</Link>.
   </Step>
 </Steps>
+````

@@ -39,7 +39,7 @@
 	// Client-side search filtering
 	let filteredJobs = $derived.by(() => {
 		if (!jobsQuery.current?.jobs) return [];
-		
+
 		let filtered = [...jobsQuery.current.jobs];
 
 		// Apply client-side search filter
@@ -47,7 +47,7 @@
 			const query = searchQuery.toLowerCase();
 			filtered = filtered.filter(
 				(job) =>
-					job.company.toLowerCase().includes(query) || 
+					job.company.toLowerCase().includes(query) ||
 					job.title.toLowerCase().includes(query) ||
 					job.location?.some((loc: string) => loc.toLowerCase().includes(query))
 			);
@@ -58,9 +58,7 @@
 
 	// Total pages calculation
 	let totalPages = $derived(
-		jobsQuery.current 
-			? Math.ceil(jobsQuery.current.pagination.total / itemsPerPage)
-			: 0
+		jobsQuery.current ? Math.ceil(jobsQuery.current.pagination.total / itemsPerPage) : 0
 	);
 
 	// Helper functions
@@ -107,15 +105,15 @@
 
 	async function handleDelete() {
 		if (!jobToDelete) return;
-		
+
 		isDeleting = true;
 		try {
 			await deleteJob(jobToDelete.id);
 			toast.success('Job deleted successfully');
-			
+
 			// Refresh the jobs list
 			await jobsQuery.refresh();
-			
+
 			// Reset page if we deleted the last item on current page
 			if (filteredJobs.length === 0 && currentPage > 1) {
 				currentPage = currentPage - 1;
@@ -170,9 +168,9 @@
 						bind:value={searchQuery}
 					/>
 				</div>
-				<Select.Root 
+				<Select.Root
 					type="single"
-					value={selectedStatus} 
+					value={selectedStatus}
 					onValueChange={(v: string | undefined) => {
 						if (v) selectedStatus = v as JobStatus | 'all';
 					}}
@@ -224,9 +222,9 @@
 							<Table.Row>
 								<Table.Cell colspan={5} class="py-12 text-center">
 									<p class="text-destructive">Failed to load jobs. Please try again.</p>
-									<Button 
-										onclick={() => jobsQuery.refresh()} 
-										variant="outline" 
+									<Button
+										onclick={() => jobsQuery.refresh()}
+										variant="outline"
 										size="sm"
 										class="mt-4"
 									>
@@ -238,14 +236,14 @@
 							<Table.Row>
 								<Table.Cell colspan={5} class="py-12 text-center">
 									<p class="text-muted-foreground">
-										{searchQuery || selectedStatus !== 'all' 
-											? 'No jobs found matching your filters' 
+										{searchQuery || selectedStatus !== 'all'
+											? 'No jobs found matching your filters'
 											: 'No jobs yet. Add your first job application!'}
 									</p>
 									{#if !searchQuery && selectedStatus === 'all'}
-										<Button 
-											onclick={() => goto('/app/jobs/new')} 
-											variant="outline" 
+										<Button
+											onclick={() => goto('/app/jobs/new')}
+											variant="outline"
 											size="sm"
 											class="mt-4 gap-2"
 										>
