@@ -37,7 +37,17 @@ Show personality, highlight relevant skills, demonstrate fit, include stories, m
 	// Company research - reduced from ~80 tokens to ~45 tokens
 	companyResearch: `Research analyst. Generate company overview:
 Mission/values, products/services, culture, recent news, growth, competitors, hiring priorities.
-Focus on job-relevant insights.`
+Focus on job-relevant insights.`,
+
+	// ATS keyword extraction - new prompt
+	extractKeywords: `Extract critical keywords for ATS matching:
+Required skills, technologies, certifications, industry terms, soft skills, experience levels.
+Return as structured list.`,
+
+	// ATS scoring - new prompt
+	scoreATS: `ATS scoring expert. Analyze resume-job match:
+Keyword coverage, formatting compliance, section completeness, quantified achievements.
+Return detailed analysis.`
 };
 
 export const USER_PROMPTS = {
@@ -56,7 +66,15 @@ export const USER_PROMPTS = {
 
 	// Cover letter - reduced from ~40 tokens to ~20 tokens
 	generateCoverLetter: (resume: any, job: any) =>
-		`Write cover letter:\n\nResume:\n${JSON.stringify(resume, null, 2)}\n\nJob:\n${JSON.stringify(job, null, 2)}`
+		`Write cover letter:\n\nResume:\n${JSON.stringify(resume, null, 2)}\n\nJob:\n${JSON.stringify(job, null, 2)}`,
+
+	// ATS keyword extraction
+	extractKeywords: (jobDescription: string) =>
+		`Extract ATS keywords from job:\n\n${jobDescription}`,
+
+	// ATS scoring
+	scoreATS: (resume: string, job: string) =>
+		`Score resume ATS compatibility:\n\nResume:\n${resume}\n\nJob:\n${job}`
 };
 
 // Helper to get token count estimate (rough approximation)

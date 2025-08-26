@@ -58,10 +58,14 @@
 
 ## Phase 4: Core Algorithm Improvements [P4.1-P4.4]
 
-- [ ] **[P4.1] ATS Scoring**: Replace hardcoded keywords with AI-powered extraction
+- [x] **[P4.1] ATS Scoring**: Replace hardcoded keywords with AI-powered extraction
+  - [x] Added AI-powered keyword extraction function using Claude Haiku
+  - [x] Implemented comprehensive ATS scoring with AI fallback
+  - [x] Integrated with existing scoring.remote.ts service
+  - [x] Maintained backwards compatibility with rule-based fallback
 - [ ] **[P4.2] Industry Scoring**: Add industry-specific scoring models
-- [ ] **[P4.3] Semantic Matching**: Implement synonym recognition and semantic understanding
-- [ ] **[P4.4] Job Matching**: Build missing job matching algorithm
+- [x] **[P4.3] Semantic Matching**: Implement synonym recognition and semantic understanding
+- [x] **[P4.4] Job Matching**: Build missing job matching algorithm
 
 ## Phase 5: Technical Debt [P5.1-P5.4]
 

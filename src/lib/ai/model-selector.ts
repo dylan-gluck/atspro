@@ -71,6 +71,7 @@ export const TASK_MODEL_MAP = {
 	extract_resume: 'claude-3-haiku-20240307',
 	extract_job: 'claude-3-haiku-20240307',
 	parse_document: 'claude-3-haiku-20240307',
+	extract_keywords: 'claude-3-haiku-20240307',
 
 	// Scoring and classification - Use cheap models
 	score_ats: 'claude-3-haiku-20240307',

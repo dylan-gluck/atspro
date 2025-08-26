@@ -331,3 +331,157 @@ export async function fetchJobContent(url: string): Promise<string> {
 		.replace(/\s+/g, ' ')
 		.trim();
 }
+
+// ATS Keyword Extraction Schema
+const KeywordExtractionSchema = z.object({
+	requiredSkills: z.array(z.string()),
+	technologies: z.array(z.string()),
+	certifications: z.array(z.string()),
+	industryTerms: z.array(z.string()),
+	softSkills: z.array(z.string()),
+	experienceLevels: z.array(z.string()),
+	actionVerbs: z.array(z.string()),
+	criticalPhrases: z.array(z.string())
+});
+
+// Extract keywords from job description using AI
+export async function extractATSKeywords(jobDescription: string): Promise<{
+	requiredSkills: string[];
+	technologies: string[];
+	certifications: string[];
+	industryTerms: string[];
+	softSkills: string[];
+	experienceLevels: string[];
+	actionVerbs: string[];
+	criticalPhrases: string[];
+}> {
+	// Create cache key
+	const cacheKey = {
+		content: jobDescription.substring(0, 1000),
+		operation: 'extract_keywords'
+	};
+
+	// Check cache first
+	const cached = jobCache.get(cacheKey);
+	if (cached) {
+		console.log('[AI extractATSKeywords] Cache hit!');
+		return cached as any;
+	}
+
+	// Use haiku model for extraction (cost-effective)
+	const modelConfig = selectModel('extract_keywords');
+	console.log(`[AI extractATSKeywords] Using model: ${modelConfig.name}`);
+
+	const result = await generateObject({
+		model: anthropic(modelConfig.name),
+		schema: KeywordExtractionSchema,
+		messages: [
+			{
+				role: 'system' as const,
+				content: SYSTEM_PROMPTS.extractKeywords
+			},
+			{
+				role: 'user' as const,
+				content: USER_PROMPTS.extractKeywords(jobDescription)
+			}
+		],
+		output: 'object' as const
+	});
+
+	// Cache the result
+	jobCache.set(cacheKey, result.object);
+	return result.object;
+}
+
+// ATS Scoring Analysis Schema
+const ATSScoringSchema = z.object({
+	score: z.number().min(0).max(100),
+	keywordMatch: z.object({
+		matched: z.array(z.string()),
+		missing: z.array(z.string()),
+		percentage: z.number()
+	}),
+	formatting: z.object({
+		score: z.number(),
+		issues: z.array(z.string()),
+		suggestions: z.array(z.string())
+	}),
+	sections: z.object({
+		present: z.array(z.string()),
+		missing: z.array(z.string()),
+		quality: z.record(z.string(), z.number())
+	}),
+	achievements: z.object({
+		quantified: z.number(),
+		actionVerbs: z.array(z.string()),
+		suggestions: z.array(z.string())
+	}),
+	recommendations: z.array(z.string())
+});
+
+// AI-powered ATS scoring
+export async function scoreResumewithAI(
+	resumeContent: string,
+	jobDescription: string
+): Promise<{
+	score: number;
+	keywordMatch: {
+		matched: string[];
+		missing: string[];
+		percentage: number;
+	};
+	formatting: {
+		score: number;
+		issues: string[];
+		suggestions: string[];
+	};
+	sections: {
+		present: string[];
+		missing: string[];
+		quality: Record<string, number>;
+	};
+	achievements: {
+		quantified: number;
+		actionVerbs: string[];
+		suggestions: string[];
+	};
+	recommendations: string[];
+}> {
+	// Create cache key
+	const cacheKey = {
+		resume: resumeContent.substring(0, 500),
+		job: jobDescription.substring(0, 500),
+		operation: 'score_ats'
+	};
+
+	// Check cache first
+	const cached = optimizationCache.get(cacheKey);
+	if (cached) {
+		console.log('[AI scoreResumewithAI] Cache hit!');
+		return cached as any;
+	}
+
+	// Use haiku model for scoring (cost-effective)
+	const modelConfig = selectModel('score_ats');
+	console.log(`[AI scoreResumewithAI] Using model: ${modelConfig.name}`);
+
+	const result = await generateObject({
+		model: anthropic(modelConfig.name),
+		schema: ATSScoringSchema,
+		messages: [
+			{
+				role: 'system' as const,
+				content: SYSTEM_PROMPTS.scoreATS
+			},
+			{
+				role: 'user' as const,
+				content: USER_PROMPTS.scoreATS(resumeContent, jobDescription)
+			}
+		],
+		output: 'object' as const
+	});
+
+	// Cache the result
+	optimizationCache.set(cacheKey, result.object);
+	return result.object;
+}

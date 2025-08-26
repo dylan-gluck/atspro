@@ -1,6 +1,7 @@
 import { command } from '$app/server';
 import * as v from 'valibot';
 import { requireAuth } from './utils';
+import { extractATSKeywords, scoreResumewithAI } from '$lib/ai';
 
 // ATS Scoring schema
 const calculateATSScoreSchema = v.object({
@@ -14,32 +15,51 @@ export const calculateATSScore = command(
 	async ({ resumeContent, jobDescription, optimizedContent }) => {
 		requireAuth();
 
-		// Parse and analyze original resume
-		const originalAnalysis = analyzeContent(resumeContent, jobDescription);
+		try {
+			// Use AI for comprehensive ATS scoring
+			const originalAnalysis = await scoreResumewithAI(resumeContent, jobDescription);
 
-		// Calculate scores
-		const originalScore = calculateScore(originalAnalysis);
+			// If optimized content provided, analyze it too
+			let optimizedAnalysis = null;
+			if (optimizedContent) {
+				optimizedAnalysis = await scoreResumewithAI(optimizedContent, jobDescription);
+			}
 
-		// If optimized content provided, analyze it too
-		let optimizedScore = 0;
-		let optimizedAnalysis = null;
-		if (optimizedContent) {
-			optimizedAnalysis = analyzeContent(optimizedContent, jobDescription);
-			optimizedScore = calculateScore(optimizedAnalysis);
+			return {
+				originalScore: originalAnalysis.score,
+				optimizedScore: optimizedAnalysis?.score || 0,
+				analysis: {
+					original: originalAnalysis,
+					optimized: optimizedAnalysis
+				},
+				recommendations: originalAnalysis.recommendations
+			};
+		} catch (error) {
+			console.error('[calculateATSScore] AI scoring failed, falling back to rule-based:', error);
+
+			// Fallback to rule-based scoring if AI fails
+			const originalAnalysis = analyzeContent(resumeContent, jobDescription);
+			const originalScore = calculateScore(originalAnalysis);
+
+			let optimizedScore = 0;
+			let optimizedAnalysis = null;
+			if (optimizedContent) {
+				optimizedAnalysis = analyzeContent(optimizedContent, jobDescription);
+				optimizedScore = calculateScore(optimizedAnalysis);
+			}
+
+			const recommendations = generateRecommendations(originalAnalysis, jobDescription);
+
+			return {
+				originalScore,
+				optimizedScore,
+				analysis: {
+					original: originalAnalysis,
+					optimized: optimizedAnalysis
+				},
+				recommendations
+			};
 		}
-
-		// Generate recommendations
-		const recommendations = generateRecommendations(originalAnalysis, jobDescription);
-
-		return {
-			originalScore,
-			optimizedScore,
-			analysis: {
-				original: originalAnalysis,
-				optimized: optimizedAnalysis
-			},
-			recommendations
-		};
 	}
 );
 
