@@ -30,6 +30,7 @@
 	import type { UserResume } from '$lib/types/user-resume';
 	import { updateResume, getResume } from '$lib/services/resume.remote';
 	import { goto } from '$app/navigation';
+	import ResumeSkeleton from '$lib/components/resume/resume-skeleton.svelte';
 
 	// Fetch resume data using remote function
 	let resumePromise = $state(getResume());
@@ -58,6 +59,7 @@
 	});
 
 	let saving = $state(false);
+	let dynamicLoading = $state<{ [key: string]: boolean }>({});
 	let hasChanges = $derived(
 		resume && originalResume ? JSON.stringify(resume) !== JSON.stringify(originalResume) : false
 	);
@@ -74,8 +76,11 @@
 	]);
 
 	// Helper functions for managing dynamic lists
-	function addWorkExperience() {
+	async function addWorkExperience() {
 		if (!resume) return;
+		dynamicLoading['addExperience'] = true;
+		// Simulate slight delay for better UX
+		await new Promise((resolve) => setTimeout(resolve, 100));
 		resume.workExperience = [
 			...resume.workExperience,
 			{
@@ -89,15 +94,21 @@
 				skills: []
 			}
 		];
+		dynamicLoading['addExperience'] = false;
 	}
 
-	function removeWorkExperience(index: number) {
+	async function removeWorkExperience(index: number) {
 		if (!resume) return;
+		dynamicLoading[`removeExperience-${index}`] = true;
+		await new Promise((resolve) => setTimeout(resolve, 100));
 		resume.workExperience = resume.workExperience.filter((_, i) => i !== index);
+		dynamicLoading[`removeExperience-${index}`] = false;
 	}
 
-	function addEducation() {
+	async function addEducation() {
 		if (!resume) return;
+		dynamicLoading['addEducation'] = true;
+		await new Promise((resolve) => setTimeout(resolve, 100));
 		resume.education = [
 			...resume.education,
 			{
@@ -111,15 +122,21 @@
 				skills: []
 			}
 		];
+		dynamicLoading['addEducation'] = false;
 	}
 
-	function removeEducation(index: number) {
+	async function removeEducation(index: number) {
 		if (!resume) return;
+		dynamicLoading[`removeEducation-${index}`] = true;
+		await new Promise((resolve) => setTimeout(resolve, 100));
 		resume.education = resume.education.filter((_, i) => i !== index);
+		dynamicLoading[`removeEducation-${index}`] = false;
 	}
 
-	function addCertification() {
+	async function addCertification() {
 		if (!resume) return;
+		dynamicLoading['addCertification'] = true;
+		await new Promise((resolve) => setTimeout(resolve, 100));
 		resume.certifications = [
 			...resume.certifications,
 			{
@@ -130,11 +147,15 @@
 				credentialId: null
 			}
 		];
+		dynamicLoading['addCertification'] = false;
 	}
 
-	function removeCertification(index: number) {
+	async function removeCertification(index: number) {
 		if (!resume) return;
+		dynamicLoading[`removeCertification-${index}`] = true;
+		await new Promise((resolve) => setTimeout(resolve, 100));
 		resume.certifications = resume.certifications.filter((_, i) => i !== index);
+		dynamicLoading[`removeCertification-${index}`] = false;
 	}
 
 	function addLink() {
@@ -232,9 +253,7 @@
 </svelte:head>
 
 {#if loading}
-	<div class="container mx-auto flex min-h-[60vh] items-center justify-center p-6">
-		<Loader2 class="h-8 w-8 animate-spin" />
-	</div>
+	<ResumeSkeleton />
 {:else if resume}
 	<div class="container mx-auto p-6">
 		<!-- Header with action buttons -->
@@ -437,9 +456,19 @@
 						<Accordion.Content>
 							<Card>
 								<CardContent class="space-y-4 pt-6">
-									<Button variant="outline" onclick={addWorkExperience} class="w-full">
-										<Plus class="mr-2 h-4 w-4" />
-										Add Work Experience
+									<Button
+										variant="outline"
+										onclick={addWorkExperience}
+										class="w-full"
+										disabled={dynamicLoading['addExperience']}
+									>
+										{#if dynamicLoading['addExperience']}
+											<Loader2 class="mr-2 h-4 w-4 animate-spin" />
+											Adding...
+										{:else}
+											<Plus class="mr-2 h-4 w-4" />
+											Add Work Experience
+										{/if}
 									</Button>
 									{#each resume.workExperience as experience, expIndex}
 										<Card>
@@ -460,8 +489,13 @@
 														variant="ghost"
 														size="icon"
 														onclick={() => removeWorkExperience(expIndex)}
+														disabled={dynamicLoading[`removeExperience-${expIndex}`]}
 													>
-														<Trash2 class="h-4 w-4" />
+														{#if dynamicLoading[`removeExperience-${expIndex}`]}
+															<Loader2 class="h-4 w-4 animate-spin" />
+														{:else}
+															<Trash2 class="h-4 w-4" />
+														{/if}
 													</Button>
 												</div>
 											</CardHeader>
@@ -576,9 +610,19 @@
 						<Accordion.Content>
 							<Card>
 								<CardContent class="space-y-4 pt-6">
-									<Button variant="outline" onclick={addEducation} class="w-full">
-										<Plus class="mr-2 h-4 w-4" />
-										Add Education
+									<Button
+										variant="outline"
+										onclick={addEducation}
+										class="w-full"
+										disabled={dynamicLoading['addEducation']}
+									>
+										{#if dynamicLoading['addEducation']}
+											<Loader2 class="mr-2 h-4 w-4 animate-spin" />
+											Adding...
+										{:else}
+											<Plus class="mr-2 h-4 w-4" />
+											Add Education
+										{/if}
 									</Button>
 									{#each resume.education as edu, eduIndex}
 										<Card>
@@ -599,8 +643,13 @@
 														variant="ghost"
 														size="icon"
 														onclick={() => removeEducation(eduIndex)}
+														disabled={dynamicLoading[`removeEducation-${eduIndex}`]}
 													>
-														<Trash2 class="h-4 w-4" />
+														{#if dynamicLoading[`removeEducation-${eduIndex}`]}
+															<Loader2 class="h-4 w-4 animate-spin" />
+														{:else}
+															<Trash2 class="h-4 w-4" />
+														{/if}
 													</Button>
 												</div>
 											</CardHeader>
@@ -676,9 +725,19 @@
 						<Accordion.Content>
 							<Card>
 								<CardContent class="space-y-4 pt-6">
-									<Button variant="outline" onclick={addCertification} class="w-full">
-										<Plus class="mr-2 h-4 w-4" />
-										Add Certification
+									<Button
+										variant="outline"
+										onclick={addCertification}
+										class="w-full"
+										disabled={dynamicLoading['addCertification']}
+									>
+										{#if dynamicLoading['addCertification']}
+											<Loader2 class="mr-2 h-4 w-4 animate-spin" />
+											Adding...
+										{:else}
+											<Plus class="mr-2 h-4 w-4" />
+											Add Certification
+										{/if}
 									</Button>
 									{#each resume.certifications as cert, certIndex}
 										<Card>
@@ -699,8 +758,13 @@
 														variant="ghost"
 														size="icon"
 														onclick={() => removeCertification(certIndex)}
+														disabled={dynamicLoading[`removeCertification-${certIndex}`]}
 													>
-														<Trash2 class="h-4 w-4" />
+														{#if dynamicLoading[`removeCertification-${certIndex}`]}
+															<Loader2 class="h-4 w-4 animate-spin" />
+														{:else}
+															<Trash2 class="h-4 w-4" />
+														{/if}
 													</Button>
 												</div>
 											</CardHeader>
