@@ -169,12 +169,13 @@ export async function extractJob(content: string): Promise<Job> {
 export async function optimizeResume(
 	resume: UserResume | Resume,
 	job: UserJob | Job
-): Promise<Resume & { score: number; keywords: string[] }> {
+): Promise<Resume & { score: number; keywords: string[]; markdown?: string }> {
 	const result = await generateObject({
 		model: anthropic('claude-3-5-sonnet-20241022'),
 		schema: ResumeSchema.extend({
 			score: z.number().min(0).max(100),
-			keywords: z.array(z.string())
+			keywords: z.array(z.string()),
+			markdown: z.string().optional()
 		}),
 		messages: [
 			{

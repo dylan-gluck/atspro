@@ -54,14 +54,16 @@ export const optimizeResume = command(optimizeSchema, async ({ jobId }) => {
 		return await optimizeResumeWithAI(resume, job);
 	});
 
-	// Format optimized content as markdown
-	const formattedContent = formatOptimizedResume(optimized);
+	// Format optimized content as markdown if not provided
+	const markdown = optimized.markdown || formatOptimizedResume(optimized);
+	const html = formatOptimizedResumeAsHTML(optimized);
 
-	// Store as document
-	const doc = await db.createJobDocument(jobId, 'resume', formattedContent, {
+	// Store as document with both HTML content and markdown in metadata
+	const doc = await db.createJobDocument(jobId, 'resume', html, {
 		atsScore: optimized.score,
 		matchedKeywords: optimized.keywords,
-		originalResumeId: resume.id
+		originalResumeId: resume.id,
+		markdown: markdown
 	});
 
 	// Create activity
@@ -255,6 +257,92 @@ function formatOptimizedResume(optimized: any): string {
 	}
 
 	return content;
+}
+
+// Helper function to format optimized resume as HTML
+function formatOptimizedResumeAsHTML(optimized: any): string {
+	const { contactInfo, summary, workExperience, education, certifications, skills } = optimized;
+
+	let html = `<div class="resume">`;
+	html += `<header class="resume-header">`;
+	html += `<h1>${contactInfo.fullName}</h1>`;
+	html += `<div class="contact-info">`;
+	
+	if (contactInfo.email) html += `<span>Email: ${contactInfo.email}</span>`;
+	if (contactInfo.phone) html += `<span>Phone: ${contactInfo.phone}</span>`;
+	if (contactInfo.address) html += `<span>Location: ${contactInfo.address}</span>`;
+	
+	html += `</div>`;
+	
+	if (contactInfo.links?.length > 0) {
+		html += `<div class="links">`;
+		contactInfo.links.forEach((link: any) => {
+			html += `<a href="${link.url}" target="_blank">${link.name}</a>`;
+		});
+		html += `</div>`;
+	}
+	html += `</header>`;
+
+	if (summary) {
+		html += `<section class="resume-section"><h2>Summary</h2><p>${summary}</p></section>`;
+	}
+
+	if (workExperience?.length > 0) {
+		html += `<section class="resume-section"><h2>Work Experience</h2>`;
+		workExperience.forEach((exp: any) => {
+			html += `<div class="experience-item">`;
+			html += `<h3>${exp.position} at ${exp.company}</h3>`;
+			if (exp.startDate || exp.endDate) {
+				html += `<p class="dates">${exp.startDate || ''} - ${exp.isCurrent ? 'Present' : exp.endDate || ''}</p>`;
+			}
+			if (exp.description) {
+				html += `<p>${exp.description}</p>`;
+			}
+			if (exp.responsibilities?.length > 0) {
+				html += `<ul>`;
+				exp.responsibilities.forEach((resp: string) => {
+					html += `<li>${resp}</li>`;
+				});
+				html += `</ul>`;
+			}
+			html += `</div>`;
+		});
+		html += `</section>`;
+	}
+
+	if (education?.length > 0) {
+		html += `<section class="resume-section"><h2>Education</h2>`;
+		education.forEach((edu: any) => {
+			html += `<div class="education-item">`;
+			html += `<h3>${edu.degree} in ${edu.fieldOfStudy || 'General Studies'}</h3>`;
+			html += `<p>${edu.institution}`;
+			if (edu.graduationDate) html += ` - ${edu.graduationDate}`;
+			html += `</p>`;
+			if (edu.gpa) html += `<p>GPA: ${edu.gpa}</p>`;
+			if (edu.honors?.length > 0) {
+				html += `<p>Honors: ${edu.honors.join(', ')}</p>`;
+			}
+			html += `</div>`;
+		});
+		html += `</section>`;
+	}
+
+	if (certifications?.length > 0) {
+		html += `<section class="resume-section"><h2>Certifications</h2><ul>`;
+		certifications.forEach((cert: any) => {
+			html += `<li><strong>${cert.name}</strong> - ${cert.issuer}`;
+			if (cert.dateObtained) html += ` (${cert.dateObtained})`;
+			html += `</li>`;
+		});
+		html += `</ul></section>`;
+	}
+
+	if (skills?.length > 0) {
+		html += `<section class="resume-section"><h2>Skills</h2><p>${skills.join(', ')}</p></section>`;
+	}
+
+	html += `</div>`;
+	return html;
 }
 
 // Helper function to generate company research
