@@ -368,7 +368,7 @@
 												</span>
 												<span>Match Score: {job.matchScore}%</span>
 											</div>
-											<Button variant="ghost" size="sm" href="/app/job/{job.id}">
+											<Button variant="ghost" size="sm" href="/app/jobs/{job.id}">
 												View
 												<ExternalLink class="ml-1 size-3" />
 											</Button>

@@ -58,11 +58,20 @@ async function exportToPDF(document: any): Promise<{ url: string; filename: stri
 		// Get content and convert markdown if needed
 		let htmlContent = document.content;
 
-		// If content is markdown (check metadata), convert it
-		if (document.metadata?.markdown) {
+		// Check for markdown content in the dedicated column first
+		if (document.contentMarkdown) {
+			htmlContent = await convertMarkdownToStyledHTML(document.contentMarkdown, document.type);
+		}
+		// Fall back to metadata.markdown if it exists and looks like actual resume content
+		else if (document.metadata?.markdown && document.metadata.markdown.includes('#')) {
 			htmlContent = await convertMarkdownToStyledHTML(document.metadata.markdown, document.type);
-		} else if (document.content.startsWith('#')) {
-			// Content appears to be markdown
+		}
+		// If content is already HTML, use it directly
+		else if (document.content && document.content.includes('<')) {
+			htmlContent = document.content;
+		}
+		// If content appears to be markdown
+		else if (document.content && document.content.startsWith('#')) {
 			htmlContent = await convertMarkdownToStyledHTML(document.content, document.type);
 		}
 

@@ -55,8 +55,9 @@ export const optimizeResume = command(optimizeSchema, async ({ jobId }) => {
 		return await optimizeResumeWithAI(resume, job);
 	});
 
-	// Format optimized content as markdown if not provided
-	const markdown = optimized.markdown || formatOptimizedResume(optimized);
+	// Format optimized content - always generate markdown from the structured data
+	// Don't use optimized.markdown as it contains analysis/summary from AI
+	const markdown = formatOptimizedResume(optimized);
 	const html = formatOptimizedResumeAsHTML(optimized);
 
 	// Calculate detailed ATS scores
@@ -127,17 +128,22 @@ export const generateCoverLetter = command(
 		}
 
 		// Generate with AI
-		const coverLetter = await measurePerformance('generate_cover_letter', async () => {
+		const coverLetterMarkdown = await measurePerformance('generate_cover_letter', async () => {
 			return await generateCoverLetterWithAI(resume, job, tone);
 		});
 
-		// Store document
-		const doc = await db.createJobDocument(jobId, 'cover', coverLetter, {
+		// Convert markdown to HTML
+		const { marked } = await import('marked');
+		const coverLetterHTML = await marked(coverLetterMarkdown);
+
+		// Store document with both HTML and markdown
+		const doc = await db.createJobDocument(jobId, 'cover', coverLetterHTML, {
 			tone,
 			generatedFrom: {
 				resumeId: resume.id,
 				jobId: job.id
-			}
+			},
+			markdown: coverLetterMarkdown
 		});
 
 		// Create activity
@@ -152,7 +158,7 @@ export const generateCoverLetter = command(
 		return {
 			documentId: doc.id,
 			type: 'cover',
-			content: coverLetter,
+			content: coverLetterHTML,
 			version: doc.version,
 			tone
 		};
@@ -176,13 +182,18 @@ export const generateCompanyResearch = command(companyResearchSchema, async ({ j
 		error(404, 'Job not found');
 	}
 
-	// Generate research content
-	const research = await generateCompanyResearchContent(job);
+	// Generate research content (markdown)
+	const researchMarkdown = await generateCompanyResearchContent(job);
 
-	// Store document
-	const doc = await db.createJobDocument(jobId, 'research', research, {
+	// Convert markdown to HTML
+	const { marked } = await import('marked');
+	const researchHTML = await marked(researchMarkdown);
+
+	// Store document with both HTML and markdown
+	const doc = await db.createJobDocument(jobId, 'research', researchHTML, {
 		company: job.company,
-		generatedAt: new Date().toISOString()
+		generatedAt: new Date().toISOString(),
+		markdown: researchMarkdown
 	});
 
 	// Create activity
@@ -197,7 +208,7 @@ export const generateCompanyResearch = command(companyResearchSchema, async ({ j
 	return {
 		documentId: doc.id,
 		type: 'research',
-		content: research,
+		content: researchHTML,
 		version: doc.version
 	};
 });
