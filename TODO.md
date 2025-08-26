@@ -1,64 +1,11 @@
 # TODO
 
-## Phase 1: Project Setup
+## Phase 6: Missing Core Features
+- [ ] Fix PDF resume upload, only .txt files working currently.
+- [ ] Fix Add Job flow, currently not working.
+- [ ] Add functionality to Dashboard buttons (Edit Resume, Add Job)
 
-- [x] Initialize app scaffolding
-- [x] Add better-auth, initial migration
-- [x] Project types & Documentation
-- [x] Full data model (docs/data-model.md)
-- [x] API Spec (docs/api-spec.md)
-
-## Phase 2: UI Scaffolding
-
-- [x] Build core components
-- [x] Build main app views
-- [x] Analyze data model, api-spec & all routes for consistency
-- [x] Add missing fields to data model (notes, jobActivity)
-- [x] Document Remote Functions architecture (docs/remote-functions-architecture.md)
-
-## Phase 3: Enable Remote Functions & Database Setup
-
-- [x] Enable experimental remote functions in svelte.config.js
-- [x] Apply data model changes to DB (migrations)
-- [x] Create database utility functions
-- [x] Set up AI SDK integration helpers
-
-## Phase 4: Service Implementation (Remote Functions)
-
-- [x] Create base utilities (auth helpers, rate limiting, error handling)
-- [x] Implement `resume.remote.ts` service
-  - [x] getResume query
-  - [x] extractResume form (file upload)
-  - [x] updateResume command
-- [x] Implement `job.remote.ts` service
-  - [x] getJobs query (with filtering/pagination)
-  - [x] getJob query (single job)
-  - [x] extractJob form
-  - [x] updateJobStatus command
-  - [x] deleteJob command
-  - [x] updateJobNotes command
-- [x] Implement `document.remote.ts` service
-  - [x] getDocument query
-  - [x] optimizeResume command
-  - [x] generateCoverLetter form
-  - [x] generateCompanyResearch command
-- [x] Implement `activity.remote.ts` service
-  - [x] getJobActivity query
-
-## Phase 5: Front-end Integration
-- [x] Update auth flow to use better-auth methods
-- [x] Update redirects & routing logic
-- [x] Update onboarding flow to use remote functions
-- [x] Update job tracker dashboard to use remote functions
-- [x] Update job details page to use remote functions
-- [x] Update resume editor to use remote functions
-- [x] Implement optimistic UI with withOverride
-- [x] Add loading states and error boundaries
-
-## Phase 6: Testing & Polish
-
+## Phase 7: Testing
 - [ ] Write unit tests for remote functions
 - [ ] Write integration tests for service flows
-- [ ] Implement rate limiting and monitoring
-- [ ] Performance optimization (query caching, prerendering)
 - [ ] Error tracking and logging setup
