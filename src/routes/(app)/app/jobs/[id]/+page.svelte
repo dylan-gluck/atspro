@@ -49,6 +49,10 @@
 	import { exportDocument } from '$lib/services/export.remote';
 	import * as Dialog from '$lib/components/ui/dialog';
 	import { marked } from 'marked';
+	import { sanitizeMarkdownHtml, sanitizeHtml } from '$lib/utils/sanitize';
+
+	// Configure marked to work synchronously
+	marked.setOptions({ async: false });
 
 	// Get job ID from URL
 	let jobId = $derived(page.params.id);
@@ -819,11 +823,11 @@
 				{#if viewedDocument}
 					{#if viewedDocument.metadata?.markdown}
 						<div class="document-content">
-							{@html marked(viewedDocument.metadata.markdown)}
+							{@html sanitizeMarkdownHtml(marked(viewedDocument.metadata.markdown) as string)}
 						</div>
 					{:else if viewedDocument.content}
 						<div class="document-content">
-							{@html viewedDocument.content}
+							{@html sanitizeHtml(viewedDocument.content)}
 						</div>
 					{:else}
 						<div class="flex flex-col items-center justify-center py-12 text-center">
