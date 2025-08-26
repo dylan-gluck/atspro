@@ -63,6 +63,7 @@
 	let hasChanges = $derived(
 		resume && originalResume ? JSON.stringify(resume) !== JSON.stringify(originalResume) : false
 	);
+	let statusMessage = $state<string | null>(null);
 
 	let showPreview = $state(true);
 	let newSkill = $state('');
@@ -228,12 +229,22 @@
 				skills: resume.skills
 			};
 			await updateResume(resumeData);
+			statusMessage = 'Resume saved successfully';
 			toast.success('Resume saved successfully!');
 			// Update originalResume to reflect saved state
 			originalResume = { ...resume };
+			// Clear status message after 3 seconds
+			setTimeout(() => {
+				statusMessage = null;
+			}, 3000);
 		} catch (error) {
+			statusMessage = 'Failed to save resume. Please try again.';
 			toast.error('Failed to save resume');
 			console.error(error);
+			// Clear error message after 5 seconds
+			setTimeout(() => {
+				statusMessage = null;
+			}, 5000);
 		} finally {
 			saving = false;
 		}
@@ -243,7 +254,12 @@
 		if (hasChanges && originalResume) {
 			// Reset to original data
 			resume = { ...originalResume };
+			statusMessage = 'Changes discarded';
 			toast.info('Changes discarded');
+			// Clear status message after 3 seconds
+			setTimeout(() => {
+				statusMessage = null;
+			}, 3000);
 		}
 	}
 </script>
@@ -252,8 +268,17 @@
 	<title>Resume Editor - ATSPro</title>
 </svelte:head>
 
+<!-- Screen reader announcements -->
+<div class="sr-only" aria-live="polite" aria-atomic="true">
+	{#if statusMessage}
+		{statusMessage}
+	{/if}
+</div>
+
 {#if loading}
-	<ResumeSkeleton />
+	<div aria-busy="true" aria-label="Loading resume data">
+		<ResumeSkeleton />
+	</div>
 {:else if resume}
 	<div class="container mx-auto p-6">
 		<!-- Header with action buttons -->
@@ -282,12 +307,12 @@
 					<X class="mr-2 h-4 w-4" />
 					Cancel
 				</Button>
-				<Button onclick={() => handleSave()} disabled={saving || !hasChanges}>
+				<Button onclick={() => handleSave()} disabled={saving || !hasChanges} aria-busy={saving}>
 					{#if saving}
-						<Loader2 class="mr-2 h-4 w-4 animate-spin" />
-						Saving...
+						<Loader2 class="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
+						<span aria-live="assertive">Saving...</span>
 					{:else}
-						<Save class="mr-2 h-4 w-4" />
+						<Save class="mr-2 h-4 w-4" aria-hidden="true" />
 						Save Changes
 					{/if}
 				</Button>
@@ -310,6 +335,7 @@
 									variant="ghost"
 									size="icon"
 									class="h-6 w-6"
+									aria-label="Move Contact Information section up"
 									onclick={(e: Event) => {
 										e.stopPropagation();
 										moveSection('contact', 'up');
@@ -321,6 +347,7 @@
 									variant="ghost"
 									size="icon"
 									class="h-6 w-6"
+									aria-label="Move Contact Information section down"
 									onclick={(e: Event) => {
 										e.stopPropagation();
 										moveSection('contact', 'down');
@@ -362,9 +389,22 @@
 										<div class="space-y-2">
 											{#each resume.contactInfo?.links || [] as link, i}
 												<div class="flex gap-2">
-													<Input placeholder="Name" bind:value={link.name} />
-													<Input placeholder="URL" bind:value={link.url} />
-													<Button variant="ghost" size="icon" onclick={() => removeLink(i)}>
+													<Input
+														placeholder="Name"
+														aria-label={`Link ${i + 1} name`}
+														bind:value={link.name}
+													/>
+													<Input
+														placeholder="URL"
+														aria-label={`Link ${i + 1} URL`}
+														bind:value={link.url}
+													/>
+													<Button
+														variant="ghost"
+														size="icon"
+														aria-label={`Remove link ${link.name || 'item'}`}
+														onclick={() => removeLink(i)}
+													>
 														<Trash2 class="h-4 w-4" />
 													</Button>
 												</div>
@@ -388,6 +428,7 @@
 									variant="ghost"
 									size="icon"
 									class="h-6 w-6"
+									aria-label="Move Professional Summary section up"
 									onclick={(e: Event) => {
 										e.stopPropagation();
 										moveSection('summary', 'up');
@@ -399,6 +440,7 @@
 									variant="ghost"
 									size="icon"
 									class="h-6 w-6"
+									aria-label="Move Professional Summary section down"
 									onclick={(e: Event) => {
 										e.stopPropagation();
 										moveSection('summary', 'down');
@@ -433,6 +475,7 @@
 									variant="ghost"
 									size="icon"
 									class="h-6 w-6"
+									aria-label="Move Work Experience section up"
 									onclick={(e: Event) => {
 										e.stopPropagation();
 										moveSection('experience', 'up');
@@ -444,6 +487,7 @@
 									variant="ghost"
 									size="icon"
 									class="h-6 w-6"
+									aria-label="Move Work Experience section down"
 									onclick={(e: Event) => {
 										e.stopPropagation();
 										moveSection('experience', 'down');
@@ -461,12 +505,14 @@
 										onclick={addWorkExperience}
 										class="w-full"
 										disabled={dynamicLoading['addExperience']}
+										aria-busy={dynamicLoading['addExperience']}
+										aria-label="Add a new work experience entry"
 									>
 										{#if dynamicLoading['addExperience']}
-											<Loader2 class="mr-2 h-4 w-4 animate-spin" />
-											Adding...
+											<Loader2 class="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
+											<span aria-live="polite">Adding work experience...</span>
 										{:else}
-											<Plus class="mr-2 h-4 w-4" />
+											<Plus class="mr-2 h-4 w-4" aria-hidden="true" />
 											Add Work Experience
 										{/if}
 									</Button>
@@ -488,6 +534,7 @@
 													<Button
 														variant="ghost"
 														size="icon"
+														aria-label="Remove work experience"
 														onclick={() => removeWorkExperience(expIndex)}
 														disabled={dynamicLoading[`removeExperience-${expIndex}`]}
 													>
@@ -502,26 +549,28 @@
 											<CardContent class="space-y-4">
 												<div class="grid gap-4 sm:grid-cols-2">
 													<div>
-														<Label>Company</Label>
-														<Input bind:value={experience.company} />
+														<Label for={`company-${expIndex}`}>Company</Label>
+														<Input id={`company-${expIndex}`} bind:value={experience.company} />
 													</div>
 													<div>
-														<Label>Position</Label>
-														<Input bind:value={experience.position} />
+														<Label for={`position-${expIndex}`}>Position</Label>
+														<Input id={`position-${expIndex}`} bind:value={experience.position} />
 													</div>
 												</div>
 												<div class="grid gap-4 sm:grid-cols-2">
 													<div>
-														<Label>Start Date</Label>
+														<Label for={`start-date-${expIndex}`}>Start Date</Label>
 														<Input
+															id={`start-date-${expIndex}`}
 															type="text"
 															placeholder="e.g., Jan 2020"
 															bind:value={experience.startDate}
 														/>
 													</div>
 													<div>
-														<Label>End Date</Label>
+														<Label for={`end-date-${expIndex}`}>End Date</Label>
 														<Input
+															id={`end-date-${expIndex}`}
 															type="text"
 															placeholder="e.g., Dec 2023"
 															bind:value={experience.endDate}
@@ -539,18 +588,26 @@
 													<Label for={`current-${expIndex}`}>Currently working here</Label>
 												</div>
 												<div>
-													<Label>Description</Label>
-													<Textarea bind:value={experience.description} rows={2} />
+													<Label for={`description-${expIndex}`}>Description</Label>
+													<Textarea
+														id={`description-${expIndex}`}
+														bind:value={experience.description}
+														rows={2}
+													/>
 												</div>
 												<div>
 													<Label>Responsibilities</Label>
 													<div class="mt-2 space-y-2">
 														{#each experience.responsibilities as resp, respIndex}
 															<div class="flex gap-2">
-																<Input bind:value={experience.responsibilities[respIndex]} />
+																<Input
+																	aria-label={`Responsibility ${respIndex + 1}`}
+																	bind:value={experience.responsibilities[respIndex]}
+																/>
 																<Button
 																	variant="ghost"
 																	size="icon"
+																	aria-label={`Remove responsibility ${respIndex + 1}`}
 																	onclick={() => removeResponsibility(expIndex, respIndex)}
 																>
 																	<Trash2 class="h-4 w-4" />
@@ -587,6 +644,7 @@
 									variant="ghost"
 									size="icon"
 									class="h-6 w-6"
+									aria-label="Move Education section up"
 									onclick={(e: Event) => {
 										e.stopPropagation();
 										moveSection('education', 'up');
@@ -598,6 +656,7 @@
 									variant="ghost"
 									size="icon"
 									class="h-6 w-6"
+									aria-label="Move Education section down"
 									onclick={(e: Event) => {
 										e.stopPropagation();
 										moveSection('education', 'down');
@@ -642,6 +701,7 @@
 													<Button
 														variant="ghost"
 														size="icon"
+														aria-label="Remove education"
 														onclick={() => removeEducation(eduIndex)}
 														disabled={dynamicLoading[`removeEducation-${eduIndex}`]}
 													>
@@ -655,31 +715,37 @@
 											</CardHeader>
 											<CardContent class="space-y-4">
 												<div>
-													<Label>Institution</Label>
-													<Input bind:value={edu.institution} />
+													<Label for={`institution-${eduIndex}`}>Institution</Label>
+													<Input id={`institution-${eduIndex}`} bind:value={edu.institution} />
 												</div>
 												<div class="grid gap-4 sm:grid-cols-2">
 													<div>
-														<Label>Degree</Label>
-														<Input bind:value={edu.degree} />
+														<Label for={`degree-${eduIndex}`}>Degree</Label>
+														<Input id={`degree-${eduIndex}`} bind:value={edu.degree} />
 													</div>
 													<div>
-														<Label>Field of Study</Label>
-														<Input bind:value={edu.fieldOfStudy} />
+														<Label for={`field-${eduIndex}`}>Field of Study</Label>
+														<Input id={`field-${eduIndex}`} bind:value={edu.fieldOfStudy} />
 													</div>
 												</div>
 												<div class="grid gap-4 sm:grid-cols-2">
 													<div>
-														<Label>Graduation Date</Label>
+														<Label for={`grad-date-${eduIndex}`}>Graduation Date</Label>
 														<Input
+															id={`grad-date-${eduIndex}`}
 															type="text"
 															placeholder="e.g., May 2024"
 															bind:value={edu.graduationDate}
 														/>
 													</div>
 													<div>
-														<Label>GPA</Label>
-														<Input type="number" step="0.1" bind:value={edu.gpa} />
+														<Label for={`gpa-${eduIndex}`}>GPA</Label>
+														<Input
+															id={`gpa-${eduIndex}`}
+															type="number"
+															step="0.1"
+															bind:value={edu.gpa}
+														/>
 													</div>
 												</div>
 											</CardContent>
@@ -702,6 +768,7 @@
 									variant="ghost"
 									size="icon"
 									class="h-6 w-6"
+									aria-label="Move Certifications section up"
 									onclick={(e: Event) => {
 										e.stopPropagation();
 										moveSection('certifications', 'up');
@@ -713,6 +780,7 @@
 									variant="ghost"
 									size="icon"
 									class="h-6 w-6"
+									aria-label="Move Certifications section down"
 									onclick={(e: Event) => {
 										e.stopPropagation();
 										moveSection('certifications', 'down');
@@ -757,6 +825,7 @@
 													<Button
 														variant="ghost"
 														size="icon"
+														aria-label="Remove certification"
 														onclick={() => removeCertification(certIndex)}
 														disabled={dynamicLoading[`removeCertification-${certIndex}`]}
 													>
@@ -770,25 +839,27 @@
 											</CardHeader>
 											<CardContent class="space-y-4">
 												<div>
-													<Label>Certification Name</Label>
-													<Input bind:value={cert.name} />
+													<Label for={`cert-name-${certIndex}`}>Certification Name</Label>
+													<Input id={`cert-name-${certIndex}`} bind:value={cert.name} />
 												</div>
 												<div>
-													<Label>Issuer</Label>
-													<Input bind:value={cert.issuer} />
+													<Label for={`cert-issuer-${certIndex}`}>Issuer</Label>
+													<Input id={`cert-issuer-${certIndex}`} bind:value={cert.issuer} />
 												</div>
 												<div class="grid gap-4 sm:grid-cols-2">
 													<div>
-														<Label>Date Obtained</Label>
+														<Label for={`cert-date-${certIndex}`}>Date Obtained</Label>
 														<Input
+															id={`cert-date-${certIndex}`}
 															type="text"
 															placeholder="e.g., Jan 2023"
 															bind:value={cert.dateObtained}
 														/>
 													</div>
 													<div>
-														<Label>Expiration Date</Label>
+														<Label for={`cert-exp-${certIndex}`}>Expiration Date</Label>
 														<Input
+															id={`cert-exp-${certIndex}`}
 															type="text"
 															placeholder="e.g., Jan 2026"
 															bind:value={cert.expirationDate}
@@ -796,8 +867,8 @@
 													</div>
 												</div>
 												<div>
-													<Label>Credential ID</Label>
-													<Input bind:value={cert.credentialId} />
+													<Label for={`cert-cred-${certIndex}`}>Credential ID</Label>
+													<Input id={`cert-cred-${certIndex}`} bind:value={cert.credentialId} />
 												</div>
 											</CardContent>
 										</Card>
@@ -819,6 +890,7 @@
 									variant="ghost"
 									size="icon"
 									class="h-6 w-6"
+									aria-label="Move Skills section up"
 									onclick={(e: Event) => {
 										e.stopPropagation();
 										moveSection('skills', 'up');
@@ -830,6 +902,7 @@
 									variant="ghost"
 									size="icon"
 									class="h-6 w-6"
+									aria-label="Move Skills section down"
 									onclick={(e: Event) => {
 										e.stopPropagation();
 										moveSection('skills', 'down');
@@ -844,7 +917,9 @@
 								<CardContent class="space-y-4 pt-6">
 									<div class="flex gap-2">
 										<Input
+											id="new-skill"
 											placeholder="Add a skill..."
+											aria-label="New skill"
 											bind:value={newSkill}
 											onkeydown={(e) => {
 												if (e.key === 'Enter') {
@@ -865,6 +940,7 @@
 												<button
 													onclick={() => removeSkill(skill)}
 													class="hover:text-destructive ml-2"
+													aria-label={`Remove skill ${skill}`}
 												>
 													<X class="h-3 w-3" />
 												</button>

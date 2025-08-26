@@ -46,9 +46,17 @@
 </script>
 
 <Sidebar.Provider>
+	<!-- Skip to main content link for keyboard navigation -->
+	<a
+		href="#app-main-content"
+		class="bg-primary text-primary-foreground sr-only z-50 rounded-md px-4 py-2 focus:not-sr-only focus:absolute focus:left-4 focus:top-4"
+	>
+		Skip to main content
+	</a>
+
 	<div class="flex h-screen w-full">
 		<!-- Sidebar -->
-		<Sidebar.Sidebar collapsible="icon">
+		<Sidebar.Sidebar collapsible="icon" role="navigation" aria-label="Application navigation">
 			<!-- Sidebar Header -->
 			<Sidebar.Header>
 				<Sidebar.Menu>
@@ -79,8 +87,9 @@
 									<Sidebar.MenuButton
 										onclick={() => goto(item.href)}
 										class={page.url.pathname === item.href ? 'bg-accent' : ''}
+										aria-current={page.url.pathname === item.href ? 'page' : undefined}
 									>
-										<item.icon class="size-4" />
+										<item.icon class="size-4" aria-hidden="true" />
 										<span>{item.title}</span>
 									</Sidebar.MenuButton>
 								</Sidebar.MenuItem>
@@ -109,7 +118,7 @@
 											<span class="truncate font-semibold">{user.name}</span>
 											<span class="text-muted-foreground truncate text-xs">{user.email}</span>
 										</div>
-										<ChevronUp class="ml-auto" />
+										<ChevronUp class="ml-auto" aria-hidden="true" />
 									</Sidebar.MenuButton>
 								{/snippet}
 							</DropdownMenu.Trigger>
@@ -117,16 +126,16 @@
 								<DropdownMenu.Label>My Account</DropdownMenu.Label>
 								<DropdownMenu.Separator />
 								<DropdownMenu.Item>
-									<User class="mr-2 size-4" />
+									<User class="mr-2 size-4" aria-hidden="true" />
 									<span>Profile</span>
 								</DropdownMenu.Item>
 								<DropdownMenu.Item>
-									<Settings class="mr-2 size-4" />
+									<Settings class="mr-2 size-4" aria-hidden="true" />
 									<span>Settings</span>
 								</DropdownMenu.Item>
 								<DropdownMenu.Separator />
 								<DropdownMenu.Item onclick={handleLogout}>
-									<LogOut class="mr-2 size-4" />
+									<LogOut class="mr-2 size-4" aria-hidden="true" />
 									<span>Log out</span>
 								</DropdownMenu.Item>
 							</DropdownMenu.Content>
@@ -143,9 +152,9 @@
 			<!-- Top Header -->
 			<header class="bg-background flex h-14 items-center justify-between border-b px-4 lg:px-6">
 				<div class="flex items-center gap-4">
-					<Sidebar.Trigger class="md:hidden">
-						<Menu class="size-5" />
-						<span class="sr-only">Toggle Sidebar</span>
+					<Sidebar.Trigger class="md:hidden" aria-label="Toggle navigation menu">
+						<Menu class="size-5" aria-hidden="true" />
+						<span class="sr-only">Toggle navigation menu</span>
 					</Sidebar.Trigger>
 					<h1 class="text-lg font-semibold">ATSPro</h1>
 				</div>
@@ -155,10 +164,16 @@
 					<ModeToggle />
 
 					<!-- Notifications -->
-					<Button variant="ghost" size="icon" class="relative">
-						<Bell class="size-5" />
-						<span class="sr-only">Notifications</span>
+					<Button
+						variant="ghost"
+						size="icon"
+						class="relative"
+						aria-label="View notifications (3 unread)"
+					>
+						<Bell class="size-5" aria-hidden="true" />
+						<span class="sr-only">View notifications (3 unread)</span>
 						<span
+							aria-hidden="true"
 							class="bg-destructive text-destructive-foreground absolute -right-1 -top-1 flex size-4 items-center justify-center rounded-full text-[10px] font-bold"
 						>
 							3
@@ -170,7 +185,7 @@
 						<DropdownMenu.Root>
 							<DropdownMenu.Trigger>
 								{#snippet child({ props })}
-									<Button variant="ghost" size="icon" {...props}>
+									<Button variant="ghost" size="icon" aria-label="User menu" {...props}>
 										<Avatar.Root class="size-8">
 											<Avatar.Fallback>{user.avatar}</Avatar.Fallback>
 										</Avatar.Root>
@@ -181,16 +196,16 @@
 								<DropdownMenu.Label>My Account</DropdownMenu.Label>
 								<DropdownMenu.Separator />
 								<DropdownMenu.Item>
-									<User class="mr-2 size-4" />
+									<User class="mr-2 size-4" aria-hidden="true" />
 									<span>Profile</span>
 								</DropdownMenu.Item>
 								<DropdownMenu.Item>
-									<Settings class="mr-2 size-4" />
+									<Settings class="mr-2 size-4" aria-hidden="true" />
 									<span>Settings</span>
 								</DropdownMenu.Item>
 								<DropdownMenu.Separator />
 								<DropdownMenu.Item onclick={handleLogout}>
-									<LogOut class="mr-2 size-4" />
+									<LogOut class="mr-2 size-4" aria-hidden="true" />
 									<span>Log out</span>
 								</DropdownMenu.Item>
 							</DropdownMenu.Content>
@@ -200,7 +215,7 @@
 			</header>
 
 			<!-- Page Content -->
-			<main class="bg-muted/40 flex-1 overflow-y-auto">
+			<main id="app-main-content" class="bg-muted/40 flex-1 overflow-y-auto">
 				{@render children()}
 			</main>
 		</div>

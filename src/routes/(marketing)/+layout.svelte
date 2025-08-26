@@ -28,6 +28,14 @@
 </script>
 
 <div class="flex min-h-screen flex-col">
+	<!-- Skip to main content link for keyboard navigation -->
+	<a
+		href="#main-content"
+		class="bg-primary text-primary-foreground sr-only z-50 rounded-md px-4 py-2 focus:not-sr-only focus:absolute focus:left-4 focus:top-4"
+	>
+		Skip to main content
+	</a>
+
 	<!-- Header Navigation -->
 	<header
 		class="bg-background/95 supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 w-full border-b backdrop-blur"
@@ -36,14 +44,14 @@
 			<div class="flex h-16 items-center justify-between">
 				<!-- Logo -->
 				<div class="flex items-center gap-2">
-					<a href="/" class="flex items-center gap-2 text-xl font-bold">
-						<BrainCircuit class="text-primary h-8 w-8" />
+					<a href="/" class="flex items-center gap-2 text-xl font-bold" aria-label="ATSPro home">
+						<BrainCircuit class="text-primary h-8 w-8" aria-hidden="true" />
 						<span>ATSPro</span>
 					</a>
 				</div>
 
 				<!-- Navigation Links -->
-				<nav class="hidden items-center gap-6 md:flex">
+				<nav aria-label="Main navigation" class="hidden items-center gap-6 md:flex">
 					<a
 						href="#features"
 						onclick={preventDefault(scrollIntoView)}
@@ -78,7 +86,7 @@
 				<div class="flex items-center gap-2">
 					<Button variant="ghost" onclick={() => goto('/auth/sign-in')}>Sign In</Button>
 					<Button onclick={() => goto('/auth/sign-up')}>
-						<Sparkles class="mr-2 h-4 w-4" />
+						<Sparkles class="mr-2 h-4 w-4" aria-hidden="true" />
 						Get Started
 					</Button>
 				</div>
@@ -87,7 +95,7 @@
 	</header>
 
 	<!-- Main Content -->
-	<main class="flex-1">
+	<main id="main-content" class="flex-1">
 		{@render children?.()}
 	</main>
 
@@ -98,28 +106,28 @@
 				<!-- Brand -->
 				<div class="space-y-4">
 					<div class="flex items-center gap-2">
-						<BrainCircuit class="text-primary h-6 w-6" />
+						<BrainCircuit class="text-primary h-6 w-6" aria-hidden="true" />
 						<span class="text-lg font-bold">ATSPro</span>
 					</div>
 					<p class="text-muted-foreground text-sm">
 						AI-powered resume optimization for modern job seekers.
 					</p>
 					<div class="flex gap-2">
-						<Button variant="ghost" size="icon" aria-label="GitHub">
-							<Github class="h-4 w-4" />
+						<Button variant="ghost" size="icon" aria-label="Visit our GitHub">
+							<Github class="h-4 w-4" aria-hidden="true" />
 						</Button>
-						<Button variant="ghost" size="icon" aria-label="Twitter">
-							<Twitter class="h-4 w-4" />
+						<Button variant="ghost" size="icon" aria-label="Follow us on Twitter">
+							<Twitter class="h-4 w-4" aria-hidden="true" />
 						</Button>
-						<Button variant="ghost" size="icon" aria-label="LinkedIn">
-							<Linkedin class="h-4 w-4" />
+						<Button variant="ghost" size="icon" aria-label="Connect on LinkedIn">
+							<Linkedin class="h-4 w-4" aria-hidden="true" />
 						</Button>
 					</div>
 				</div>
 
 				<!-- Product -->
-				<div class="space-y-4">
-					<h3 class="font-semibold">Product</h3>
+				<nav class="space-y-4" aria-labelledby="footer-product">
+					<h3 id="footer-product" class="font-semibold">Product</h3>
 					<ul class="text-muted-foreground space-y-2 text-sm">
 						<li>
 							<a
@@ -140,11 +148,11 @@
 						</li>
 						<li><a href="#" class="hover:text-foreground transition-colors">Integrations</a></li>
 					</ul>
-				</div>
+				</nav>
 
 				<!-- Company -->
-				<div class="space-y-4">
-					<h3 class="font-semibold">Company</h3>
+				<nav class="space-y-4" aria-labelledby="footer-company">
+					<h3 id="footer-company" class="font-semibold">Company</h3>
 					<ul class="text-muted-foreground space-y-2 text-sm">
 						<li>
 							<a
@@ -157,11 +165,11 @@
 						<li><a href="#" class="hover:text-foreground transition-colors">Careers</a></li>
 						<li><a href="#" class="hover:text-foreground transition-colors">Contact</a></li>
 					</ul>
-				</div>
+				</nav>
 
 				<!-- Legal -->
-				<div class="space-y-4">
-					<h3 class="font-semibold">Legal</h3>
+				<nav class="space-y-4" aria-labelledby="footer-legal">
+					<h3 id="footer-legal" class="font-semibold">Legal</h3>
 					<ul class="text-muted-foreground space-y-2 text-sm">
 						<li><a href="#" class="hover:text-foreground transition-colors">Privacy Policy</a></li>
 						<li>
@@ -170,7 +178,7 @@
 						<li><a href="#" class="hover:text-foreground transition-colors">Cookie Policy</a></li>
 						<li><a href="#" class="hover:text-foreground transition-colors">GDPR</a></li>
 					</ul>
-				</div>
+				</nav>
 			</div>
 
 			<Separator class="my-8" />

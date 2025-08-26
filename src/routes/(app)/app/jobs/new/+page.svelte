@@ -147,7 +147,12 @@
 	<!-- Header -->
 	<div class="flex items-center justify-between">
 		<div class="flex items-center gap-4">
-			<Button variant="ghost" size="icon" onclick={() => goto('/app/jobs')}>
+			<Button
+				variant="ghost"
+				size="icon"
+				aria-label="Go back to jobs list"
+				onclick={() => goto('/app/jobs')}
+			>
 				<ArrowLeft class="h-4 w-4" />
 			</Button>
 			<div>
@@ -293,7 +298,12 @@
 									}}
 								/>
 							</div>
-							<Button onclick={addLocation} variant="outline" disabled={isSubmitting}>
+							<Button
+								onclick={addLocation}
+								variant="outline"
+								aria-label="Add location"
+								disabled={isSubmitting}
+							>
 								<Plus class="h-4 w-4" />
 							</Button>
 						</div>
@@ -306,6 +316,7 @@
 										<button
 											onclick={() => removeLocation(location)}
 											class="hover:text-destructive ml-1"
+											aria-label={`Remove location ${location}`}
 											disabled={isSubmitting}
 										>
 											<X class="h-3 w-3" />
