@@ -24,21 +24,22 @@ export default defineConfig({
 				'vitest.config.ts',
 				'playwright.config.ts'
 			]
-			// Thresholds disabled during development
-			// Enable these when test coverage improves
-			// thresholds: {
-			// 	branches: 80,
-			// 	functions: 80,
-			// 	lines: 80,
-			// 	statements: 80
-			// }
 		},
-		setupFiles: ['./vitest-setup.ts']
+		setupFiles: ['./vitest-setup.ts'],
+		// Ensure mocks are resolved before module imports
+		pool: 'forks',
+		poolOptions: {
+			forks: {
+				singleFork: true
+			}
+		}
 	},
 	resolve: {
 		alias: {
 			$lib: path.resolve('./src/lib'),
-			$app: path.resolve('./src/app')
+			$app: path.resolve('./src/app'),
+			'$env/static/private': path.resolve('./src/test/mocks/env-private.ts'),
+			'$app/environment': path.resolve('./src/test/mocks/app-environment.ts')
 		}
 	}
 });

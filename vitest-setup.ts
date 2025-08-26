@@ -1,9 +1,6 @@
 import { vi } from 'vitest';
 import type { Navigation, Page } from '@sveltejs/kit';
 
-// Set NODE_ENV to test for proper environment detection
-process.env.NODE_ENV = 'test';
-
 // Mock the app context for remote functions
 global.app = {
 	hooks: {
@@ -40,13 +37,6 @@ vi.mock('$app/stores', () => {
 
 	return { page, navigating, updated };
 });
-
-vi.mock('$app/environment', () => ({
-	browser: false,
-	dev: true,
-	building: false,
-	version: 'test'
-}));
 
 // Mock $app/server for remote functions
 vi.mock('$app/server', () => ({
@@ -87,15 +77,6 @@ vi.mock('$lib/db/pool', () => ({
 		query: vi.fn(),
 		end: vi.fn()
 	}))
-}));
-
-// Mock SvelteKit environment variables
-vi.mock('$env/static/private', () => ({
-	DATABASE_URL: process.env.DATABASE_URL || 'postgresql://localhost:5432/atspro_test',
-	ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY || 'test-key',
-	OPENAI_API_KEY: process.env.OPENAI_API_KEY || 'test-key',
-	BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET || 'test-secret-key-that-is-at-least-32-chars',
-	BETTER_AUTH_URL: process.env.BETTER_AUTH_URL || 'http://localhost:5173'
 }));
 
 // Mock fetch for server-side tests
