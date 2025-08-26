@@ -12,43 +12,40 @@ const exportDocumentSchema = v.object({
 	format: v.picklist(['pdf', 'docx', 'txt', 'markdown'])
 });
 
-export const exportDocument = command(
-	exportDocumentSchema,
-	async ({ documentId, format }) => {
-		const userId = requireAuth();
+export const exportDocument = command(exportDocumentSchema, async ({ documentId, format }) => {
+	const userId = requireAuth();
 
-		// Get document and verify ownership
-		const doc = await db.getDocument(documentId);
-		if (!doc) {
-			error(404, 'Document not found');
-		}
-
-		// Verify ownership through job
-		const job = await db.getJob(doc.jobId);
-		if (!job || job.userId !== userId) {
-			error(403, 'Access denied');
-		}
-
-		// Export based on format
-		switch (format) {
-			case 'pdf':
-				return await exportToPDF(doc);
-			case 'markdown':
-				return await exportToMarkdown(doc);
-			case 'txt':
-				return await exportToText(doc);
-			case 'docx':
-				error(501, 'DOCX export not yet implemented');
-			default:
-				error(400, 'Invalid export format');
-		}
+	// Get document and verify ownership
+	const doc = await db.getDocument(documentId);
+	if (!doc) {
+		error(404, 'Document not found');
 	}
-);
+
+	// Verify ownership through job
+	const job = await db.getJob(doc.jobId);
+	if (!job || job.userId !== userId) {
+		error(403, 'Access denied');
+	}
+
+	// Export based on format
+	switch (format) {
+		case 'pdf':
+			return await exportToPDF(doc);
+		case 'markdown':
+			return await exportToMarkdown(doc);
+		case 'txt':
+			return await exportToText(doc);
+		case 'docx':
+			error(501, 'DOCX export not yet implemented');
+		default:
+			error(400, 'Invalid export format');
+	}
+});
 
 // Export resume/document to PDF
 async function exportToPDF(document: any): Promise<{ url: string; filename: string }> {
 	let browser: any = null;
-	
+
 	try {
 		// Launch headless browser
 		browser = await puppeteer.launch({
@@ -57,10 +54,10 @@ async function exportToPDF(document: any): Promise<{ url: string; filename: stri
 		});
 
 		const page = await browser.newPage();
-		
+
 		// Get content and convert markdown if needed
 		let htmlContent = document.content;
-		
+
 		// If content is markdown (check metadata), convert it
 		if (document.metadata?.markdown) {
 			htmlContent = await convertMarkdownToStyledHTML(document.metadata.markdown, document.type);
@@ -115,7 +112,7 @@ async function exportToPDF(document: any): Promise<{ url: string; filename: stri
 async function exportToMarkdown(document: any): Promise<{ content: string; filename: string }> {
 	// Check if markdown is stored in metadata
 	let markdownContent = document.metadata?.markdown || document.content;
-	
+
 	// If content is HTML, we need to convert it back
 	if (markdownContent.includes('<') && !markdownContent.startsWith('#')) {
 		// This is HTML, convert to markdown (simplified conversion)
@@ -135,10 +132,10 @@ async function exportToMarkdown(document: any): Promise<{ content: string; filen
 async function exportToText(document: any): Promise<{ content: string; filename: string }> {
 	// Strip all HTML tags and markdown formatting
 	let textContent = document.metadata?.markdown || document.content;
-	
+
 	// Remove HTML tags
 	textContent = textContent.replace(/<[^>]*>/g, '');
-	
+
 	// Remove markdown formatting
 	textContent = textContent
 		.replace(/#{1,6}\s+/g, '') // Headers
@@ -169,7 +166,7 @@ async function convertMarkdownToStyledHTML(markdown: string, docType: string): P
 
 	// Convert markdown to HTML
 	const html = await marked(markdown);
-	
+
 	return html;
 }
 
@@ -334,28 +331,30 @@ function generatePDFHTML(content: string, docType: string): string {
 
 // Simple HTML to Markdown converter (basic implementation)
 function htmlToMarkdown(html: string): string {
-	return html
-		// Headers
-		.replace(/<h1[^>]*>(.*?)<\/h1>/gi, '# $1\n\n')
-		.replace(/<h2[^>]*>(.*?)<\/h2>/gi, '## $1\n\n')
-		.replace(/<h3[^>]*>(.*?)<\/h3>/gi, '### $1\n\n')
-		// Bold and italic
-		.replace(/<strong[^>]*>(.*?)<\/strong>/gi, '**$1**')
-		.replace(/<b[^>]*>(.*?)<\/b>/gi, '**$1**')
-		.replace(/<em[^>]*>(.*?)<\/em>/gi, '*$1*')
-		.replace(/<i[^>]*>(.*?)<\/i>/gi, '*$1*')
-		// Links
-		.replace(/<a[^>]+href="([^"]+)"[^>]*>([^<]+)<\/a>/gi, '[$2]($1)')
-		// Lists
-		.replace(/<li[^>]*>(.*?)<\/li>/gi, '- $1\n')
-		.replace(/<ul[^>]*>|<\/ul>/gi, '')
-		.replace(/<ol[^>]*>|<\/ol>/gi, '')
-		// Paragraphs and breaks
-		.replace(/<p[^>]*>(.*?)<\/p>/gi, '$1\n\n')
-		.replace(/<br[^>]*>/gi, '\n')
-		// Remove remaining tags
-		.replace(/<[^>]*>/g, '')
-		// Clean up extra whitespace
-		.replace(/\n{3,}/g, '\n\n')
-		.trim();
+	return (
+		html
+			// Headers
+			.replace(/<h1[^>]*>(.*?)<\/h1>/gi, '# $1\n\n')
+			.replace(/<h2[^>]*>(.*?)<\/h2>/gi, '## $1\n\n')
+			.replace(/<h3[^>]*>(.*?)<\/h3>/gi, '### $1\n\n')
+			// Bold and italic
+			.replace(/<strong[^>]*>(.*?)<\/strong>/gi, '**$1**')
+			.replace(/<b[^>]*>(.*?)<\/b>/gi, '**$1**')
+			.replace(/<em[^>]*>(.*?)<\/em>/gi, '*$1*')
+			.replace(/<i[^>]*>(.*?)<\/i>/gi, '*$1*')
+			// Links
+			.replace(/<a[^>]+href="([^"]+)"[^>]*>([^<]+)<\/a>/gi, '[$2]($1)')
+			// Lists
+			.replace(/<li[^>]*>(.*?)<\/li>/gi, '- $1\n')
+			.replace(/<ul[^>]*>|<\/ul>/gi, '')
+			.replace(/<ol[^>]*>|<\/ol>/gi, '')
+			// Paragraphs and breaks
+			.replace(/<p[^>]*>(.*?)<\/p>/gi, '$1\n\n')
+			.replace(/<br[^>]*>/gi, '\n')
+			// Remove remaining tags
+			.replace(/<[^>]*>/g, '')
+			// Clean up extra whitespace
+			.replace(/\n{3,}/g, '\n\n')
+			.trim()
+	);
 }

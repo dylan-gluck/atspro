@@ -5,11 +5,6 @@
 # Packages
 node_modules
 
-# Test coverage
-coverage
-playwright-report
-test-results
-
 # Output
 .output
 .vercel

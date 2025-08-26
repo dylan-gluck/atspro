@@ -280,13 +280,13 @@ function formatOptimizedResumeAsHTML(optimized: any): string {
 	html += `<header class="resume-header">`;
 	html += `<h1>${contactInfo.fullName}</h1>`;
 	html += `<div class="contact-info">`;
-	
+
 	if (contactInfo.email) html += `<span>Email: ${contactInfo.email}</span>`;
 	if (contactInfo.phone) html += `<span>Phone: ${contactInfo.phone}</span>`;
 	if (contactInfo.address) html += `<span>Location: ${contactInfo.address}</span>`;
-	
+
 	html += `</div>`;
-	
+
 	if (contactInfo.links?.length > 0) {
 		html += `<div class="links">`;
 		contactInfo.links.forEach((link: any) => {
@@ -364,7 +364,7 @@ async function generateCompanyResearchContent(job: any): Promise<string> {
 	const { generateText } = await import('ai');
 	const { createAnthropic } = await import('@ai-sdk/anthropic');
 	const { ANTHROPIC_API_KEY } = await import('$env/static/private');
-	
+
 	const anthropic = createAnthropic({
 		apiKey: ANTHROPIC_API_KEY
 	});
