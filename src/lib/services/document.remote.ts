@@ -375,15 +375,20 @@ async function generateCompanyResearchContent(job: any): Promise<string> {
 	const { generateText } = await import('ai');
 	const { createAnthropic } = await import('@ai-sdk/anthropic');
 	const { ANTHROPIC_API_KEY } = await import('$env/static/private');
+	const { selectModel } = await import('$lib/ai/model-selector');
 
 	const anthropic = createAnthropic({
 		apiKey: ANTHROPIC_API_KEY
 	});
 
+	// Use model selector for cost optimization - research can use cheaper model
+	const modelConfig = selectModel('company_research');
+	console.log(`[AI generateCompanyResearch] Using model: ${modelConfig.name}`);
+
 	try {
 		// Generate comprehensive research using AI
 		const result = await generateText({
-			model: anthropic('claude-3-5-sonnet-20241022'),
+			model: anthropic(modelConfig.name),
 			messages: [
 				{
 					role: 'system' as const,

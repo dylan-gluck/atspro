@@ -10,9 +10,9 @@
 
 ## Phase 2: Cost Optimization [P2.1-P2.4]
 
-- [ ] **[P2.1] AI Model Selection**: Implement intelligent model selection (save ~$700/month)
-  - [ ] Use claude-3-haiku for extraction/scoring
-  - [ ] Reserve claude-3.5-sonnet for optimization only
+- [x] **[P2.1] AI Model Selection**: Implement intelligent model selection (save ~$700/month)
+  - [x] Use claude-3-haiku for extraction/scoring
+  - [x] Reserve claude-3.5-sonnet for optimization only
 - [ ] **[P2.2] Result Caching**: Add LRU cache for AI responses
 - [ ] **[P2.3] Prompt Optimization**: Reduce token usage in system prompts
 - [ ] **[P2.4] Rate Limiting**: Implement tier-based rate limiting

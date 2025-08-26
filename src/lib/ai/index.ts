@@ -1,15 +1,24 @@
 import { createAnthropic } from '@ai-sdk/anthropic';
+import { createOpenAI } from '@ai-sdk/openai';
 import { generateObject, generateText } from 'ai';
 import { z } from 'zod';
 import { ANTHROPIC_API_KEY } from '$env/static/private';
+// OPENAI_API_KEY is optional - only needed if using OpenAI models
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 import type { Resume } from '$lib/types/resume';
 import type { UserResume } from '$lib/types/user-resume';
 import type { UserJob } from '$lib/types/user-job';
 import type { Job } from '$lib/types/job';
+import { selectModel, usageTracker } from './model-selector';
+import type { AITask } from './types';
 
-// Initialize Anthropic with API key
+// Initialize AI providers
 const anthropic = createAnthropic({
 	apiKey: ANTHROPIC_API_KEY
+});
+
+const openai = createOpenAI({
+	apiKey: OPENAI_API_KEY || 'sk-dummy' // Use dummy key if not configured
 });
 
 // Resume Schema for extraction
@@ -88,11 +97,15 @@ export async function extractResume(content: string | Buffer, fileType: string):
 	console.log('[AI extractResume] Is PDF:', isPDF);
 
 	try {
-		console.log('[AI extractResume] Calling generateObject with Claude Sonnet...');
+		// Use model selector for cost optimization
+		const modelConfig = selectModel('extract_resume');
+		console.log(
+			`[AI extractResume] Using model: ${modelConfig.name} (cost: $${modelConfig.costPerMillion.input}/$${modelConfig.costPerMillion.output} per 1M tokens)`
+		);
 		const startTime = Date.now();
 
 		const result = await generateObject({
-			model: anthropic('claude-3-5-sonnet-20241022'),
+			model: anthropic(modelConfig.name),
 			schema: ResumeSchema,
 			messages: [
 				{
@@ -140,8 +153,12 @@ export async function extractResume(content: string | Buffer, fileType: string):
 
 // Extract job from content
 export async function extractJob(content: string): Promise<Job> {
+	// Use model selector for cost optimization
+	const modelConfig = selectModel('extract_job');
+	console.log(`[AI extractJob] Using model: ${modelConfig.name}`);
+
 	const result = await generateObject({
-		model: anthropic('claude-3-5-sonnet-20241022'),
+		model: anthropic(modelConfig.name),
 		schema: JobSchema,
 		messages: [
 			{
@@ -170,8 +187,12 @@ export async function optimizeResume(
 	resume: UserResume | Resume,
 	job: UserJob | Job
 ): Promise<Resume & { score: number; keywords: string[]; markdown?: string }> {
+	// Use model selector - optimization needs the powerful model
+	const modelConfig = selectModel('optimize_resume');
+	console.log(`[AI optimizeResume] Using model: ${modelConfig.name}`);
+
 	const result = await generateObject({
-		model: anthropic('claude-3-5-sonnet-20241022'),
+		model: anthropic(modelConfig.name),
 		schema: ResumeSchema.extend({
 			score: z.number().min(0).max(100),
 			keywords: z.array(z.string()),
@@ -227,8 +248,12 @@ export async function generateCoverLetter(
 		conversational: 'friendly yet professional'
 	};
 
+	// Use model selector - cover letters need the powerful model
+	const modelConfig = selectModel('generate_cover_letter');
+	console.log(`[AI generateCoverLetter] Using model: ${modelConfig.name}`);
+
 	const result = await generateText({
-		model: anthropic('claude-3-5-sonnet-20241022'),
+		model: anthropic(modelConfig.name),
 		messages: [
 			{
 				role: 'system' as const,
