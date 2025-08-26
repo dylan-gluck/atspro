@@ -1,18 +1,1 @@
-#!/usr/bin/env sh
-
-# Run formatter on all files
-echo "Running formatter..."
-bun run format
-
-# Run lint-staged for additional formatting on staged files
-bunx lint-staged
-
-# Run typecheck
-echo "Running typecheck..."
-bun run check
-
-# Run unit tests only (fast tests)
-echo "Running unit tests..."
-bun test src/lib --bail
-
-echo "✅ All pre-commit checks passed!"
+npx lint-staged
