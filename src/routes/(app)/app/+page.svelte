@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
 	import * as Card from '$lib/components/ui/card';
 	import { Button } from '$lib/components/ui/button';
 	import { Badge } from '$lib/components/ui/badge';
@@ -231,11 +232,11 @@
 			<p class="text-muted-foreground">Welcome back! Here's your job search overview.</p>
 		</div>
 		<div class="flex gap-2">
-			<Button variant="outline">
+			<Button variant="outline" onclick={() => goto('/app/resume')}>
 				<Pencil class="mr-2 size-4" />
 				Edit Resume
 			</Button>
-			<Button>
+			<Button onclick={() => goto('/app/jobs/new')}>
 				<Plus class="mr-2 size-4" />
 				Add Job
 			</Button>
@@ -327,7 +328,7 @@
 							<p class="text-muted-foreground mb-4 text-sm">
 								Start by adding a job to track your applications
 							</p>
-							<Button>
+							<Button onclick={() => goto('/app/jobs/new')}>
 								<Plus class="mr-2 size-4" />
 								Add Your First Job
 							</Button>
@@ -394,11 +395,11 @@
 				</Card.Header>
 				<Card.Content>
 					<div class="space-y-2">
-						<Button variant="outline" class="w-full justify-start">
+						<Button variant="outline" class="w-full justify-start" onclick={() => goto('/app/jobs/new')}>
 							<Plus class="mr-2 size-4" />
 							Add New Job
 						</Button>
-						<Button variant="outline" class="w-full justify-start">
+						<Button variant="outline" class="w-full justify-start" onclick={() => goto('/app/resume')}>
 							<Pencil class="mr-2 size-4" />
 							Edit Resume
 						</Button>

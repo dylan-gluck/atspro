@@ -146,6 +146,27 @@ export const jobs = {
 		await pool.query(`UPDATE "userJobs" SET "notes" = $2 WHERE "id" = $1`, [jobId, notes]);
 	},
 
+	async update(jobId: string, updates: any): Promise<void> {
+		const fields: string[] = [];
+		const values: any[] = [];
+		let idx = 1;
+
+		Object.entries(updates).forEach(([key, value]) => {
+			if (value !== undefined && key !== 'id' && key !== 'userId') {
+				fields.push(`"${key}" = $${idx++}`);
+				values.push(value);
+			}
+		});
+
+		if (fields.length > 0) {
+			values.push(jobId);
+			await pool.query(
+				`UPDATE "userJobs" SET ${fields.join(', ')}, "updatedAt" = NOW() WHERE "id" = $${idx}`,
+				values
+			);
+		}
+	},
+
 	async delete(jobId: string): Promise<void> {
 		await pool.query(`DELETE FROM "userJobs" WHERE "id" = $1`, [jobId]);
 	}
@@ -268,6 +289,7 @@ export const db = {
 	createUserJob: jobs.create,
 	updateJobStatus: jobs.updateStatus,
 	updateJobNotes: jobs.updateNotes,
+	updateJob: jobs.update,
 	deleteJob: jobs.delete,
 
 	// Document operations
