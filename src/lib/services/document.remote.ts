@@ -358,11 +358,59 @@ function formatOptimizedResumeAsHTML(optimized: any): string {
 	return html;
 }
 
-// Helper function to generate company research
+// Helper function to generate company research with AI
 async function generateCompanyResearchContent(job: any): Promise<string> {
-	// This would typically call an AI service or web scraping
-	// For now, return a structured template
-	return `# Company Research: ${job.company}
+	// Import AI functions
+	const { generateText } = await import('ai');
+	const { createAnthropic } = await import('@ai-sdk/anthropic');
+	const { ANTHROPIC_API_KEY } = await import('$env/static/private');
+	
+	const anthropic = createAnthropic({
+		apiKey: ANTHROPIC_API_KEY
+	});
+
+	try {
+		// Generate comprehensive research using AI
+		const result = await generateText({
+			model: anthropic('claude-3-5-sonnet-20241022'),
+			messages: [
+				{
+					role: 'system' as const,
+					content: `You are an expert company researcher and career advisor. Generate a comprehensive research document about the company and role that will help a job applicant prepare for their application and interview.
+
+Structure your response in markdown format with the following sections:
+1. Company Overview - Brief history, mission, values, size, and market position
+2. Products/Services - What the company offers and their main revenue streams  
+3. Company Culture - Work environment, values, and what employees say
+4. Recent News & Developments - Latest announcements, achievements, challenges
+5. Role Analysis - Breakdown of the specific position requirements and expectations
+6. Interview Preparation Tips - Specific advice for this company and role
+7. Compensation Insights - Salary ranges and benefits if available
+8. Growth Opportunities - Career paths and development at this company
+
+Be specific and actionable. Focus on information that would genuinely help someone prepare for this opportunity.`
+				},
+				{
+					role: 'user' as const,
+					content: `Generate a comprehensive research document for this job opportunity:
+
+Company: ${job.company}
+Role: ${job.title}
+Description: ${job.description}
+Location: ${job.location?.join(', ') || 'Not specified'}
+Salary: ${job.salary || 'Not disclosed'}
+Qualifications: ${job.qualifications?.join('\n') || 'Not specified'}
+
+Provide actionable insights that would help a candidate succeed in their application and interview process.`
+				}
+			]
+		});
+
+		return result.text;
+	} catch (error) {
+		console.error('Error generating company research:', error);
+		// Fallback to template if AI fails
+		return `# Company Research: ${job.company}
 
 ## About ${job.company}
 [Company overview would be generated here based on web research]
@@ -392,4 +440,5 @@ ${job.logistics?.join('\n') || ''}
 ## Additional Notes
 ${job.additionalInfo?.join('\n') || 'No additional information available'}
 `;
+	}
 }
