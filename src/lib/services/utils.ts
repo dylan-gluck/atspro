@@ -1,9 +1,34 @@
 import { error } from '@sveltejs/kit';
 import { getRequestEvent } from '$app/server';
+import { auth } from '$lib/auth';
+import { enforceRateLimit, getRateLimitHeaders } from './rate-limit';
 
-// Rate limiter implementation
+// Legacy rate limiter for backward compatibility
 const rateLimiter = new Map<string, number[]>();
 
+// Use the new rate limiting system
+export async function checkRateLimitV2(endpoint: string) {
+	const event = getRequestEvent();
+	const session = await auth.api.getSession({
+		headers: event.request.headers
+	});
+
+	try {
+		await enforceRateLimit(session, endpoint);
+	} catch (err: any) {
+		if (err.name === 'RateLimitError') {
+			const rateLimitHeaders = await getRateLimitHeaders(session, endpoint);
+			// Set headers on the response
+			Object.entries(rateLimitHeaders).forEach(([key, value]) => {
+				event.setHeaders({ [key]: value });
+			});
+			error(429, err.message);
+		}
+		throw err;
+	}
+}
+
+// Legacy function for backward compatibility
 export function checkRateLimit(
 	userId: string,
 	limit: number,

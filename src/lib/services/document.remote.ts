@@ -6,7 +6,7 @@ import {
 	optimizeResume as optimizeResumeWithAI,
 	generateCoverLetter as generateCoverLetterWithAI
 } from '$lib/ai';
-import { requireAuth, checkRateLimit, ErrorCodes, measurePerformance } from './utils';
+import { requireAuth, checkRateLimitV2, ErrorCodes, measurePerformance } from './utils';
 import { getJob } from './job.remote';
 import { calculateATSScore } from './scoring.remote';
 
@@ -36,8 +36,8 @@ const optimizeSchema = v.object({
 export const optimizeResume = command(optimizeSchema, async ({ jobId }) => {
 	const userId = requireAuth();
 
-	// Rate limit: 10 optimizations per hour
-	checkRateLimit(userId, 10, 3600000, 'optimize_resume');
+	// Apply tier-based rate limiting
+	await checkRateLimitV2('resume.optimize');
 
 	// Verify ownership and get data
 	const [resume, job] = await Promise.all([db.getUserResume(userId), db.getJob(jobId)]);
@@ -117,8 +117,8 @@ export const generateCoverLetter = command(
 	async ({ jobId, tone = 'professional' }) => {
 		const userId = requireAuth();
 
-		// Rate limit: 15 cover letters per hour
-		checkRateLimit(userId, 15, 3600000, 'generate_cover');
+		// Apply tier-based rate limiting
+		await checkRateLimitV2('cover-letter.generate');
 
 		// Verify ownership and get data
 		const [resume, job] = await Promise.all([db.getUserResume(userId), db.getJob(jobId)]);
@@ -181,8 +181,8 @@ const companyResearchSchema = v.object({
 export const generateCompanyResearch = command(companyResearchSchema, async ({ jobId }) => {
 	const userId = requireAuth();
 
-	// Rate limit: 5 research documents per hour
-	checkRateLimit(userId, 5, 3600000, 'generate_research');
+	// Apply tier-based rate limiting for AI analysis
+	await checkRateLimitV2('ai.analyze');
 
 	// Get job details
 	const job = await db.getJob(jobId);

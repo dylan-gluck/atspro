@@ -3,7 +3,7 @@ import { error } from '@sveltejs/kit';
 import * as v from 'valibot';
 import { db } from '$lib/db';
 import { extractJob as extractJobWithAI, fetchJobContent } from '$lib/ai';
-import { requireAuth, checkRateLimit, ErrorCodes } from './utils';
+import { requireAuth, checkRateLimitV2, ErrorCodes } from './utils';
 import type { JobStatus } from '$lib/types/user-job';
 
 // List user's jobs with filtering
@@ -56,8 +56,8 @@ export const getJob = query(v.pipe(v.string(), v.uuid()), async (jobId) => {
 export const extractJob = form(async (data) => {
 	const userId = requireAuth();
 
-	// Rate limit: 20 job extractions per hour
-	checkRateLimit(userId, 20, 3600000, 'extract_job');
+	// Apply tier-based rate limiting
+	await checkRateLimitV2('job.extract');
 
 	const jobUrl = data.get('jobUrl') as string;
 	const jobDescription = data.get('jobDescription') as string;
@@ -163,8 +163,7 @@ const updateNotesSchema = v.object({
 export const updateJobNotes = command(updateNotesSchema, async ({ jobId, notes }) => {
 	const userId = requireAuth();
 
-	// Rate limit: 60 note updates per hour
-	checkRateLimit(userId, 60, 3600000, 'update_notes');
+	// Notes updates don't need strict rate limiting
 
 	const job = await db.getJob(jobId);
 	if (!job || job.userId !== userId) {
@@ -208,8 +207,8 @@ const createJobSchema = v.object({
 export const createJob = command(createJobSchema, async (jobData) => {
 	const userId = requireAuth();
 
-	// Rate limit: 30 job creations per hour
-	checkRateLimit(userId, 30, 3600000, 'create_job');
+	// Apply tier-based rate limiting
+	await checkRateLimitV2('job.extract');
 
 	// Prepare job data with defaults
 	const jobToCreate = {
@@ -273,8 +272,7 @@ const updateJobSchema = v.object({
 export const updateJob = command(updateJobSchema, async ({ jobId, ...updates }) => {
 	const userId = requireAuth();
 
-	// Rate limit: 60 job updates per hour
-	checkRateLimit(userId, 60, 3600000, 'update_job');
+	// Job updates don't need strict rate limiting
 
 	const job = await db.getJob(jobId);
 	if (!job || job.userId !== userId) {

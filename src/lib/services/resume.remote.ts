@@ -3,7 +3,7 @@ import { error } from '@sveltejs/kit';
 import * as v from 'valibot';
 import { db } from '$lib/db';
 import { extractResume as extractResumeWithAI } from '$lib/ai';
-import { requireAuth, checkRateLimit, ErrorCodes, validateFile } from './utils';
+import { requireAuth, checkRateLimitV2, ErrorCodes, validateFile } from './utils';
 import type { Resume } from '$lib/types/resume';
 
 // Get current user's resume
@@ -38,8 +38,8 @@ export const extractResume = form(async (data) => {
 		throw authError;
 	}
 
-	// Rate limit: 10 resume extractions per hour
-	checkRateLimit(userId, 10, 3600000, 'extract_resume');
+	// Apply tier-based rate limiting
+	await checkRateLimitV2('ai.analyze');
 
 	// Check for existing resume
 	const existing = await db.getUserResume(userId);
@@ -100,8 +100,7 @@ const updateResumeSchema = v.object({
 export const updateResume = command(updateResumeSchema, async (updates) => {
 	const userId = requireAuth();
 
-	// Rate limit: 30 updates per hour
-	checkRateLimit(userId, 30, 3600000, 'update_resume');
+	// Updates don't need strict rate limiting
 
 	// Ensure resume exists
 	const existing = await db.getUserResume(userId);
