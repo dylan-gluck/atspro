@@ -162,104 +162,103 @@
 	}
 }
 
-/* Document content typography styles - scoped to dialog only */
 .document-content {
 	@apply max-w-none text-base leading-relaxed;
-}
 
-.document-content h1 {
-	@apply text-foreground mb-4 mt-8 text-3xl font-bold;
-}
+	& h1 {
+		@apply text-foreground mb-4 mt-8 text-3xl font-bold;
+	}
 
-.document-content h2 {
-	@apply text-foreground mb-3 mt-6 border-b pb-2 text-2xl font-semibold;
-}
+	& h2 {
+		@apply text-foreground mb-3 mt-6 border-b pb-2 text-2xl font-semibold;
+	}
 
-.document-content h3 {
-	@apply text-foreground mb-2 mt-5 text-xl font-semibold;
-}
+	& h3 {
+		@apply text-foreground mb-2 mt-5 text-xl font-semibold;
+	}
 
-.document-content h4 {
-	@apply text-foreground mb-2 mt-4 text-lg font-semibold;
-}
+	& h4 {
+		@apply text-foreground mb-2 mt-4 text-lg font-semibold;
+	}
 
-.document-content p {
-	@apply text-muted-foreground mb-4 leading-7;
-}
+	& p {
+		@apply text-muted-foreground mb-4 leading-7;
+	}
 
-.document-content ul {
-	@apply text-muted-foreground mb-4 list-disc space-y-2 pl-6;
-}
+	& ul {
+		@apply text-muted-foreground mb-4 list-disc space-y-2 pl-6;
+	}
 
-.document-content ol {
-	@apply text-muted-foreground mb-4 list-decimal space-y-2 pl-6;
-}
+	& ol {
+		@apply text-muted-foreground mb-4 list-decimal space-y-2 pl-6;
+	}
 
-.document-content li {
-	@apply leading-7;
-}
+	& li {
+		@apply leading-7;
 
-.document-content li > p {
-	@apply mb-2;
-}
+		& > p {
+			@apply mb-2;
+		}
 
-.document-content li > ul,
-.document-content li > ol {
-	@apply mb-2 mt-2;
-}
+		& > ul,
+		& > ol {
+			@apply mb-2 mt-2;
+		}
+	}
 
-.document-content strong {
-	@apply text-foreground font-semibold;
-}
+	& strong {
+		@apply text-foreground font-semibold;
+	}
 
-.document-content em {
-	@apply italic;
-}
+	& em {
+		@apply italic;
+	}
 
-.document-content a {
-	@apply text-primary hover:text-primary/80 underline underline-offset-2 transition-colors;
-}
+	& a {
+		@apply text-primary hover:text-primary/80 underline underline-offset-2 transition-colors;
+	}
 
-.document-content blockquote {
-	@apply border-muted text-muted-foreground my-4 border-l-4 pl-4 italic;
-}
+	& blockquote {
+		@apply border-muted text-muted-foreground my-4 border-l-4 pl-4 italic;
+	}
 
-.document-content code {
-	@apply bg-muted text-foreground rounded px-1.5 py-0.5 font-mono text-sm;
-}
+	& code {
+		@apply bg-muted text-foreground rounded px-1.5 py-0.5 font-mono text-sm;
+	}
 
-.document-content pre {
-	@apply bg-muted mb-4 overflow-x-auto rounded-lg p-4;
-}
+	& pre {
+		@apply bg-muted mb-4 overflow-x-auto rounded-lg p-4;
 
-.document-content pre code {
-	@apply bg-transparent p-0;
-}
+		& code {
+			@apply bg-transparent p-0;
+		}
+	}
 
-.document-content hr {
-	@apply border-border my-6;
-}
+	& hr {
+		@apply border-border my-6;
+	}
 
-.document-content table {
-	@apply mb-4 w-full border-collapse;
-}
+	& table {
+		@apply mb-4 w-full border-collapse;
+	}
 
-.document-content th {
-	@apply border-border bg-muted border px-3 py-2 text-left font-semibold;
-}
+	& th {
+		@apply border-border bg-muted border px-3 py-2 text-left font-semibold;
+	}
 
-.document-content td {
-	@apply border-border border px-3 py-2;
-}
+	& td {
+		@apply border-border border px-3 py-2;
+	}
 
-/* Ensure first heading doesn't have extra top margin */
-.document-content > h1:first-child,
-.document-content > h2:first-child,
-.document-content > h3:first-child {
-	@apply mt-0;
-}
+	/* Ensure first heading doesn't have extra top margin */
+	& > h1:first-child,
+	& > h2:first-child,
+	& > h3:first-child {
+		@apply mt-0;
+	}
 
-/* Ensure last element doesn't have extra bottom margin */
-.document-content > *:last-child {
-	@apply mb-0;
+	/* Ensure last element doesn't have extra bottom margin */
+	& > *:last-child {
+		@apply mb-0;
+	}
 }

@@ -57,7 +57,7 @@ jobs:
         env:
           DATABASE_URL: postgresql://test:test@localhost:5432/atspro_test
         run: |
-          bun run db:migrate
+          bun run migrate
 
       - name: Run unit tests
         env:
