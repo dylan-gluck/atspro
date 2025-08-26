@@ -7,7 +7,7 @@
 		"dev": "vite dev",
 		"build": "vite build",
 		"preview": "vite preview",
-		"prepare": "svelte-kit sync || echo ''",
+		"prepare": "husky",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"format": "prettier --write .",
@@ -24,7 +24,9 @@
 		"test:summary": "bun run scripts/test-summary.ts"
 	},
 	"lint-staged": {
-		"*.{js,ts,svelte,json,md,css}": ["prettier --write"]
+		"*.{js,ts,svelte,json,md,css}": [
+			"prettier --write"
+		]
 	},
 	"devDependencies": {
 		"@ai-sdk/anthropic": "^2.0.6",
