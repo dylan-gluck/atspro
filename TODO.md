@@ -1,7 +1,5 @@
 # TODO
 
-Code Review & Critical Analysis Doc: `docs/code-review-critical-analysis.md`
-
 ## Phase 1: Critical Security & Stability [P1.1-P1.5]
 
 - [ ] **[P1.1] Database Security**: Replace raw SQL with Drizzle ORM to prevent SQL injection
