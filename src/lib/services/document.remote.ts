@@ -8,6 +8,7 @@ import {
 } from '$lib/ai';
 import { requireAuth, checkRateLimit, ErrorCodes, measurePerformance } from './utils';
 import { getJob } from './job.remote';
+import { calculateATSScore } from './scoring.remote';
 
 // Get document content
 export const getDocument = query(v.pipe(v.string(), v.uuid()), async (documentId) => {
@@ -58,12 +59,21 @@ export const optimizeResume = command(optimizeSchema, async ({ jobId }) => {
 	const markdown = optimized.markdown || formatOptimizedResume(optimized);
 	const html = formatOptimizedResumeAsHTML(optimized);
 
+	// Calculate detailed ATS scores
+	const atsAnalysis = await calculateATSScore({
+		resumeContent: JSON.stringify(resume),
+		jobDescription: JSON.stringify(job),
+		optimizedContent: markdown
+	});
+
 	// Store as document with both HTML content and markdown in metadata
 	const doc = await db.createJobDocument(jobId, 'resume', html, {
-		atsScore: optimized.score,
+		atsScore: atsAnalysis.optimizedScore || optimized.score,
+		originalScore: atsAnalysis.originalScore,
 		matchedKeywords: optimized.keywords,
 		originalResumeId: resume.id,
-		markdown: markdown
+		markdown: markdown,
+		atsAnalysis: atsAnalysis
 	});
 
 	// Create activity
@@ -82,9 +92,12 @@ export const optimizeResume = command(optimizeSchema, async ({ jobId }) => {
 	return {
 		documentId: doc.id,
 		documents,
-		optimizationScore: optimized.score,
+		optimizationScore: atsAnalysis.optimizedScore || optimized.score,
+		originalScore: atsAnalysis.originalScore,
 		matchedKeywords: optimized.keywords,
-		version: doc.version
+		version: doc.version,
+		atsAnalysis: atsAnalysis,
+		recommendations: atsAnalysis.recommendations
 	};
 });
 
