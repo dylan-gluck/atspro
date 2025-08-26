@@ -1,6 +1,16 @@
 import { vi } from 'vitest';
 import type { Navigation, Page } from '@sveltejs/kit';
 
+// Mock the app context for remote functions
+global.app = {
+	hooks: {
+		transport: {
+			encode: (value) => JSON.stringify(value),
+			decode: (value) => JSON.parse(value)
+		}
+	}
+};
+
 // Mock SvelteKit modules
 vi.mock('$app/navigation', () => ({
 	goto: vi.fn(),
@@ -37,23 +47,52 @@ vi.mock('$app/environment', () => ({
 
 // Mock $app/server for remote functions
 vi.mock('$app/server', () => ({
-	query: vi.fn((schema, handler) => {
-		// Return the handler directly for testing
-		return handler || schema;
-	}),
-	command: vi.fn((schema, handler) => {
-		// Return the handler directly for testing
-		return handler || schema;
-	}),
-	form: vi.fn((handler) => {
-		// Return the handler directly for testing
-		// Make it callable by returning the handler function
-		if (typeof handler === 'function') {
-			return handler;
+	query: (schema, handler) => {
+		// If only one argument (the handler function), return it
+		if (typeof schema === 'function' && !handler) {
+			return schema;
 		}
-		return handler;
-	}),
+		// Otherwise return the handler (second argument)
+		return handler || schema;
+	},
+	command: (schema, handler) => {
+		// If only one argument (the handler function), return it
+		if (typeof schema === 'function' && !handler) {
+			return schema;
+		}
+		// Otherwise return the handler (second argument)
+		return handler || schema;
+	},
+	form: (schema, handler) => {
+		// Handle both form(handler) and form(schema, handler) signatures
+		if (typeof schema === 'function' && !handler) {
+			return schema;
+		}
+		return handler || schema;
+	},
 	getRequestEvent: vi.fn()
+}));
+
+// Mock better-auth/svelte-kit
+vi.mock('better-auth/svelte-kit', () => ({
+	sveltekitCookies: vi.fn(() => ({}))
+}));
+
+// Mock database pool
+vi.mock('$lib/db/pool', () => ({
+	getPool: vi.fn(() => ({
+		query: vi.fn(),
+		end: vi.fn()
+	}))
+}));
+
+// Mock SvelteKit environment variables
+vi.mock('$env/static/private', () => ({
+	DATABASE_URL: process.env.DATABASE_URL || 'postgresql://localhost:5432/atspro_test',
+	ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY || 'test-key',
+	OPENAI_API_KEY: process.env.OPENAI_API_KEY || 'test-key',
+	BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET || 'test-secret-key-that-is-at-least-32-chars',
+	BETTER_AUTH_URL: process.env.BETTER_AUTH_URL || 'http://localhost:5173'
 }));
 
 // Mock fetch for server-side tests

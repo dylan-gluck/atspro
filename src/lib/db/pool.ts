@@ -1,5 +1,7 @@
 import { Pool } from 'pg';
 import type { PoolConfig } from 'pg';
+import { DATABASE_URL } from '$env/static/private';
+import { dev } from '$app/environment';
 
 /**
  * Singleton database pool instance
@@ -11,14 +13,12 @@ let pool: Pool | null = null;
  * Get the database pool configuration
  */
 function getPoolConfig(): PoolConfig {
-	const DATABASE_URL = process.env.DATABASE_URL;
-
 	if (!DATABASE_URL) {
 		throw new Error('DATABASE_URL environment variable is not set');
 	}
 
 	// Parse connection string for better error handling
-	const isProduction = process.env.NODE_ENV === 'production';
+	const isProduction = !dev;
 
 	return {
 		connectionString: DATABASE_URL,

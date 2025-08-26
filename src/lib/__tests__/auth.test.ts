@@ -1,22 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { createMockSession, createMockRequestEvent } from '../services/__tests__/test-helpers';
 
-// Mock all SvelteKit imports at the module level
-vi.mock('$app/server', () => ({
-	getRequestEvent: vi.fn()
-}));
-
-vi.mock('better-auth/svelte-kit', () => ({
-	sveltekitCookies: vi.fn(() => ({}))
-}));
-
-vi.mock('$lib/db/pool', () => ({
-	getPool: vi.fn(() => ({
-		query: vi.fn(),
-		end: vi.fn()
-	}))
-}));
-
 describe('Authentication Core Tests', () => {
 	let mockAuth: any;
 
