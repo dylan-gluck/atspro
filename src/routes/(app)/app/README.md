@@ -42,8 +42,8 @@ The dashboard uses SvelteKit Remote Functions for efficient data management:
 
 ### Primary Data Sources
 
-- **`getJobs({ limit: 20 })`** - Fetches recent jobs with pagination
-- **`getDashboardActivity({ limit: 10 })`** - Retrieves cross-job activity feed
+- **`getJobs({ limit: 20 })`** - Fetches recent jobs with pagination and total count
+- **`getDashboardActivity({ limit: 10 })`** - Retrieves cross-job activity feed with job context
 
 ### Data Flow
 
@@ -96,9 +96,9 @@ Each job card displays:
 
 ### Primary Actions
 
-- **Add Job** - Opens job creation flow (currently not working per TODO)
-- **Edit Resume** - Navigate to resume editing interface (buttons not functional per TODO)
-- **View All Jobs** - Navigate to complete jobs listing page
+- **Add Job** - Navigate to job creation flow (/app/jobs/new)
+- **Edit Resume** - Navigate to resume editing interface (/app/resume)
+- **View All Jobs** - Navigate to complete jobs listing page (/app/jobs)
 
 ### Job-Specific Actions
 
@@ -118,8 +118,9 @@ The dashboard leverages SvelteKit's reactive system for live updates:
 ### Automatic Refresh
 
 - Remote function queries automatically update when underlying data changes
-- Statistics recalculate reactively based on job status changes
-- Activity feed updates when new actions are performed
+- Statistics recalculate reactively using Svelte 5 runes (`$derived`)
+- Activity feed updates in real-time when new actions are performed
+- Total job count updates from pagination metadata
 
 ### Loading States
 
@@ -160,12 +161,14 @@ The dashboard works with several key TypeScript interfaces:
 - **`JobActivity`** - Timeline events with types like 'applied', 'interview_scheduled', etc.
 - **`JobStatus`** - Enum for job pipeline stages: tracked, applied, interviewing, offered, rejected, withdrawn
 
-## Current Limitations
+## Current Implementation Status
 
-Based on the TODO list, several features are currently not functional:
+The dashboard is fully functional with:
 
-- PDF resume upload (only .txt files working)
-- Add Job flow functionality
-- Dashboard button actions (Edit Resume, Add Job)
+- Real-time statistics calculation from actual job data
+- Working navigation to all major sections
+- Activity feed with job-specific context
+- Responsive design with loading states
+- ATS score tracking (placeholder values while optimization system develops)
 
 The dashboard serves as the primary interface for job search management, providing users with essential insights and quick access to key functionality within the ATSPro platform.

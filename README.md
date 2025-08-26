@@ -38,7 +38,7 @@ ATSPro is a comprehensive career advancement platform built to help job seekers 
 - **Runtime**: [Bun](https://bun.sh/) for fast JavaScript runtime
 - **Database**: [PostgreSQL](https://www.postgresql.org/) with connection pooling
 - **Authentication**: [Better-Auth](https://better-auth.com/) with SvelteKit integration
-- **AI**: [Vercel AI SDK](https://sdk.vercel.ai/) with OpenAI integration
+- **AI**: [Vercel AI SDK](https://sdk.vercel.ai/) with Anthropic Claude integration
 - **UI Components**: [shadcn/ui](https://ui.shadcn.com/) with Tailwind CSS
 - **Styling**: [Tailwind CSS 4.0](https://tailwindcss.com/)
 - **Testing**: [Vitest](https://vitest.dev/) with Playwright browser testing
@@ -48,7 +48,7 @@ ATSPro is a comprehensive career advancement platform built to help job seekers 
 - **Bun**: v1.0+ (recommended runtime)
 - **PostgreSQL**: v13+ database server
 - **Node.js**: v18+ (if not using Bun)
-- **OpenAI API Key**: For AI-powered resume processing
+- **Anthropic API Key**: For AI-powered resume processing
 
 ## 🚀 Quick Start
 
@@ -78,15 +78,23 @@ ANTHROPIC_API_KEY="your-anthropic-api-key"
 
 # Application
 PUBLIC_APP_URL="http://localhost:5173"
+
+# Better-Auth
+BETTER_AUTH_SECRET="your-secret-key"
+BETTER_AUTH_URL="http://localhost:5173"
+PUBLIC_BETTER_AUTH_URL="http://localhost:5173"
 ```
 
 ### 4. Set Up Database
 
-Run the database migrations to create the required tables:
+Run the database migrations using the built-in migration system:
 
 ```bash
-# Connect to your PostgreSQL database and run:
-psql -d atspro -f migrations/001_create_atspro_tables.sql
+# Run all pending migrations
+bun run migrate
+
+# Check migration status
+bun run migrate:status
 ```
 
 ### 5. Start Development Server
@@ -147,21 +155,34 @@ bun run format
 # Lint code
 bun run lint
 
-# Run unit tests
-bun run test:unit
+# Database migrations
+bun run migrate           # Run pending migrations
+bun run migrate:status    # Check migration status
+bun run migrate:rollback  # Rollback last migration
 
-# Run all tests
-bun run test
+# Testing
+bun run test:unit         # Run unit tests
+bun run test              # Run all unit tests
+bun run test:coverage     # Run tests with coverage
+bun run test:watch        # Run tests in watch mode
+bun run test:e2e          # Run end-to-end tests
+bun run test:e2e:ui       # Run E2E tests with UI
+bun run test:e2e:debug    # Debug E2E tests
+bun run test:all          # Run all tests (unit + E2E)
+bun run test:summary      # Generate test summary
 ```
 
 ## 🗄 Database Schema
 
 The application uses PostgreSQL with the following main tables:
 
+- **user**: User accounts and authentication (Better-Auth)
+- **session**: User session management (Better-Auth)
 - **userResume**: Stores user resume data with JSONB fields for flexible structure
 - **userJobs**: Tracks job applications with status management
-- **jobDocuments**: Versioned document storage for each job application
+- **jobDocuments**: Versioned document storage for each job application (with HTML and markdown content)
 - **jobActivity**: Activity timeline for tracking user actions
+- **migrations**: Database migration tracking system
 
 ## 🔧 Key Features Implementation
 
@@ -175,9 +196,11 @@ ATSPro uses SvelteKit's experimental remote functions feature for type-safe clie
 
 ### AI Integration
 
-- Resume parsing and optimization using OpenAI GPT models
-- Intelligent field extraction from uploaded documents
+- Resume parsing and optimization using Anthropic Claude models
+- Intelligent field extraction from uploaded documents (PDF and text)
 - Content generation for cover letters and application materials
+- ATS score calculation and keyword optimization
+- Company research and job matching
 
 ### Authentication Flow
 
@@ -200,13 +223,20 @@ Ensure all production environment variables are configured:
 - `DATABASE_URL`: Production PostgreSQL connection string
 - `ANTHROPIC_API_KEY`: Anthropic API key for AI features
 - `PUBLIC_APP_URL`: Production application URL
+- `BETTER_AUTH_SECRET`: Secret key for authentication (generate a secure random string)
+- `BETTER_AUTH_URL`: Production authentication URL
+- `PUBLIC_BETTER_AUTH_URL`: Public authentication URL
 
 ### Database Migration
 
-Run the migration script on your production database:
+Run the migration system on your production database:
 
 ```bash
-psql -d production_db -f migrations/001_create_atspro_tables.sql
+# Set production DATABASE_URL environment variable
+export DATABASE_URL="postgresql://user:pass@host:port/dbname"
+
+# Run all migrations
+bun run migrate
 ```
 
 ## 📝 License

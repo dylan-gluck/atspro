@@ -59,12 +59,12 @@ The resume editor combines a powerful form-based editing interface with real-tim
 
 ### AI Integration
 
-The resume editor integrates with OpenAI through the AI service layer:
+The resume editor integrates with Anthropic Claude through the AI service layer:
 
 #### Resume Extraction
 
 - **File Upload**: Supports PDF, Markdown, and plain text files
-- **AI Processing**: Uses GPT-4o-mini for structured data extraction
+- **AI Processing**: Uses Claude 3.5 Sonnet for structured data extraction
 - **Schema Validation**: Zod schema ensures proper data structure
 - **Multi-format Support**: Handles different file types with appropriate processing
 
@@ -181,7 +181,7 @@ interface WorkExperience {
 
 1. **File Validation**: Type, size, and format checks
 2. **Content Extraction**: Format-specific content parsing
-3. **AI Processing**: Structured data extraction via OpenAI
+3. **AI Processing**: Structured data extraction via Anthropic Claude
 4. **Schema Validation**: Ensures extracted data matches expected format
 5. **Database Storage**: Saves structured resume data
 6. **UI Update**: Populates editor with extracted information
@@ -196,7 +196,7 @@ interface WorkExperience {
 
 ### AI Service Layer
 
-- **OpenAI Integration**: GPT-4o-mini and GPT-4.1 models
+- **Anthropic Integration**: Claude 3.5 Sonnet model
 - **Structured Generation**: Zod schema validation for AI responses
 - **Error Recovery**: Graceful handling of AI service failures
 

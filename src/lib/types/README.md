@@ -41,14 +41,13 @@ Contains basic job description interfaces for job postings.
 **Exports:**
 
 - `Job` - Core job posting data structure
-- `JobDocument` - Associated documents for job applications
 
 **Key Features:**
 
 - Comprehensive job description fields
 - Optional salary and location information
 - Array support for multiple responsibilities and qualifications
-- Document type classification (resume, cover, research, prep)
+- Integration with AI extraction system
 
 ### `user-job.ts`
 
@@ -66,7 +65,9 @@ Extended job types with user-specific tracking and database metadata.
 
 - Status tracking through application lifecycle
 - Activity logging for user interactions
-- Document versioning and metadata
+- Document versioning with both HTML and markdown content
+- ATS score tracking per document
+- Metadata support for additional document properties
 - Timestamp tracking for all operations
 
 ### `user-resume.ts`
@@ -105,8 +106,8 @@ These types are designed to work directly with PostgreSQL tables:
 
 - **userResume**: Maps to `UserResume` interface
 - **userJobs**: Maps to `UserJob` interface
-- **jobDocuments**: Maps to `JobDocument` interface
-- **jobActivities**: Maps to `JobActivity` interface
+- **jobDocuments**: Maps to `JobDocument` interface (includes `contentMarkdown` and `atsScore` columns)
+- **jobActivity**: Maps to `JobActivity` interface
 
 All database-integrated types include:
 
@@ -158,14 +159,35 @@ import type { JobDocument } from '$lib/types/user-job';
 
 const createCoverLetter = (
 	jobId: string,
-	content: string
+	htmlContent: string,
+	markdownContent?: string
 ): Omit<JobDocument, 'id' | 'createdAt' | 'updatedAt'> => {
 	return {
 		jobId,
 		type: 'cover',
-		content,
+		content: htmlContent,
+		contentMarkdown: markdownContent,
 		version: 1,
-		isActive: true
+		isActive: true,
+		metadata: { generatedWithAI: true }
+	};
+};
+
+const createOptimizedResume = (
+	jobId: string,
+	htmlContent: string,
+	markdownContent: string,
+	atsScore: number
+): Omit<JobDocument, 'id' | 'createdAt' | 'updatedAt'> => {
+	return {
+		jobId,
+		type: 'resume',
+		content: htmlContent,
+		contentMarkdown: markdownContent,
+		atsScore,
+		version: 1,
+		isActive: true,
+		metadata: { optimized: true, keywords: ['keyword1', 'keyword2'] }
 	};
 };
 ```
