@@ -6,7 +6,11 @@ import type { UserJob, JobDocument } from '$lib/types/user-job';
 // for information about these interfaces
 declare global {
 	namespace App {
-		// interface Error {}
+		interface Error {
+			message: string;
+			code?: string;
+			details?: unknown;
+		}
 		interface Locals {
 			session: Session.session;
 			user: Session.user;

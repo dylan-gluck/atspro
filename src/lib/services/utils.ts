@@ -1,7 +1,7 @@
-import { error } from '@sveltejs/kit';
 import { getRequestEvent } from '$app/server';
 import { auth } from '$lib/auth';
 import { enforceRateLimit, getRateLimitHeaders } from './rate-limit';
+import { throwError, ErrorCode } from '$lib/utils/error-handling';
 
 // Legacy rate limiter for backward compatibility
 const rateLimiter = new Map<string, number[]>();
@@ -22,7 +22,7 @@ export async function checkRateLimitV2(endpoint: string) {
 			Object.entries(rateLimitHeaders).forEach(([key, value]) => {
 				event.setHeaders({ [key]: value });
 			});
-			error(429, err.message);
+			throwError(429, err.message, ErrorCode.RATE_LIMIT_EXCEEDED);
 		}
 		throw err;
 	}
@@ -43,7 +43,11 @@ export function checkRateLimit(
 	const recent = timestamps.filter((t) => t > now - window);
 
 	if (recent.length >= limit) {
-		error(429, 'Too many requests. Please wait before trying again.');
+		throwError(
+			429,
+			'Too many requests. Please wait before trying again.',
+			ErrorCode.RATE_LIMIT_EXCEEDED
+		);
 	}
 
 	recent.push(now);
@@ -56,13 +60,13 @@ export function requireAuth() {
 	const userId = locals.user?.id;
 
 	if (!userId) {
-		error(401, 'Unauthorized');
+		throwError(401, 'Unauthorized', ErrorCode.UNAUTHORIZED);
 	}
 
 	return userId;
 }
 
-// Error codes for consistent error handling
+// Legacy error codes - use ErrorCode from error-handling instead
 export const ErrorCodes = {
 	// Auth errors
 	UNAUTHORIZED: 'UNAUTHORIZED',
@@ -100,15 +104,23 @@ export function validateFile(
 	maxSize: number = 10 * 1024 * 1024 // 10MB default
 ) {
 	if (!file) {
-		error(400, 'No file provided');
+		throwError(400, 'No file provided', ErrorCode.INVALID_INPUT);
 	}
 
 	if (!allowedTypes.includes(file.type)) {
-		error(400, `Invalid file type. Allowed types: ${allowedTypes.join(', ')}`);
+		throwError(
+			400,
+			`Invalid file type. Allowed types: ${allowedTypes.join(', ')}`,
+			ErrorCode.INVALID_FILE_TYPE
+		);
 	}
 
 	if (file.size > maxSize) {
-		error(400, `File too large. Maximum size: ${Math.round(maxSize / 1024 / 1024)}MB`);
+		throwError(
+			400,
+			`File too large. Maximum size: ${Math.round(maxSize / 1024 / 1024)}MB`,
+			ErrorCode.FILE_TOO_LARGE
+		);
 	}
 }
 
