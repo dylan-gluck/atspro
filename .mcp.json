@@ -12,7 +12,7 @@
 				"postgresql://postgres:postgres@localhost/atspro"
 			]
 		},
-		"language-server-ts": {
+		"language-server": {
 			"command": "mcp-language-server",
 			"args": [
 				"--workspace",

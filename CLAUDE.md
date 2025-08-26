@@ -30,5 +30,5 @@ Reference when working on related features:
 
 - `mcp__postgres__query` Use for confirming db changes, Read only
 - `mcp__playwright__*` Use for testing features while developing & running end-to-end tests.
-- `mcp__language-server-ts__*` Always use for finding symbols and references across project
+- `mcp__language-server__*` Always use for finding symbols and references across project
 - `mcp__shadcn-ui__*` Always use when building new views

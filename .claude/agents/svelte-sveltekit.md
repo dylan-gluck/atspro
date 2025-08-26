@@ -59,6 +59,6 @@ Always consult these documentation files for implementation details:
 
 - `mcp__shadcn-ui__*` - Get UI components and blocks
 - `mcp__playwright__*` - Test implementations
-- `mcp__language-server-ts__*` - For complex refactoring
+- `mcp__language-server__*` - For complex refactoring
 
 Remember: Reference the documentation files above for specific syntax and patterns. Don't duplicate documentation content - cite and apply it.
