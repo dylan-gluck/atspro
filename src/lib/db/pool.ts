@@ -1,7 +1,5 @@
 import { Pool } from 'pg';
 import type { PoolConfig } from 'pg';
-import { DATABASE_URL } from '$env/static/private';
-import { dev } from '$app/environment';
 
 /**
  * Singleton database pool instance
@@ -10,9 +8,29 @@ import { dev } from '$app/environment';
 let pool: Pool | null = null;
 
 /**
+ * Get environment variables lazily to support test environments
+ */
+function getEnvVars() {
+	// In test environment, use process.env directly
+	if (typeof process !== 'undefined' && process.env.NODE_ENV === 'test') {
+		return {
+			DATABASE_URL: process.env.DATABASE_URL || 'postgresql://localhost:5432/atspro_test',
+			dev: true
+		};
+	}
+
+	// In normal environment, import from SvelteKit
+	const { DATABASE_URL } = require('$env/static/private');
+	const { dev } = require('$app/environment');
+	return { DATABASE_URL, dev };
+}
+
+/**
  * Get the database pool configuration
  */
 function getPoolConfig(): PoolConfig {
+	const { DATABASE_URL, dev } = getEnvVars();
+
 	if (!DATABASE_URL) {
 		throw new Error('DATABASE_URL environment variable is not set');
 	}

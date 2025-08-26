@@ -1,6 +1,9 @@
 import { vi } from 'vitest';
 import type { Navigation, Page } from '@sveltejs/kit';
 
+// Set NODE_ENV to test for proper environment detection
+process.env.NODE_ENV = 'test';
+
 // Mock the app context for remote functions
 global.app = {
 	hooks: {
