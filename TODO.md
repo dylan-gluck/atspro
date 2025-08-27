@@ -3,9 +3,10 @@
 ## Critical Features:
 
 - [x] Job Details: Setting job status to "applied" does not work anywhere
-- [ ] Job Details: ATS score should display original & optimized score
-- [ ] Edit Resume: Add button to upload new resume, overwrite existing resume
-- [ ] Dashboard: Implement ats score preview in job cards
+- [x] Job Details: ATS score should display original & optimized score
+- [x] Dashboard: Implement ats score preview in job cards
+- [ ] Edit Resume: Add button to upload new resume, should overwrite existing resume
+- [ ] Edit Resume: Add toast notifications
 - [ ] Dashboard: Hook up stats to real data, proper calculations
 - [ ] Settings: Implement user settings and preferences
 - [ ] Global: Add notification system
