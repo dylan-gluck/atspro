@@ -156,18 +156,22 @@ export const replaceResume = form(async (data) => {
 		);
 	}
 
-	// Read file content
-	const buffer = await file.arrayBuffer();
-	const text = await file.text();
+	// Read file content based on type
+	let content: string | Buffer;
+	if (file.type === 'application/pdf') {
+		// Convert to Buffer for AI processing
+		const buffer = await file.arrayBuffer();
+		content = Buffer.from(buffer);
+	} else {
+		// For text files, get the text content
+		content = await file.text();
+	}
 
 	// Extract resume data with AI
-	const extractedData = await extractResumeWithAI(text, file.type);
+	const extractedData = await extractResumeWithAI(content, file.type);
 
 	// Update the existing resume with new extracted data
-	const updatedResume = await db.updateUserResume(userId, {
-		originalText: text,
-		resumeData: extractedData
-	});
+	const updatedResume = await db.updateUserResume(userId, extractedData);
 
 	// Refresh the query
 	await getResume().refresh();
