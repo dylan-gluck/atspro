@@ -58,16 +58,27 @@ export const extractResume = form(async (data) => {
 	}
 
 	// Validate file type and size
-	const validTypes = ['application/pdf', 'text/markdown', 'text/plain'];
+	const validTypes = [
+		'application/pdf',
+		'text/markdown',
+		'text/plain',
+		'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // .docx
+		'application/msword' // .doc
+	];
 	validateFile(file, validTypes, 10 * 1024 * 1024); // 10MB max
 
 	// Process file based on type
 	let content: string | Buffer;
-	if (file.type === 'application/pdf') {
-		// Convert to Buffer for AI processing
+	if (
+		file.type === 'application/pdf' ||
+		file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
+		file.type === 'application/msword'
+	) {
+		// Convert to Buffer for AI processing (binary files)
 		const buffer = await file.arrayBuffer();
 		content = Buffer.from(buffer);
 	} else {
+		// Text files can be read directly
 		content = await file.text();
 	}
 
@@ -145,7 +156,8 @@ export const replaceResume = form(async (data) => {
 			[
 				'application/pdf',
 				'text/plain',
-				'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+				'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+				'application/msword' // .doc files
 			],
 			10 * 1024 * 1024 // 10MB
 		);
@@ -158,8 +170,12 @@ export const replaceResume = form(async (data) => {
 
 	// Read file content based on type
 	let content: string | Buffer;
-	if (file.type === 'application/pdf') {
-		// Convert to Buffer for AI processing
+	if (
+		file.type === 'application/pdf' ||
+		file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
+		file.type === 'application/msword'
+	) {
+		// Convert to Buffer for AI processing (binary files)
 		const buffer = await file.arrayBuffer();
 		content = Buffer.from(buffer);
 	} else {

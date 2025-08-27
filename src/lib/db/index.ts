@@ -1,12 +1,13 @@
 import { eq, and, desc, sql, isNull } from 'drizzle-orm';
 import { db as drizzleDb } from './drizzle';
-import { userResume, userJobs, jobDocuments, jobActivity } from './schema';
+import { userResume, userJobs, jobDocuments, jobActivity, userSettings } from './schema';
 import type { UserResume } from '$lib/types/user-resume';
 import type { NewUserJob } from './schema/user-jobs';
 import type { UserJob, JobDocument, JobActivity, JobActivityType } from '$lib/types/user-job';
 import type { NewJobDocument } from './schema/job-documents';
 import type { NewJobActivity, ActivityType } from './schema/job-activity';
 import type { JobStatus } from './schema/user-jobs';
+import type { UserSettings, NewUserSettings } from './schema/user-settings';
 
 // Resume operations
 export const resume = {
@@ -263,6 +264,58 @@ export const activity = {
 	}
 };
 
+// Settings operations
+export const settings = {
+	async get(userId: string): Promise<UserSettings | null> {
+		const result = await drizzleDb
+			.select()
+			.from(userSettings)
+			.where(eq(userSettings.userId, userId))
+			.limit(1);
+		return result[0] || null;
+	},
+
+	async create(userId: string, data: Partial<UserSettings>): Promise<UserSettings> {
+		const result = await drizzleDb
+			.insert(userSettings)
+			.values({
+				userId,
+				emailNotifications: data.emailNotifications ?? true,
+				applicationUpdates: data.applicationUpdates ?? true,
+				weeklyReports: data.weeklyReports ?? false,
+				jobRecommendations: data.jobRecommendations ?? true,
+				resumeTips: data.resumeTips ?? true,
+				defaultJobStatus: data.defaultJobStatus ?? 'saved'
+			})
+			.returning();
+		return result[0];
+	},
+
+	async update(userId: string, data: Partial<UserSettings>): Promise<UserSettings> {
+		const updateData: any = {};
+
+		Object.entries(data).forEach(([key, value]) => {
+			if (
+				value !== undefined &&
+				key !== 'id' &&
+				key !== 'userId' &&
+				key !== 'createdAt' &&
+				key !== 'updatedAt'
+			) {
+				updateData[key] = value;
+			}
+		});
+
+		const result = await drizzleDb
+			.update(userSettings)
+			.set(updateData)
+			.where(eq(userSettings.userId, userId))
+			.returning();
+
+		return result[0];
+	}
+};
+
 // Helper function for activity descriptions
 function generateActivityDescription(type: JobActivityType, metadata?: any): string {
 	const descriptions: Record<JobActivityType, string> = {
@@ -285,6 +338,11 @@ export const db = {
 	getUserResume: resume.get,
 	createUserResume: resume.create,
 	updateUserResume: resume.update,
+
+	// Settings operations
+	getUserSettings: settings.get,
+	createUserSettings: settings.create,
+	updateUserSettings: settings.update,
 
 	// Job operations
 	jobs,

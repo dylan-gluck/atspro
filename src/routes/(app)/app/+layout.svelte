@@ -21,6 +21,7 @@
 	import { authClient } from '$lib/auth-client';
 	import type { LayoutData } from './$types';
 	import KeyboardShortcuts from '$lib/components/keyboard-shortcuts.svelte';
+	import { Toaster } from '$lib/components/ui/sonner';
 
 	let { children, data }: { children: any; data: LayoutData } = $props();
 
@@ -47,6 +48,7 @@
 </script>
 
 <KeyboardShortcuts />
+<Toaster position="bottom-right" />
 
 <Sidebar.Provider>
 	<!-- Skip to main content link for keyboard navigation -->

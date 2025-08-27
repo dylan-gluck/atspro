@@ -4,8 +4,115 @@
 	import { Label } from '$lib/components/ui/label';
 	import { Input } from '$lib/components/ui/input';
 	import { Switch } from '$lib/components/ui/switch';
+	import * as Select from '$lib/components/ui/select';
 	import * as Tabs from '$lib/components/ui/tabs';
 	import { Separator } from '$lib/components/ui/separator';
+	import { Skeleton } from '$lib/components/ui/skeleton';
+	import { toast } from 'svelte-sonner';
+	import {
+		getUserSettings,
+		updateUserSettings,
+		updateUserProfile
+	} from '$lib/services/settings.remote';
+	import { page } from '$app/state';
+	import { Loader2 } from 'lucide-svelte';
+
+	// Fetch settings and user data
+	let settingsQuery = getUserSettings();
+	let settings = $derived(settingsQuery.current);
+	let settingsLoading = $derived(settingsQuery.loading);
+
+	// Get user data from page
+	let user = $derived(page.data.user);
+
+	// Form state
+	let saving = $state(false);
+	let profileName = $state('');
+	let profileEmail = $state('');
+
+	// Initialize profile data when user loads
+	$effect(() => {
+		if (user) {
+			profileName = user.name || '';
+			profileEmail = user.email || '';
+		}
+	});
+
+	// Settings form state
+	let emailNotifications = $state(true);
+	let applicationUpdates = $state(true);
+	let weeklyReports = $state(false);
+	let jobRecommendations = $state(true);
+	let resumeTips = $state(true);
+	let defaultJobStatus = $state<{ value: string; label: string }>({
+		value: 'saved',
+		label: 'Saved'
+	});
+
+	// Initialize settings when they load
+	$effect(() => {
+		if (settings) {
+			emailNotifications = settings.emailNotifications;
+			applicationUpdates = settings.applicationUpdates;
+			weeklyReports = settings.weeklyReports;
+			jobRecommendations = settings.jobRecommendations;
+			resumeTips = settings.resumeTips;
+			defaultJobStatus = {
+				value: settings.defaultJobStatus,
+				label:
+					settings.defaultJobStatus === 'saved'
+						? 'Saved'
+						: settings.defaultJobStatus === 'applied'
+							? 'Applied'
+							: 'Interviewing'
+			};
+		}
+	});
+
+	// Save profile changes
+	async function saveProfile() {
+		saving = true;
+		try {
+			await updateUserProfile({
+				name: profileName,
+				email: profileEmail
+			});
+			toast.success('Profile updated successfully');
+		} catch (error) {
+			toast.error('Failed to update profile');
+			console.error(error);
+		} finally {
+			saving = false;
+		}
+	}
+
+	// Save notification settings
+	async function saveNotifications() {
+		saving = true;
+		try {
+			await updateUserSettings({
+				emailNotifications,
+				applicationUpdates,
+				weeklyReports,
+				jobRecommendations,
+				resumeTips,
+				defaultJobStatus: defaultJobStatus.value as 'saved' | 'applied' | 'interviewing'
+			});
+			toast.success('Settings updated successfully');
+		} catch (error) {
+			toast.error('Failed to update settings');
+			console.error(error);
+		} finally {
+			saving = false;
+		}
+	}
+
+	// Status options for select
+	const statusOptions = [
+		{ value: 'saved', label: 'Saved' },
+		{ value: 'applied', label: 'Applied' },
+		{ value: 'interviewing', label: 'Interviewing' }
+	];
 </script>
 
 <svelte:head>
@@ -22,6 +129,7 @@
 		<Tabs.List>
 			<Tabs.Trigger value="profile">Profile</Tabs.Trigger>
 			<Tabs.Trigger value="notifications">Notifications</Tabs.Trigger>
+			<Tabs.Trigger value="preferences">Preferences</Tabs.Trigger>
 			<Tabs.Trigger value="billing">Billing</Tabs.Trigger>
 		</Tabs.List>
 
@@ -34,45 +142,189 @@
 				<Card.Content class="space-y-4">
 					<div class="space-y-2">
 						<Label for="name">Name</Label>
-						<Input id="name" placeholder="Enter your name" />
+						<Input
+							id="name"
+							bind:value={profileName}
+							placeholder="Enter your name"
+							disabled={saving}
+						/>
 					</div>
 					<div class="space-y-2">
 						<Label for="email">Email</Label>
-						<Input id="email" type="email" placeholder="Enter your email" />
+						<Input
+							id="email"
+							type="email"
+							bind:value={profileEmail}
+							placeholder="Enter your email"
+							disabled={saving}
+						/>
 					</div>
 				</Card.Content>
 				<Card.Footer>
-					<Button>Save Changes</Button>
+					<Button onclick={saveProfile} disabled={saving}>
+						{#if saving}
+							<Loader2 class="mr-2 h-4 w-4 animate-spin" />
+							Saving...
+						{:else}
+							Save Changes
+						{/if}
+					</Button>
 				</Card.Footer>
 			</Card.Root>
 		</Tabs.Content>
 
 		<Tabs.Content value="notifications" class="mt-6 space-y-4">
-			<Card.Root>
-				<Card.Header>
-					<Card.Title>Notification Preferences</Card.Title>
-					<Card.Description>Configure how you receive notifications</Card.Description>
-				</Card.Header>
-				<Card.Content class="space-y-4">
-					<div class="flex items-center justify-between">
-						<div>
-							<p class="font-medium">Email Notifications</p>
-							<p class="text-muted-foreground text-sm">Receive updates via email</p>
+			{#if settingsLoading}
+				<Card.Root>
+					<Card.Header>
+						<Skeleton class="h-6 w-40" />
+						<Skeleton class="h-4 w-60" />
+					</Card.Header>
+					<Card.Content class="space-y-4">
+						{#each Array(5) as _}
+							<div class="flex items-center justify-between">
+								<div>
+									<Skeleton class="h-5 w-32" />
+									<Skeleton class="mt-1 h-3 w-48" />
+								</div>
+								<Skeleton class="h-6 w-11 rounded-full" />
+							</div>
+							<Separator />
+						{/each}
+					</Card.Content>
+				</Card.Root>
+			{:else}
+				<Card.Root>
+					<Card.Header>
+						<Card.Title>Notification Preferences</Card.Title>
+						<Card.Description>Configure how you receive notifications</Card.Description>
+					</Card.Header>
+					<Card.Content class="space-y-4">
+						<div class="flex items-center justify-between">
+							<div>
+								<p class="font-medium">Email Notifications</p>
+								<p class="text-muted-foreground text-sm">Receive updates via email</p>
+							</div>
+							<Switch bind:checked={emailNotifications} disabled={saving} />
 						</div>
-						<Switch />
-					</div>
-					<Separator />
-					<div class="flex items-center justify-between">
+						<Separator />
+						<div class="flex items-center justify-between">
+							<div>
+								<p class="font-medium">Application Updates</p>
+								<p class="text-muted-foreground text-sm">
+									Get notified about job application status changes
+								</p>
+							</div>
+							<Switch bind:checked={applicationUpdates} disabled={saving} />
+						</div>
+						<Separator />
+						<div class="flex items-center justify-between">
+							<div>
+								<p class="font-medium">Weekly Reports</p>
+								<p class="text-muted-foreground text-sm">
+									Receive weekly summaries of your job search activity
+								</p>
+							</div>
+							<Switch bind:checked={weeklyReports} disabled={saving} />
+						</div>
+						<Separator />
+						<div class="flex items-center justify-between">
+							<div>
+								<p class="font-medium">Job Recommendations</p>
+								<p class="text-muted-foreground text-sm">
+									Get personalized job recommendations based on your profile
+								</p>
+							</div>
+							<Switch bind:checked={jobRecommendations} disabled={saving} />
+						</div>
+						<Separator />
+						<div class="flex items-center justify-between">
+							<div>
+								<p class="font-medium">Resume Tips</p>
+								<p class="text-muted-foreground text-sm">
+									Receive tips to improve your resume's ATS score
+								</p>
+							</div>
+							<Switch bind:checked={resumeTips} disabled={saving} />
+						</div>
+					</Card.Content>
+					<Card.Footer>
+						<Button onclick={saveNotifications} disabled={saving}>
+							{#if saving}
+								<Loader2 class="mr-2 h-4 w-4 animate-spin" />
+								Saving...
+							{:else}
+								Save Preferences
+							{/if}
+						</Button>
+					</Card.Footer>
+				</Card.Root>
+			{/if}
+		</Tabs.Content>
+
+		<Tabs.Content value="preferences" class="mt-6 space-y-4">
+			{#if settingsLoading}
+				<Card.Root>
+					<Card.Header>
+						<Skeleton class="h-6 w-40" />
+						<Skeleton class="h-4 w-60" />
+					</Card.Header>
+					<Card.Content class="space-y-4">
 						<div>
-							<p class="font-medium">Application Updates</p>
+							<Skeleton class="h-4 w-32" />
+							<Skeleton class="mt-2 h-10 w-full" />
+						</div>
+					</Card.Content>
+				</Card.Root>
+			{:else}
+				<Card.Root>
+					<Card.Header>
+						<Card.Title>Application Preferences</Card.Title>
+						<Card.Description>Configure default settings for your job applications</Card.Description
+						>
+					</Card.Header>
+					<Card.Content class="space-y-4">
+						<div class="space-y-2">
+							<Label for="defaultStatus">Default Job Status</Label>
+							<Select.Root
+								type="single"
+								value={defaultJobStatus.value}
+								onValueChange={(v: string | undefined) => {
+									if (v) {
+										const option = statusOptions.find((o) => o.value === v);
+										if (option) defaultJobStatus = option;
+									}
+								}}
+								disabled={saving}
+							>
+								<Select.Trigger class="w-full">
+									<span>{defaultJobStatus.label}</span>
+								</Select.Trigger>
+								<Select.Content>
+									{#each statusOptions as option}
+										<Select.Item value={option.value}>
+											{option.label}
+										</Select.Item>
+									{/each}
+								</Select.Content>
+							</Select.Root>
 							<p class="text-muted-foreground text-sm">
-								Get notified about job application status changes
+								New jobs will be created with this status by default
 							</p>
 						</div>
-						<Switch checked />
-					</div>
-				</Card.Content>
-			</Card.Root>
+					</Card.Content>
+					<Card.Footer>
+						<Button onclick={saveNotifications} disabled={saving}>
+							{#if saving}
+								<Loader2 class="mr-2 h-4 w-4 animate-spin" />
+								Saving...
+							{:else}
+								Save Preferences
+							{/if}
+						</Button>
+					</Card.Footer>
+				</Card.Root>
+			{/if}
 		</Tabs.Content>
 
 		<Tabs.Content value="billing" class="mt-6 space-y-4">
@@ -82,7 +334,20 @@
 					<Card.Description>Manage your subscription and billing details</Card.Description>
 				</Card.Header>
 				<Card.Content>
-					<p class="text-muted-foreground">Billing features coming soon...</p>
+					<div class="space-y-4">
+						<div class="bg-muted/50 rounded-lg p-4">
+							<h3 class="mb-2 font-semibold">Current Plan</h3>
+							<p class="text-muted-foreground">Free Plan</p>
+							<ul class="text-muted-foreground mt-3 space-y-2 text-sm">
+								<li>• Track up to 10 jobs</li>
+								<li>• Basic ATS optimization</li>
+								<li>• Limited resume uploads</li>
+							</ul>
+						</div>
+						<div class="pt-4">
+							<Button variant="outline" disabled>Upgrade to Pro (Coming Soon)</Button>
+						</div>
+					</div>
 				</Card.Content>
 			</Card.Root>
 		</Tabs.Content>

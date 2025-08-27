@@ -12,10 +12,15 @@
 		Github,
 		Twitter,
 		Linkedin,
-		Mail
+		Mail,
+		LayoutDashboard
 	} from 'lucide-svelte';
+	import type { LayoutData } from './$types';
 
-	let { children } = $props();
+	let { children, data }: { children: any; data: LayoutData } = $props();
+
+	// Check if user is logged in
+	const user = $derived(data.user);
 
 	function scrollIntoView(event: Event) {
 		const target = event.target as HTMLAnchorElement;
@@ -84,11 +89,18 @@
 
 				<!-- Auth Buttons -->
 				<div class="flex items-center gap-2">
-					<Button variant="ghost" onclick={() => goto('/auth/sign-in')}>Sign In</Button>
-					<Button onclick={() => goto('/auth/sign-up')}>
-						<Sparkles class="mr-2 h-4 w-4" aria-hidden="true" />
-						Get Started
-					</Button>
+					{#if user}
+						<Button onclick={() => goto('/app')}>
+							<LayoutDashboard class="mr-2 h-4 w-4" aria-hidden="true" />
+							Dashboard
+						</Button>
+					{:else}
+						<Button variant="ghost" onclick={() => goto('/auth/sign-in')}>Sign In</Button>
+						<Button onclick={() => goto('/auth/sign-up')}>
+							<Sparkles class="mr-2 h-4 w-4" aria-hidden="true" />
+							Get Started
+						</Button>
+					{/if}
 				</div>
 			</div>
 		</div>
