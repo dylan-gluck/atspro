@@ -48,9 +48,9 @@
 </script>
 
 <KeyboardShortcuts />
-<Toaster position="bottom-right" />
+<Toaster position="top-center" />
 
-<Sidebar.Provider>
+<Sidebar.Provider open={false}>
 	<!-- Skip to main content link for keyboard navigation -->
 	<a href="#app-main-content" class="skip-link" tabindex="0"> Skip to main content </a>
 

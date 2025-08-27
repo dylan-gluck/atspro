@@ -155,7 +155,7 @@
 
 	<!-- Filters -->
 	<Card.Root>
-		<Card.Content class="pt-6">
+		<Card.Content>
 			<div class="flex flex-col gap-4 sm:flex-row">
 				<div class="relative flex-1">
 					<Search
@@ -195,7 +195,7 @@
 	</Card.Root>
 
 	<!-- Jobs Table -->
-	<Card.Root>
+	<Card.Root class="p-6">
 		<Card.Content class="p-0">
 			<div class="overflow-x-auto">
 				<Table.Root>

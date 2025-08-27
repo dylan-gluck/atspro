@@ -456,7 +456,7 @@
 
 		<!-- Action Buttons -->
 		<Card.Root>
-			<Card.Content class="pt-6">
+			<Card.Content>
 				<div class="flex flex-col gap-4 sm:flex-row">
 					<Select.Root
 						type="single"
