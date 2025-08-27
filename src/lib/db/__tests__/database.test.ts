@@ -169,6 +169,7 @@ describe('Database Operations', () => {
 			status: 'tracked',
 			notes: 'Interesting opportunity',
 			appliedAt: null,
+			atsScore: null,
 			createdAt: new Date(),
 			updatedAt: new Date()
 		};
@@ -179,7 +180,8 @@ describe('Database Operations', () => {
 			const whereMock = vi.fn().mockReturnThis();
 			const orderByMock = vi.fn().mockReturnThis();
 			const limitMock = vi.fn().mockReturnThis();
-			const offsetMock = vi.fn().mockResolvedValue([mockJobData]);
+			// Return structure that matches what jobs.list expects: { job: UserJob, atsScore: number | null }
+			const offsetMock = vi.fn().mockResolvedValue([{ job: mockJobData, atsScore: null }]);
 
 			vi.mocked(drizzleDb).select.mockImplementation((fields?: any) => {
 				if (fields && fields.count) {
@@ -189,7 +191,7 @@ describe('Database Operations', () => {
 						where: vi.fn().mockResolvedValue([{ count: 1 }])
 					} as any;
 				}
-				// Regular select query
+				// Regular select query for jobs with ATS score
 				return {
 					from: fromMock,
 					where: whereMock,

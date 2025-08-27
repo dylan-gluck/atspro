@@ -24,11 +24,17 @@
 		EyeOff,
 		ChevronUp,
 		ChevronDown,
-		Loader2
+		Loader2,
+		Upload
 	} from 'lucide-svelte';
 	import type { Resume, WorkExperience, Education, Certification, Link } from '$lib/types/resume';
 	import type { UserResume } from '$lib/types/user-resume';
-	import { updateResume, getResume } from '$lib/services/resume.remote';
+	import {
+		updateResume,
+		getResume,
+		replaceResume,
+		extractResume
+	} from '$lib/services/resume.remote';
 	import { goto } from '$app/navigation';
 	import ResumeSkeleton from '$lib/components/resume/resume-skeleton.svelte';
 
@@ -37,6 +43,22 @@
 	let originalResume = $state<UserResume | null>(null);
 	let resume = $state<UserResume | null>(null);
 	let loading = $state(true);
+	let uploadFormRef = $state<HTMLFormElement | null>(null);
+	let uploadInputRef = $state<HTMLInputElement | null>(null);
+	let uploadLoading = $state(false);
+
+	// Handle file upload
+	async function handleFileUpload(event: Event) {
+		const input = event.target as HTMLInputElement;
+		const file = input.files?.[0];
+
+		if (!file) return;
+
+		// Submit the form programmatically
+		if (uploadFormRef) {
+			uploadFormRef.requestSubmit();
+		}
+	}
 
 	// Load resume data on mount
 	$effect(() => {
@@ -44,8 +66,8 @@
 			try {
 				const resumeData = await resumePromise;
 				if (!resumeData) {
-					// No resume found, redirect to onboarding
-					goto('/onboarding');
+					// No resume found, show upload option
+					loading = false;
 					return;
 				}
 				originalResume = resumeData;
@@ -279,6 +301,78 @@
 	<div aria-busy="true" aria-label="Loading resume data">
 		<ResumeSkeleton />
 	</div>
+{:else if !resume}
+	<!-- No resume found - show upload option -->
+	<div class="container mx-auto p-6">
+		<Card class="mx-auto max-w-2xl">
+			<CardHeader class="text-center">
+				<CardTitle>No Resume Found</CardTitle>
+				<CardDescription>Upload your resume to get started with ATS optimization</CardDescription>
+			</CardHeader>
+			<CardContent class="flex flex-col items-center gap-4">
+				<div class="text-center">
+					<p class="text-muted-foreground mb-4">
+						Upload your existing resume and we'll help you optimize it for ATS systems
+					</p>
+				</div>
+				<!-- Upload form for first resume -->
+				<form
+					enctype="multipart/form-data"
+					{...extractResume.enhance(async ({ form, data, submit }) => {
+						uploadLoading = true;
+						try {
+							await submit();
+							if (extractResume.result) {
+								toast.success('Resume uploaded successfully!');
+								// Refresh the page to load the new resume
+								resumePromise = getResume();
+								const newResumeData = await resumePromise;
+								if (newResumeData) {
+									resume = structuredClone(newResumeData);
+									originalResume = structuredClone(newResumeData);
+								}
+							}
+						} catch (error) {
+							toast.error('Failed to upload resume');
+							console.error(error);
+						} finally {
+							uploadLoading = false;
+						}
+					})}
+				>
+					<input
+						type="file"
+						name="document"
+						accept=".pdf,.docx,.doc,.txt"
+						required
+						class="hidden"
+						id="resume-upload-input"
+						onchange={(e) => {
+							const input = e.target as HTMLInputElement;
+							if (input.files?.[0]) {
+								input.form?.requestSubmit();
+							}
+						}}
+					/>
+					<Button
+						type="button"
+						size="lg"
+						onclick={() => document.getElementById('resume-upload-input')?.click()}
+						disabled={uploadLoading}
+					>
+						{#if uploadLoading}
+							<Loader2 class="mr-2 h-4 w-4 animate-spin" />
+							Uploading...
+						{:else}
+							<Upload class="mr-2 h-4 w-4" />
+							Upload Resume
+						{/if}
+					</Button>
+				</form>
+				<div class="text-muted-foreground text-sm">Supported formats: PDF, DOCX, DOC, TXT</div>
+			</CardContent>
+		</Card>
+	</div>
 {:else if resume}
 	<div class="container mx-auto p-6">
 		<!-- Header with action buttons -->
@@ -288,6 +382,64 @@
 				<p class="text-muted-foreground">Edit your resume information below</p>
 			</div>
 			<div class="flex gap-2">
+				<!-- Hidden form for resume upload -->
+				<form
+					bind:this={uploadFormRef}
+					class="hidden"
+					enctype="multipart/form-data"
+					{...replaceResume.enhance(async ({ form, data, submit }) => {
+						uploadLoading = true;
+
+						try {
+							// Let the form submit normally
+							await submit();
+
+							// Handle the result
+							if (replaceResume.result) {
+								toast.success('Resume uploaded and processed successfully!');
+
+								// Refresh the resume data
+								resumePromise = getResume();
+								const newResumeData = await resumePromise;
+								if (newResumeData) {
+									resume = structuredClone(newResumeData);
+									originalResume = structuredClone(newResumeData);
+								}
+							}
+						} catch (error) {
+							toast.error('Failed to upload resume. Please try again.');
+							console.error('Upload error:', error);
+						} finally {
+							uploadLoading = false;
+							// Reset the input
+							if (uploadInputRef) {
+								uploadInputRef.value = '';
+							}
+						}
+					})}
+				>
+					<input
+						bind:this={uploadInputRef}
+						type="file"
+						name="resume"
+						accept=".pdf,.docx,.doc,.txt"
+						onchange={handleFileUpload}
+					/>
+				</form>
+				<Button
+					variant="outline"
+					onclick={() => uploadInputRef?.click()}
+					disabled={uploadLoading || saving}
+					class="gap-2"
+				>
+					{#if uploadLoading}
+						<Loader2 class="h-4 w-4 animate-spin" />
+						Uploading...
+					{:else}
+						<Upload class="h-4 w-4" />
+						Upload New Resume
+					{/if}
+				</Button>
 				<Button
 					variant="outline"
 					onclick={() => {

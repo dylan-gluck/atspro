@@ -2,7 +2,7 @@
 
 ## Critical Features:
 
-- [ ] Job Details: Setting job status to "applied" does not work anywhere
+- [x] Job Details: Setting job status to "applied" does not work anywhere
 - [ ] Job Details: ATS score should display original & optimized score
 - [ ] Edit Resume: Add button to upload new resume, overwrite existing resume
 - [ ] Dashboard: Implement ats score preview in job cards

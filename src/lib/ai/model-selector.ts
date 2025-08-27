@@ -67,10 +67,10 @@ export const AI_MODELS = {
  * Task-to-model mapping for optimal cost/quality balance
  */
 export const TASK_MODEL_MAP = {
-	// Simple extraction tasks - Use cheapest models
-	extract_resume: 'claude-3-haiku-20240307',
+	// Simple extraction tasks - Use models that support PDFs
+	extract_resume: 'claude-3-5-sonnet-20241022', // Must support PDF input
 	extract_job: 'claude-3-haiku-20240307',
-	parse_document: 'claude-3-haiku-20240307',
+	parse_document: 'claude-3-5-sonnet-20241022', // Must support various document formats
 	extract_keywords: 'claude-3-haiku-20240307',
 
 	// Scoring and classification - Use cheap models

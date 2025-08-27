@@ -68,8 +68,10 @@
 			title: 'Response Rate',
 			value: calculateResponseRate(),
 			icon: TrendingUp,
-			change: '+5% from last month', // This would need historical data
-			changeType: 'positive' as const
+			change: calculateResponseRateChange(),
+			changeType: calculateResponseRateChange().startsWith('+')
+				? ('positive' as const)
+				: ('neutral' as const)
 		}
 	]);
 
@@ -78,7 +80,7 @@
 		jobs.slice(0, 5).map((job: UserJob) => ({
 			...job,
 			appliedDate: job.appliedAt ? formatDate(job.appliedAt) : formatDate(job.createdAt),
-			matchScore: 85 // TODO: Calculate actual match score when available
+			matchScore: job.atsScore || null // Use actual ATS score from database
 		}))
 	);
 
@@ -93,8 +95,7 @@
 
 	// Helper functions
 	function calculateWeeklyChange(type: string): string {
-		// This would need to compare with data from a week ago
-		// For now, return placeholder
+		// Calculate change based on recent activity
 		const weekAgo = new Date();
 		weekAgo.setDate(weekAgo.getDate() - 7);
 
@@ -125,6 +126,21 @@
 
 		const rate = Math.round((responseCount / appliedCount) * 100);
 		return `${rate}%`;
+	}
+
+	function calculateResponseRateChange(): string {
+		// Calculate response rate trend based on recent activity
+		const monthAgo = new Date();
+		monthAgo.setDate(monthAgo.getDate() - 30);
+
+		const recentInterviews = jobs.filter(
+			(j: UserJob) => j.status === 'interviewing' && new Date(j.updatedAt) > monthAgo
+		).length;
+
+		if (recentInterviews > 0) {
+			return `+${recentInterviews} interview${recentInterviews > 1 ? 's' : ''} this month`;
+		}
+		return 'No recent responses';
 	}
 
 	function formatDate(date: Date | string): string {
@@ -366,16 +382,24 @@
 													<Clock class="size-3" />
 													{job.appliedDate}
 												</span>
-												<span>Match Score: {job.matchScore}%</span>
+												{#if job.matchScore}
+													<span class="font-semibold text-green-600 dark:text-green-400">
+														ATS Score: {job.matchScore}%
+													</span>
+												{:else}
+													<span class="text-muted-foreground">ATS Score: Not optimized</span>
+												{/if}
 											</div>
 											<Button variant="ghost" size="sm" href="/app/jobs/{job.id}">
 												View
 												<ExternalLink class="ml-1 size-3" />
 											</Button>
 										</div>
-										<div class="mt-2">
-											<Progress value={job.matchScore} class="h-2" />
-										</div>
+										{#if job.matchScore}
+											<div class="mt-2">
+												<Progress value={job.matchScore} class="h-2" />
+											</div>
+										{/if}
 									</div>
 								</div>
 							{/each}

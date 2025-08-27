@@ -175,7 +175,7 @@
 				await updateJobStatus({
 					jobId,
 					status,
-					appliedAt: status === 'applied' ? new Date().toISOString() : undefined
+					appliedAt: status === 'applied' ? new Date().toISOString().split('T')[0] : undefined
 				});
 			}
 

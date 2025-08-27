@@ -65,9 +65,20 @@ export const jobs = {
 			? and(eq(userJobs.userId, userId), eq(userJobs.status, status))
 			: eq(userJobs.userId, userId);
 
+		// Get jobs with their latest ATS scores from resume documents
 		const [jobsResult, countResult] = await Promise.all([
 			drizzleDb
-				.select()
+				.select({
+					job: userJobs,
+					atsScore: sql<number | null>`(
+						SELECT "atsScore" 
+						FROM "jobDocuments" 
+						WHERE "jobDocuments"."jobId" = "userJobs"."id" 
+						AND "jobDocuments"."type" = 'resume' 
+						AND "jobDocuments"."isActive" = true 
+						LIMIT 1
+					)`
+				})
 				.from(userJobs)
 				.where(whereConditions)
 				.orderBy(desc(userJobs.createdAt))
@@ -79,8 +90,14 @@ export const jobs = {
 				.where(whereConditions)
 		]);
 
+		// Map results to include ATS score in job object
+		const jobsWithScores = jobsResult.map((row) => ({
+			...row.job,
+			atsScore: row.atsScore
+		}));
+
 		return {
-			jobs: jobsResult,
+			jobs: jobsWithScores,
 			total: Number(countResult[0].count)
 		};
 	},

@@ -119,3 +119,62 @@ export const updateResume = command(updateResumeSchema, async (updates) => {
 		updatedAt: resume.updatedAt
 	};
 });
+
+// Replace existing resume with new uploaded file
+export const replaceResume = form(async (data) => {
+	const userId = requireAuth();
+
+	// Apply tier-based rate limiting
+	await checkRateLimitV2('ai.analyze');
+
+	// Ensure user has an existing resume
+	const existing = await db.getUserResume(userId);
+	if (!existing) {
+		error(404, 'No resume found. Please create one first.');
+	}
+
+	const file = data.get('resume') as File;
+	if (!file) {
+		error(400, 'No file uploaded');
+	}
+
+	// Validate file
+	try {
+		validateFile(
+			file,
+			[
+				'application/pdf',
+				'text/plain',
+				'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+			],
+			10 * 1024 * 1024 // 10MB
+		);
+	} catch (validationError) {
+		error(
+			400,
+			validationError instanceof Error ? validationError.message : 'File validation failed'
+		);
+	}
+
+	// Read file content
+	const buffer = await file.arrayBuffer();
+	const text = await file.text();
+
+	// Extract resume data with AI
+	const extractedData = await extractResumeWithAI(text, file.type);
+
+	// Update the existing resume with new extracted data
+	const updatedResume = await db.updateUserResume(userId, {
+		originalText: text,
+		resumeData: extractedData
+	});
+
+	// Refresh the query
+	await getResume().refresh();
+
+	return {
+		id: updatedResume.id,
+		extractedData,
+		message: 'Resume replaced successfully'
+	};
+});

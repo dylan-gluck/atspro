@@ -196,7 +196,14 @@
 				jobId
 			});
 
-			toast.success(`Resume optimized! ATS Score: ${result.optimizationScore}%`);
+			if (result.originalScore && result.optimizationScore) {
+				const improvement = result.optimizationScore - result.originalScore;
+				toast.success(
+					`Resume optimized! ATS Score: ${result.originalScore}% → ${result.optimizationScore}% (+${improvement}%)`
+				);
+			} else {
+				toast.success(`Resume optimized! ATS Score: ${result.optimizationScore}%`);
+			}
 			// Refresh job data to get new documents
 			if (jobQuery) await jobQuery.refresh();
 		} catch (error) {
@@ -304,7 +311,10 @@
 			await updateJobStatus({
 				jobId,
 				status: newStatus,
-				appliedAt: newStatus === 'applied' && !job.appliedAt ? new Date().toISOString() : undefined
+				appliedAt:
+					newStatus === 'applied' && !job.appliedAt
+						? new Date().toISOString().split('T')[0]
+						: undefined
 			});
 
 			toast.success(`Status updated to ${newStatus}`);
@@ -634,9 +644,16 @@
 												<p class="text-muted-foreground text-sm">
 													Version {doc.version} • Created {formatDate(doc.createdAt)}
 												</p>
-												{#if doc.metadata?.atsScore}
+												{#if doc.metadata?.atsScore || doc.metadata?.originalScore}
 													<p class="text-primary mt-1 text-sm">
-														ATS Score: {doc.metadata.atsScore}%
+														{#if doc.metadata?.originalScore && doc.metadata?.atsScore}
+															ATS Score: {doc.metadata.originalScore}% → {doc.metadata.atsScore}%
+															<span class="text-green-600">
+																(+{doc.metadata.atsScore - doc.metadata.originalScore}%)
+															</span>
+														{:else if doc.metadata?.atsScore}
+															ATS Score: {doc.metadata.atsScore}%
+														{/if}
 													</p>
 												{/if}
 											</div>

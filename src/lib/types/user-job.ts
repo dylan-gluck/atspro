@@ -25,6 +25,7 @@ export interface UserJob {
 	appliedAt?: Date | null;
 	createdAt: Date;
 	updatedAt: Date;
+	atsScore?: number | null; // Added for dashboard display
 }
 
 export interface JobDocument {
