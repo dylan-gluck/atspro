@@ -34,8 +34,13 @@
 		MessageSquare,
 		BookOpen,
 		Rocket,
-		BarChart3
+		BarChart3,
+		LayoutDashboard
 	} from 'lucide-svelte';
+	import { page } from '$app/state';
+
+	// Check if user is logged in from parent layout
+	const user = $derived(page.data.user);
 
 	function scrollIntoView(event: Event) {
 		const target = event.target as HTMLElement;
@@ -84,11 +89,19 @@
 				</div>
 
 				<div class="flex flex-col gap-4 sm:flex-row">
-					<Button size="lg" onclick={() => goto('/auth/sign-up')} class="group">
-						<Rocket class="mr-2 h-5 w-5" />
-						Start Free - No Credit Card Required
-						<ArrowRight class="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-					</Button>
+					{#if user}
+						<Button size="lg" onclick={() => goto('/app')} class="group">
+							<LayoutDashboard class="mr-2 h-5 w-5" />
+							Go to Dashboard
+							<ArrowRight class="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+						</Button>
+					{:else}
+						<Button size="lg" onclick={() => goto('/auth/sign-up')} class="group">
+							<Rocket class="mr-2 h-5 w-5" />
+							Start Free - No Credit Card Required
+							<ArrowRight class="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+						</Button>
+					{/if}
 					<Button
 						size="lg"
 						variant="outline"

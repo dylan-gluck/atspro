@@ -1,6 +1,16 @@
 import { vi } from 'vitest';
 import type { Navigation, Page } from '@sveltejs/kit';
 
+// Mock the app context for remote functions
+global.app = {
+	hooks: {
+		transport: {
+			encode: (value) => JSON.stringify(value),
+			decode: (value) => JSON.parse(value)
+		}
+	}
+};
+
 // Mock SvelteKit modules
 vi.mock('$app/navigation', () => ({
 	goto: vi.fn(),
@@ -28,27 +38,45 @@ vi.mock('$app/stores', () => {
 	return { page, navigating, updated };
 });
 
-vi.mock('$app/environment', () => ({
-	browser: false,
-	dev: true,
-	building: false,
-	version: 'test'
-}));
-
 // Mock $app/server for remote functions
 vi.mock('$app/server', () => ({
-	query: vi.fn((schema, handler) => {
-		// Return the handler directly for testing
-		return handler;
-	}),
-	command: vi.fn((schema, handler) => {
-		// Return the handler directly for testing
-		return handler;
-	}),
-	form: vi.fn((handler) => {
-		// Return the handler directly for testing
-		return handler;
-	})
+	query: (schema, handler) => {
+		// If only one argument (the handler function), return it
+		if (typeof schema === 'function' && !handler) {
+			return schema;
+		}
+		// Otherwise return the handler (second argument)
+		return handler || schema;
+	},
+	command: (schema, handler) => {
+		// If only one argument (the handler function), return it
+		if (typeof schema === 'function' && !handler) {
+			return schema;
+		}
+		// Otherwise return the handler (second argument)
+		return handler || schema;
+	},
+	form: (schema, handler) => {
+		// Handle both form(handler) and form(schema, handler) signatures
+		if (typeof schema === 'function' && !handler) {
+			return schema;
+		}
+		return handler || schema;
+	},
+	getRequestEvent: vi.fn()
+}));
+
+// Mock better-auth/svelte-kit
+vi.mock('better-auth/svelte-kit', () => ({
+	sveltekitCookies: vi.fn(() => ({}))
+}));
+
+// Mock database pool
+vi.mock('$lib/db/pool', () => ({
+	getPool: vi.fn(() => ({
+		query: vi.fn(),
+		end: vi.fn()
+	}))
 }));
 
 // Mock fetch for server-side tests

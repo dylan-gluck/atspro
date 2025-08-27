@@ -548,6 +548,7 @@
 				<p class="text-sm font-medium">Email Notifications</p>
 				<label class="flex cursor-pointer items-center space-x-3">
 					<input
+						id="job-alerts"
 						type="checkbox"
 						bind:checked={preferences.jobAlerts}
 						class="border-input text-primary h-4 w-4 rounded"
@@ -561,6 +562,7 @@
 				</label>
 				<label class="flex cursor-pointer items-center space-x-3">
 					<input
+						id="weekly-tips"
 						type="checkbox"
 						bind:checked={preferences.weeklyTips}
 						class="border-input text-primary h-4 w-4 rounded"
@@ -652,7 +654,7 @@
 
 		<!-- Main card -->
 		<Card class="w-full">
-			<CardContent class="pt-6">
+			<CardContent>
 				{#if currentStep === 1}
 					{@render welcomeStep()}
 				{:else if currentStep === 2}

@@ -29,7 +29,7 @@
 
 	// Fetch data using remote functions
 	let jobsQuery = getJobs({ limit: 20 });
-	let activitiesQuery = getDashboardActivity({ limit: 10 });
+	let activitiesQuery = getDashboardActivity({ limit: 5 });
 
 	// Derived state from queries
 	let jobs = $derived(jobsQuery.current?.jobs || []);
@@ -68,8 +68,10 @@
 			title: 'Response Rate',
 			value: calculateResponseRate(),
 			icon: TrendingUp,
-			change: '+5% from last month', // This would need historical data
-			changeType: 'positive' as const
+			change: calculateResponseRateChange(),
+			changeType: calculateResponseRateChange().startsWith('+')
+				? ('positive' as const)
+				: ('neutral' as const)
 		}
 	]);
 
@@ -78,7 +80,7 @@
 		jobs.slice(0, 5).map((job: UserJob) => ({
 			...job,
 			appliedDate: job.appliedAt ? formatDate(job.appliedAt) : formatDate(job.createdAt),
-			matchScore: 85 // TODO: Calculate actual match score when available
+			matchScore: job.atsScore || null // Use actual ATS score from database
 		}))
 	);
 
@@ -93,8 +95,7 @@
 
 	// Helper functions
 	function calculateWeeklyChange(type: string): string {
-		// This would need to compare with data from a week ago
-		// For now, return placeholder
+		// Calculate change based on recent activity
 		const weekAgo = new Date();
 		weekAgo.setDate(weekAgo.getDate() - 7);
 
@@ -125,6 +126,21 @@
 
 		const rate = Math.round((responseCount / appliedCount) * 100);
 		return `${rate}%`;
+	}
+
+	function calculateResponseRateChange(): string {
+		// Calculate response rate trend based on recent activity
+		const monthAgo = new Date();
+		monthAgo.setDate(monthAgo.getDate() - 30);
+
+		const recentInterviews = jobs.filter(
+			(j: UserJob) => j.status === 'interviewing' && new Date(j.updatedAt) > monthAgo
+		).length;
+
+		if (recentInterviews > 0) {
+			return `+${recentInterviews} interview${recentInterviews > 1 ? 's' : ''} this month`;
+		}
+		return 'No recent responses';
 	}
 
 	function formatDate(date: Date | string): string {
@@ -244,7 +260,7 @@
 	</div>
 
 	<!-- Stats Cards -->
-	<div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
+	<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
 		{#if jobsLoading}
 			{#each Array(4) as _}
 				<Card.Root>
@@ -282,9 +298,9 @@
 	</div>
 
 	<!-- Main Content Grid -->
-	<div class="grid gap-6 lg:grid-cols-3">
-		<!-- Recent Jobs (2 columns wide) -->
-		<div class="lg:col-span-2">
+	<div class="grid gap-6 xl:grid-cols-3">
+		<!-- Recent Jobs (2 columns wide on xl screens) -->
+		<div class="xl:col-span-2">
 			<Card.Root>
 				<Card.Header>
 					<div class="flex items-center justify-between">
@@ -292,10 +308,12 @@
 							<Card.Title>Recent Jobs</Card.Title>
 							<Card.Description>Your latest job applications and saves</Card.Description>
 						</div>
-						<Button variant="ghost" size="sm">
-							View All
-							<ChevronRight class="ml-1 size-4" />
-						</Button>
+						{#if totalJobs > 5}
+							<Button variant="ghost" size="sm" onclick={() => goto('/app/jobs')}>
+								View All
+								<ChevronRight class="ml-1 size-4" />
+							</Button>
+						{/if}
 					</div>
 				</Card.Header>
 				<Card.Content>
@@ -334,50 +352,54 @@
 							</Button>
 						</div>
 					{:else}
-						<div class="space-y-4">
+						<div class="space-y-3">
 							{#each recentJobs as job}
-								<div
-									class="hover:bg-accent/50 flex items-start justify-between rounded-lg border p-4 transition-colors"
+								<button
+									onclick={() => goto(`/app/jobs/${job.id}`)}
+									class="hover:bg-accent/50 w-full rounded-lg border p-4 text-left transition-colors"
 								>
-									<div class="flex-1 space-y-1">
-										<div class="flex items-start justify-between">
-											<div>
-												<h3 class="font-semibold">{job.title}</h3>
-												<div class="text-muted-foreground flex items-center gap-4 text-sm">
+									<div class="space-y-2">
+										<div class="flex items-start justify-between gap-4">
+											<div class="min-w-0 flex-1">
+												<h3 class="truncate font-semibold">{job.title}</h3>
+												<div class="text-muted-foreground flex items-center gap-3 text-sm">
 													<span class="flex items-center gap-1">
-														<Building class="size-3" />
-														{job.company}
+														<Building class="size-3 shrink-0" />
+														<span class="truncate">{job.company}</span>
 													</span>
 													{#if job.location && job.location.length > 0}
 														<span class="flex items-center gap-1">
-															<MapPin class="size-3" />
-															{Array.isArray(job.location) ? job.location[0] : job.location}
+															<MapPin class="size-3 shrink-0" />
+															<span class="truncate">
+																{Array.isArray(job.location) ? job.location[0] : job.location}
+															</span>
 														</span>
 													{/if}
 												</div>
 											</div>
-											<Badge variant={getStatusVariant(job.status)}>
+											<Badge variant={getStatusVariant(job.status)} class="shrink-0">
 												{formatStatus(job.status)}
 											</Badge>
 										</div>
-										<div class="mt-2 flex items-center justify-between">
-											<div class="text-muted-foreground flex items-center gap-4 text-xs">
+										<div class="flex items-center justify-between">
+											<div class="text-muted-foreground flex items-center gap-3 text-xs">
 												<span class="flex items-center gap-1">
 													<Clock class="size-3" />
 													{job.appliedDate}
 												</span>
-												<span>Match Score: {job.matchScore}%</span>
+												{#if job.matchScore}
+													<span class="font-medium text-green-600 dark:text-green-400">
+														ATS: {job.matchScore}%
+													</span>
+												{/if}
 											</div>
-											<Button variant="ghost" size="sm" href="/app/jobs/{job.id}">
-												View
-												<ExternalLink class="ml-1 size-3" />
-											</Button>
+											<ExternalLink class="text-muted-foreground size-3" />
 										</div>
-										<div class="mt-2">
-											<Progress value={job.matchScore} class="h-2" />
-										</div>
+										{#if job.matchScore}
+											<Progress value={job.matchScore} class="h-1.5" />
+										{/if}
 									</div>
-								</div>
+								</button>
 							{/each}
 						</div>
 					{/if}
@@ -423,8 +445,8 @@
 				</Card.Header>
 				<Card.Content>
 					{#if activitiesLoading}
-						<div class="space-y-4">
-							{#each Array(4) as _}
+						<div class="space-y-3">
+							{#each Array(3) as _}
 								<div class="flex items-start gap-3">
 									<Skeleton class="mt-0.5 size-6 rounded-full" />
 									<div class="flex-1 space-y-2">
@@ -442,9 +464,9 @@
 							</p>
 						</div>
 					{:else}
-						<div class="space-y-4">
-							{#each recentActivity as activity}
-								<div class="flex items-start gap-3">
+						<div class="space-y-3">
+							{#each recentActivity.slice(0, 5) as activity}
+								<div class="flex items-start gap-2">
 									<div class="bg-primary/10 mt-0.5 rounded-full p-1">
 										{#if activity.type === 'application'}
 											<Send class="text-primary size-3" />
@@ -458,8 +480,8 @@
 											<Briefcase class="text-primary size-3" />
 										{/if}
 									</div>
-									<div class="flex-1 space-y-1">
-										<p class="text-sm">{activity.message}</p>
+									<div class="min-w-0 flex-1">
+										<p class="truncate text-sm leading-tight">{activity.message}</p>
 										<p class="text-muted-foreground text-xs">{activity.time}</p>
 									</div>
 								</div>

@@ -4,6 +4,7 @@
  */
 
 import type { BrowserOptions, NodeOptions } from '@sentry/sveltekit';
+import type { Event, EventHint } from '@sentry/types';
 
 // Get environment from Vite or process
 const isDev = import.meta.env?.DEV ?? process.env.NODE_ENV === 'development';
@@ -28,15 +29,19 @@ export const sentryConfig = {
 	replaysOnErrorSampleRate: 1.0,
 
 	// Filter errors before sending
-	beforeSend(event: any, hint: any) {
+	beforeSend(event: Event, hint: EventHint) {
 		// Log in debug mode
 		if (import.meta.env?.VITE_SENTRY_DEBUG === 'true') {
 			console.log('[Sentry] Sending event:', event);
 		}
 
 		// Filter out some common non-critical errors
-		if (hint.originalException?.message) {
-			const message = hint.originalException.message;
+		if (
+			hint.originalException &&
+			typeof hint.originalException === 'object' &&
+			'message' in hint.originalException
+		) {
+			const message = String(hint.originalException.message);
 
 			// Filter out network errors that are likely user connection issues
 			if (
@@ -72,16 +77,24 @@ export const sentryConfig = {
 	// Integration configurations will be added by client/server specific configs
 } as Partial<BrowserOptions & NodeOptions>;
 
+interface SentryUserContext {
+	id: string;
+	email?: string;
+	username?: string;
+}
+
 /**
  * Get user context for Sentry
  * This should be called after authentication to associate errors with users
  */
-export function getSentryUserContext(user: any) {
+export function getSentryUserContext(
+	user: { id: string; email?: string | null; name?: string | null } | null
+): SentryUserContext | null {
 	if (!user) return null;
 
 	return {
 		id: user.id,
-		email: user.email,
-		username: user.name || user.email?.split('@')[0]
+		email: user.email || undefined,
+		username: user.name || user.email?.split('@')[0] || undefined
 	};
 }

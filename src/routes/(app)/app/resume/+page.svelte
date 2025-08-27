@@ -24,18 +24,41 @@
 		EyeOff,
 		ChevronUp,
 		ChevronDown,
-		Loader2
+		Loader2,
+		Upload
 	} from 'lucide-svelte';
 	import type { Resume, WorkExperience, Education, Certification, Link } from '$lib/types/resume';
 	import type { UserResume } from '$lib/types/user-resume';
-	import { updateResume, getResume } from '$lib/services/resume.remote';
+	import {
+		updateResume,
+		getResume,
+		replaceResume,
+		extractResume
+	} from '$lib/services/resume.remote';
 	import { goto } from '$app/navigation';
+	import ResumeSkeleton from '$lib/components/resume/resume-skeleton.svelte';
 
 	// Fetch resume data using remote function
 	let resumePromise = $state(getResume());
 	let originalResume = $state<UserResume | null>(null);
 	let resume = $state<UserResume | null>(null);
 	let loading = $state(true);
+	let uploadFormRef = $state<HTMLFormElement | null>(null);
+	let uploadInputRef = $state<HTMLInputElement | null>(null);
+	let uploadLoading = $state(false);
+
+	// Handle file upload
+	async function handleFileUpload(event: Event) {
+		const input = event.target as HTMLInputElement;
+		const file = input.files?.[0];
+
+		if (!file) return;
+
+		// Submit the form programmatically
+		if (uploadFormRef) {
+			uploadFormRef.requestSubmit();
+		}
+	}
 
 	// Load resume data on mount
 	$effect(() => {
@@ -43,8 +66,8 @@
 			try {
 				const resumeData = await resumePromise;
 				if (!resumeData) {
-					// No resume found, redirect to onboarding
-					goto('/onboarding');
+					// No resume found, show upload option
+					loading = false;
 					return;
 				}
 				originalResume = resumeData;
@@ -58,9 +81,11 @@
 	});
 
 	let saving = $state(false);
+	let dynamicLoading = $state<{ [key: string]: boolean }>({});
 	let hasChanges = $derived(
 		resume && originalResume ? JSON.stringify(resume) !== JSON.stringify(originalResume) : false
 	);
+	let statusMessage = $state<string | null>(null);
 
 	let showPreview = $state(true);
 	let newSkill = $state('');
@@ -74,8 +99,11 @@
 	]);
 
 	// Helper functions for managing dynamic lists
-	function addWorkExperience() {
+	async function addWorkExperience() {
 		if (!resume) return;
+		dynamicLoading['addExperience'] = true;
+		// Simulate slight delay for better UX
+		await new Promise((resolve) => setTimeout(resolve, 100));
 		resume.workExperience = [
 			...resume.workExperience,
 			{
@@ -89,15 +117,21 @@
 				skills: []
 			}
 		];
+		dynamicLoading['addExperience'] = false;
 	}
 
-	function removeWorkExperience(index: number) {
+	async function removeWorkExperience(index: number) {
 		if (!resume) return;
+		dynamicLoading[`removeExperience-${index}`] = true;
+		await new Promise((resolve) => setTimeout(resolve, 100));
 		resume.workExperience = resume.workExperience.filter((_, i) => i !== index);
+		dynamicLoading[`removeExperience-${index}`] = false;
 	}
 
-	function addEducation() {
+	async function addEducation() {
 		if (!resume) return;
+		dynamicLoading['addEducation'] = true;
+		await new Promise((resolve) => setTimeout(resolve, 100));
 		resume.education = [
 			...resume.education,
 			{
@@ -111,15 +145,21 @@
 				skills: []
 			}
 		];
+		dynamicLoading['addEducation'] = false;
 	}
 
-	function removeEducation(index: number) {
+	async function removeEducation(index: number) {
 		if (!resume) return;
+		dynamicLoading[`removeEducation-${index}`] = true;
+		await new Promise((resolve) => setTimeout(resolve, 100));
 		resume.education = resume.education.filter((_, i) => i !== index);
+		dynamicLoading[`removeEducation-${index}`] = false;
 	}
 
-	function addCertification() {
+	async function addCertification() {
 		if (!resume) return;
+		dynamicLoading['addCertification'] = true;
+		await new Promise((resolve) => setTimeout(resolve, 100));
 		resume.certifications = [
 			...resume.certifications,
 			{
@@ -130,11 +170,15 @@
 				credentialId: null
 			}
 		];
+		dynamicLoading['addCertification'] = false;
 	}
 
-	function removeCertification(index: number) {
+	async function removeCertification(index: number) {
 		if (!resume) return;
+		dynamicLoading[`removeCertification-${index}`] = true;
+		await new Promise((resolve) => setTimeout(resolve, 100));
 		resume.certifications = resume.certifications.filter((_, i) => i !== index);
+		dynamicLoading[`removeCertification-${index}`] = false;
 	}
 
 	function addLink() {
@@ -207,12 +251,22 @@
 				skills: resume.skills
 			};
 			await updateResume(resumeData);
+			statusMessage = 'Resume saved successfully';
 			toast.success('Resume saved successfully!');
 			// Update originalResume to reflect saved state
 			originalResume = { ...resume };
+			// Clear status message after 3 seconds
+			setTimeout(() => {
+				statusMessage = null;
+			}, 3000);
 		} catch (error) {
+			statusMessage = 'Failed to save resume. Please try again.';
 			toast.error('Failed to save resume');
 			console.error(error);
+			// Clear error message after 5 seconds
+			setTimeout(() => {
+				statusMessage = null;
+			}, 5000);
 		} finally {
 			saving = false;
 		}
@@ -222,7 +276,12 @@
 		if (hasChanges && originalResume) {
 			// Reset to original data
 			resume = { ...originalResume };
+			statusMessage = 'Changes discarded';
 			toast.info('Changes discarded');
+			// Clear status message after 3 seconds
+			setTimeout(() => {
+				statusMessage = null;
+			}, 3000);
 		}
 	}
 </script>
@@ -231,9 +290,88 @@
 	<title>Resume Editor - ATSPro</title>
 </svelte:head>
 
+<!-- Screen reader announcements -->
+<div class="sr-only" aria-live="polite" aria-atomic="true">
+	{#if statusMessage}
+		{statusMessage}
+	{/if}
+</div>
+
 {#if loading}
-	<div class="container mx-auto flex min-h-[60vh] items-center justify-center p-6">
-		<Loader2 class="h-8 w-8 animate-spin" />
+	<div aria-busy="true" aria-label="Loading resume data">
+		<ResumeSkeleton />
+	</div>
+{:else if !resume}
+	<!-- No resume found - show upload option -->
+	<div class="container mx-auto p-6">
+		<Card class="mx-auto max-w-2xl">
+			<CardHeader class="text-center">
+				<CardTitle>No Resume Found</CardTitle>
+				<CardDescription>Upload your resume to get started with ATS optimization</CardDescription>
+			</CardHeader>
+			<CardContent class="flex flex-col items-center gap-4">
+				<div class="text-center">
+					<p class="text-muted-foreground mb-4">
+						Upload your existing resume and we'll help you optimize it for ATS systems
+					</p>
+				</div>
+				<!-- Upload form for first resume -->
+				<form
+					enctype="multipart/form-data"
+					{...extractResume.enhance(async ({ form, data, submit }) => {
+						uploadLoading = true;
+						try {
+							await submit();
+							if (extractResume.result) {
+								toast.success('Resume uploaded successfully!');
+								// Refresh the page to load the new resume
+								resumePromise = getResume();
+								const newResumeData = await resumePromise;
+								if (newResumeData) {
+									resume = structuredClone(newResumeData);
+									originalResume = structuredClone(newResumeData);
+								}
+							}
+						} catch (error) {
+							toast.error('Failed to upload resume');
+							console.error(error);
+						} finally {
+							uploadLoading = false;
+						}
+					})}
+				>
+					<input
+						type="file"
+						name="document"
+						accept=".pdf,.docx,.doc,.txt"
+						required
+						class="hidden"
+						id="resume-upload-input"
+						onchange={(e) => {
+							const input = e.target as HTMLInputElement;
+							if (input.files?.[0]) {
+								input.form?.requestSubmit();
+							}
+						}}
+					/>
+					<Button
+						type="button"
+						size="lg"
+						onclick={() => document.getElementById('resume-upload-input')?.click()}
+						disabled={uploadLoading}
+					>
+						{#if uploadLoading}
+							<Loader2 class="mr-2 h-4 w-4 animate-spin" />
+							Uploading...
+						{:else}
+							<Upload class="mr-2 h-4 w-4" />
+							Upload Resume
+						{/if}
+					</Button>
+				</form>
+				<div class="text-muted-foreground text-sm">Supported formats: PDF, DOCX, DOC, TXT</div>
+			</CardContent>
+		</Card>
 	</div>
 {:else if resume}
 	<div class="container mx-auto p-6">
@@ -244,6 +382,64 @@
 				<p class="text-muted-foreground">Edit your resume information below</p>
 			</div>
 			<div class="flex gap-2">
+				<!-- Hidden form for resume upload -->
+				<form
+					bind:this={uploadFormRef}
+					class="hidden"
+					enctype="multipart/form-data"
+					{...replaceResume.enhance(async ({ form, data, submit }) => {
+						uploadLoading = true;
+
+						try {
+							// Let the form submit normally
+							await submit();
+
+							// Handle the result
+							if (replaceResume.result) {
+								toast.success('Resume uploaded and processed successfully!');
+
+								// Refresh the resume data
+								resumePromise = getResume();
+								const newResumeData = await resumePromise;
+								if (newResumeData) {
+									resume = structuredClone(newResumeData);
+									originalResume = structuredClone(newResumeData);
+								}
+							}
+						} catch (error) {
+							toast.error('Failed to upload resume. Please try again.');
+							console.error('Upload error:', error);
+						} finally {
+							uploadLoading = false;
+							// Reset the input
+							if (uploadInputRef) {
+								uploadInputRef.value = '';
+							}
+						}
+					})}
+				>
+					<input
+						bind:this={uploadInputRef}
+						type="file"
+						name="resume"
+						accept=".pdf,.docx,.doc,.txt"
+						onchange={handleFileUpload}
+					/>
+				</form>
+				<Button
+					variant="outline"
+					onclick={() => uploadInputRef?.click()}
+					disabled={uploadLoading || saving}
+					class="gap-2"
+				>
+					{#if uploadLoading}
+						<Loader2 class="h-4 w-4 animate-spin" />
+						Uploading...
+					{:else}
+						<Upload class="h-4 w-4" />
+						Upload New Resume
+					{/if}
+				</Button>
 				<Button
 					variant="outline"
 					onclick={() => {
@@ -263,12 +459,12 @@
 					<X class="mr-2 h-4 w-4" />
 					Cancel
 				</Button>
-				<Button onclick={() => handleSave()} disabled={saving || !hasChanges}>
+				<Button onclick={() => handleSave()} disabled={saving || !hasChanges} aria-busy={saving}>
 					{#if saving}
-						<Loader2 class="mr-2 h-4 w-4 animate-spin" />
-						Saving...
+						<Loader2 class="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
+						<span aria-live="assertive">Saving...</span>
 					{:else}
-						<Save class="mr-2 h-4 w-4" />
+						<Save class="mr-2 h-4 w-4" aria-hidden="true" />
 						Save Changes
 					{/if}
 				</Button>
@@ -291,6 +487,7 @@
 									variant="ghost"
 									size="icon"
 									class="h-6 w-6"
+									aria-label="Move Contact Information section up"
 									onclick={(e: Event) => {
 										e.stopPropagation();
 										moveSection('contact', 'up');
@@ -302,6 +499,7 @@
 									variant="ghost"
 									size="icon"
 									class="h-6 w-6"
+									aria-label="Move Contact Information section down"
 									onclick={(e: Event) => {
 										e.stopPropagation();
 										moveSection('contact', 'down');
@@ -313,7 +511,7 @@
 						</Accordion.Trigger>
 						<Accordion.Content>
 							<Card>
-								<CardContent class="space-y-4 pt-6">
+								<CardContent class="space-y-4">
 									<div>
 										<Label for="fullName">Full Name</Label>
 										<Input id="fullName" bind:value={resume.contactInfo.fullName} />
@@ -343,9 +541,22 @@
 										<div class="space-y-2">
 											{#each resume.contactInfo?.links || [] as link, i}
 												<div class="flex gap-2">
-													<Input placeholder="Name" bind:value={link.name} />
-													<Input placeholder="URL" bind:value={link.url} />
-													<Button variant="ghost" size="icon" onclick={() => removeLink(i)}>
+													<Input
+														placeholder="Name"
+														aria-label={`Link ${i + 1} name`}
+														bind:value={link.name}
+													/>
+													<Input
+														placeholder="URL"
+														aria-label={`Link ${i + 1} URL`}
+														bind:value={link.url}
+													/>
+													<Button
+														variant="ghost"
+														size="icon"
+														aria-label={`Remove link ${link.name || 'item'}`}
+														onclick={() => removeLink(i)}
+													>
 														<Trash2 class="h-4 w-4" />
 													</Button>
 												</div>
@@ -369,6 +580,7 @@
 									variant="ghost"
 									size="icon"
 									class="h-6 w-6"
+									aria-label="Move Professional Summary section up"
 									onclick={(e: Event) => {
 										e.stopPropagation();
 										moveSection('summary', 'up');
@@ -380,6 +592,7 @@
 									variant="ghost"
 									size="icon"
 									class="h-6 w-6"
+									aria-label="Move Professional Summary section down"
 									onclick={(e: Event) => {
 										e.stopPropagation();
 										moveSection('summary', 'down');
@@ -391,7 +604,7 @@
 						</Accordion.Trigger>
 						<Accordion.Content>
 							<Card>
-								<CardContent class="pt-6">
+								<CardContent>
 									<Textarea
 										placeholder="Write a brief professional summary..."
 										bind:value={resume.summary}
@@ -414,6 +627,7 @@
 									variant="ghost"
 									size="icon"
 									class="h-6 w-6"
+									aria-label="Move Work Experience section up"
 									onclick={(e: Event) => {
 										e.stopPropagation();
 										moveSection('experience', 'up');
@@ -425,6 +639,7 @@
 									variant="ghost"
 									size="icon"
 									class="h-6 w-6"
+									aria-label="Move Work Experience section down"
 									onclick={(e: Event) => {
 										e.stopPropagation();
 										moveSection('experience', 'down');
@@ -436,10 +651,22 @@
 						</Accordion.Trigger>
 						<Accordion.Content>
 							<Card>
-								<CardContent class="space-y-4 pt-6">
-									<Button variant="outline" onclick={addWorkExperience} class="w-full">
-										<Plus class="mr-2 h-4 w-4" />
-										Add Work Experience
+								<CardContent class="space-y-4">
+									<Button
+										variant="outline"
+										onclick={addWorkExperience}
+										class="w-full"
+										disabled={dynamicLoading['addExperience']}
+										aria-busy={dynamicLoading['addExperience']}
+										aria-label="Add a new work experience entry"
+									>
+										{#if dynamicLoading['addExperience']}
+											<Loader2 class="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
+											<span aria-live="polite">Adding work experience...</span>
+										{:else}
+											<Plus class="mr-2 h-4 w-4" aria-hidden="true" />
+											Add Work Experience
+										{/if}
 									</Button>
 									{#each resume.workExperience as experience, expIndex}
 										<Card>
@@ -459,35 +686,43 @@
 													<Button
 														variant="ghost"
 														size="icon"
+														aria-label="Remove work experience"
 														onclick={() => removeWorkExperience(expIndex)}
+														disabled={dynamicLoading[`removeExperience-${expIndex}`]}
 													>
-														<Trash2 class="h-4 w-4" />
+														{#if dynamicLoading[`removeExperience-${expIndex}`]}
+															<Loader2 class="h-4 w-4 animate-spin" />
+														{:else}
+															<Trash2 class="h-4 w-4" />
+														{/if}
 													</Button>
 												</div>
 											</CardHeader>
 											<CardContent class="space-y-4">
 												<div class="grid gap-4 sm:grid-cols-2">
 													<div>
-														<Label>Company</Label>
-														<Input bind:value={experience.company} />
+														<Label for={`company-${expIndex}`}>Company</Label>
+														<Input id={`company-${expIndex}`} bind:value={experience.company} />
 													</div>
 													<div>
-														<Label>Position</Label>
-														<Input bind:value={experience.position} />
+														<Label for={`position-${expIndex}`}>Position</Label>
+														<Input id={`position-${expIndex}`} bind:value={experience.position} />
 													</div>
 												</div>
 												<div class="grid gap-4 sm:grid-cols-2">
 													<div>
-														<Label>Start Date</Label>
+														<Label for={`start-date-${expIndex}`}>Start Date</Label>
 														<Input
+															id={`start-date-${expIndex}`}
 															type="text"
 															placeholder="e.g., Jan 2020"
 															bind:value={experience.startDate}
 														/>
 													</div>
 													<div>
-														<Label>End Date</Label>
+														<Label for={`end-date-${expIndex}`}>End Date</Label>
 														<Input
+															id={`end-date-${expIndex}`}
 															type="text"
 															placeholder="e.g., Dec 2023"
 															bind:value={experience.endDate}
@@ -505,18 +740,26 @@
 													<Label for={`current-${expIndex}`}>Currently working here</Label>
 												</div>
 												<div>
-													<Label>Description</Label>
-													<Textarea bind:value={experience.description} rows={2} />
+													<Label for={`description-${expIndex}`}>Description</Label>
+													<Textarea
+														id={`description-${expIndex}`}
+														bind:value={experience.description}
+														rows={2}
+													/>
 												</div>
 												<div>
 													<Label>Responsibilities</Label>
 													<div class="mt-2 space-y-2">
 														{#each experience.responsibilities as resp, respIndex}
 															<div class="flex gap-2">
-																<Input bind:value={experience.responsibilities[respIndex]} />
+																<Input
+																	aria-label={`Responsibility ${respIndex + 1}`}
+																	bind:value={experience.responsibilities[respIndex]}
+																/>
 																<Button
 																	variant="ghost"
 																	size="icon"
+																	aria-label={`Remove responsibility ${respIndex + 1}`}
 																	onclick={() => removeResponsibility(expIndex, respIndex)}
 																>
 																	<Trash2 class="h-4 w-4" />
@@ -553,6 +796,7 @@
 									variant="ghost"
 									size="icon"
 									class="h-6 w-6"
+									aria-label="Move Education section up"
 									onclick={(e: Event) => {
 										e.stopPropagation();
 										moveSection('education', 'up');
@@ -564,6 +808,7 @@
 									variant="ghost"
 									size="icon"
 									class="h-6 w-6"
+									aria-label="Move Education section down"
 									onclick={(e: Event) => {
 										e.stopPropagation();
 										moveSection('education', 'down');
@@ -575,10 +820,20 @@
 						</Accordion.Trigger>
 						<Accordion.Content>
 							<Card>
-								<CardContent class="space-y-4 pt-6">
-									<Button variant="outline" onclick={addEducation} class="w-full">
-										<Plus class="mr-2 h-4 w-4" />
-										Add Education
+								<CardContent class="space-y-4">
+									<Button
+										variant="outline"
+										onclick={addEducation}
+										class="w-full"
+										disabled={dynamicLoading['addEducation']}
+									>
+										{#if dynamicLoading['addEducation']}
+											<Loader2 class="mr-2 h-4 w-4 animate-spin" />
+											Adding...
+										{:else}
+											<Plus class="mr-2 h-4 w-4" />
+											Add Education
+										{/if}
 									</Button>
 									{#each resume.education as edu, eduIndex}
 										<Card>
@@ -598,39 +853,51 @@
 													<Button
 														variant="ghost"
 														size="icon"
+														aria-label="Remove education"
 														onclick={() => removeEducation(eduIndex)}
+														disabled={dynamicLoading[`removeEducation-${eduIndex}`]}
 													>
-														<Trash2 class="h-4 w-4" />
+														{#if dynamicLoading[`removeEducation-${eduIndex}`]}
+															<Loader2 class="h-4 w-4 animate-spin" />
+														{:else}
+															<Trash2 class="h-4 w-4" />
+														{/if}
 													</Button>
 												</div>
 											</CardHeader>
 											<CardContent class="space-y-4">
 												<div>
-													<Label>Institution</Label>
-													<Input bind:value={edu.institution} />
+													<Label for={`institution-${eduIndex}`}>Institution</Label>
+													<Input id={`institution-${eduIndex}`} bind:value={edu.institution} />
 												</div>
 												<div class="grid gap-4 sm:grid-cols-2">
 													<div>
-														<Label>Degree</Label>
-														<Input bind:value={edu.degree} />
+														<Label for={`degree-${eduIndex}`}>Degree</Label>
+														<Input id={`degree-${eduIndex}`} bind:value={edu.degree} />
 													</div>
 													<div>
-														<Label>Field of Study</Label>
-														<Input bind:value={edu.fieldOfStudy} />
+														<Label for={`field-${eduIndex}`}>Field of Study</Label>
+														<Input id={`field-${eduIndex}`} bind:value={edu.fieldOfStudy} />
 													</div>
 												</div>
 												<div class="grid gap-4 sm:grid-cols-2">
 													<div>
-														<Label>Graduation Date</Label>
+														<Label for={`grad-date-${eduIndex}`}>Graduation Date</Label>
 														<Input
+															id={`grad-date-${eduIndex}`}
 															type="text"
 															placeholder="e.g., May 2024"
 															bind:value={edu.graduationDate}
 														/>
 													</div>
 													<div>
-														<Label>GPA</Label>
-														<Input type="number" step="0.1" bind:value={edu.gpa} />
+														<Label for={`gpa-${eduIndex}`}>GPA</Label>
+														<Input
+															id={`gpa-${eduIndex}`}
+															type="number"
+															step="0.1"
+															bind:value={edu.gpa}
+														/>
 													</div>
 												</div>
 											</CardContent>
@@ -653,6 +920,7 @@
 									variant="ghost"
 									size="icon"
 									class="h-6 w-6"
+									aria-label="Move Certifications section up"
 									onclick={(e: Event) => {
 										e.stopPropagation();
 										moveSection('certifications', 'up');
@@ -664,6 +932,7 @@
 									variant="ghost"
 									size="icon"
 									class="h-6 w-6"
+									aria-label="Move Certifications section down"
 									onclick={(e: Event) => {
 										e.stopPropagation();
 										moveSection('certifications', 'down');
@@ -675,10 +944,20 @@
 						</Accordion.Trigger>
 						<Accordion.Content>
 							<Card>
-								<CardContent class="space-y-4 pt-6">
-									<Button variant="outline" onclick={addCertification} class="w-full">
-										<Plus class="mr-2 h-4 w-4" />
-										Add Certification
+								<CardContent class="space-y-4">
+									<Button
+										variant="outline"
+										onclick={addCertification}
+										class="w-full"
+										disabled={dynamicLoading['addCertification']}
+									>
+										{#if dynamicLoading['addCertification']}
+											<Loader2 class="mr-2 h-4 w-4 animate-spin" />
+											Adding...
+										{:else}
+											<Plus class="mr-2 h-4 w-4" />
+											Add Certification
+										{/if}
 									</Button>
 									{#each resume.certifications as cert, certIndex}
 										<Card>
@@ -698,33 +977,41 @@
 													<Button
 														variant="ghost"
 														size="icon"
+														aria-label="Remove certification"
 														onclick={() => removeCertification(certIndex)}
+														disabled={dynamicLoading[`removeCertification-${certIndex}`]}
 													>
-														<Trash2 class="h-4 w-4" />
+														{#if dynamicLoading[`removeCertification-${certIndex}`]}
+															<Loader2 class="h-4 w-4 animate-spin" />
+														{:else}
+															<Trash2 class="h-4 w-4" />
+														{/if}
 													</Button>
 												</div>
 											</CardHeader>
 											<CardContent class="space-y-4">
 												<div>
-													<Label>Certification Name</Label>
-													<Input bind:value={cert.name} />
+													<Label for={`cert-name-${certIndex}`}>Certification Name</Label>
+													<Input id={`cert-name-${certIndex}`} bind:value={cert.name} />
 												</div>
 												<div>
-													<Label>Issuer</Label>
-													<Input bind:value={cert.issuer} />
+													<Label for={`cert-issuer-${certIndex}`}>Issuer</Label>
+													<Input id={`cert-issuer-${certIndex}`} bind:value={cert.issuer} />
 												</div>
 												<div class="grid gap-4 sm:grid-cols-2">
 													<div>
-														<Label>Date Obtained</Label>
+														<Label for={`cert-date-${certIndex}`}>Date Obtained</Label>
 														<Input
+															id={`cert-date-${certIndex}`}
 															type="text"
 															placeholder="e.g., Jan 2023"
 															bind:value={cert.dateObtained}
 														/>
 													</div>
 													<div>
-														<Label>Expiration Date</Label>
+														<Label for={`cert-exp-${certIndex}`}>Expiration Date</Label>
 														<Input
+															id={`cert-exp-${certIndex}`}
 															type="text"
 															placeholder="e.g., Jan 2026"
 															bind:value={cert.expirationDate}
@@ -732,8 +1019,8 @@
 													</div>
 												</div>
 												<div>
-													<Label>Credential ID</Label>
-													<Input bind:value={cert.credentialId} />
+													<Label for={`cert-cred-${certIndex}`}>Credential ID</Label>
+													<Input id={`cert-cred-${certIndex}`} bind:value={cert.credentialId} />
 												</div>
 											</CardContent>
 										</Card>
@@ -755,6 +1042,7 @@
 									variant="ghost"
 									size="icon"
 									class="h-6 w-6"
+									aria-label="Move Skills section up"
 									onclick={(e: Event) => {
 										e.stopPropagation();
 										moveSection('skills', 'up');
@@ -766,6 +1054,7 @@
 									variant="ghost"
 									size="icon"
 									class="h-6 w-6"
+									aria-label="Move Skills section down"
 									onclick={(e: Event) => {
 										e.stopPropagation();
 										moveSection('skills', 'down');
@@ -777,10 +1066,12 @@
 						</Accordion.Trigger>
 						<Accordion.Content>
 							<Card>
-								<CardContent class="space-y-4 pt-6">
+								<CardContent class="space-y-4">
 									<div class="flex gap-2">
 										<Input
+											id="new-skill"
 											placeholder="Add a skill..."
+											aria-label="New skill"
 											bind:value={newSkill}
 											onkeydown={(e) => {
 												if (e.key === 'Enter') {
@@ -801,6 +1092,7 @@
 												<button
 													onclick={() => removeSkill(skill)}
 													class="hover:text-destructive ml-2"
+													aria-label={`Remove skill ${skill}`}
 												>
 													<X class="h-3 w-3" />
 												</button>

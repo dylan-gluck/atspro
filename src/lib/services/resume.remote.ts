@@ -3,7 +3,7 @@ import { error } from '@sveltejs/kit';
 import * as v from 'valibot';
 import { db } from '$lib/db';
 import { extractResume as extractResumeWithAI } from '$lib/ai';
-import { requireAuth, checkRateLimit, ErrorCodes, validateFile } from './utils';
+import { requireAuth, checkRateLimitV2, ErrorCodes, validateFile } from './utils';
 import type { Resume } from '$lib/types/resume';
 
 // Get current user's resume
@@ -38,8 +38,8 @@ export const extractResume = form(async (data) => {
 		throw authError;
 	}
 
-	// Rate limit: 10 resume extractions per hour
-	checkRateLimit(userId, 10, 3600000, 'extract_resume');
+	// TODO: Re-enable rate limiting after pricing strategy is finalized
+	// await checkRateLimitV2('ai.analyze');
 
 	// Check for existing resume
 	const existing = await db.getUserResume(userId);
@@ -58,16 +58,27 @@ export const extractResume = form(async (data) => {
 	}
 
 	// Validate file type and size
-	const validTypes = ['application/pdf', 'text/markdown', 'text/plain'];
+	const validTypes = [
+		'application/pdf',
+		'text/markdown',
+		'text/plain',
+		'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // .docx
+		'application/msword' // .doc
+	];
 	validateFile(file, validTypes, 10 * 1024 * 1024); // 10MB max
 
 	// Process file based on type
 	let content: string | Buffer;
-	if (file.type === 'application/pdf') {
-		// Convert to Buffer for AI processing
+	if (
+		file.type === 'application/pdf' ||
+		file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
+		file.type === 'application/msword'
+	) {
+		// Convert to Buffer for AI processing (binary files)
 		const buffer = await file.arrayBuffer();
 		content = Buffer.from(buffer);
 	} else {
+		// Text files can be read directly
 		content = await file.text();
 	}
 
@@ -100,8 +111,7 @@ const updateResumeSchema = v.object({
 export const updateResume = command(updateResumeSchema, async (updates) => {
 	const userId = requireAuth();
 
-	// Rate limit: 30 updates per hour
-	checkRateLimit(userId, 30, 3600000, 'update_resume');
+	// Updates don't need strict rate limiting
 
 	// Ensure resume exists
 	const existing = await db.getUserResume(userId);
@@ -118,5 +128,73 @@ export const updateResume = command(updateResumeSchema, async (updates) => {
 		id: resume.id,
 		updatedFields: Object.keys(updates),
 		updatedAt: resume.updatedAt
+	};
+});
+
+// Replace existing resume with new uploaded file
+export const replaceResume = form(async (data) => {
+	const userId = requireAuth();
+
+	// TODO: Re-enable rate limiting after pricing strategy is finalized
+	// await checkRateLimitV2('ai.analyze');
+
+	// Ensure user has an existing resume
+	const existing = await db.getUserResume(userId);
+	if (!existing) {
+		error(404, 'No resume found. Please create one first.');
+	}
+
+	const file = data.get('resume') as File;
+	if (!file) {
+		error(400, 'No file uploaded');
+	}
+
+	// Validate file
+	try {
+		validateFile(
+			file,
+			[
+				'application/pdf',
+				'text/plain',
+				'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+				'application/msword' // .doc files
+			],
+			10 * 1024 * 1024 // 10MB
+		);
+	} catch (validationError) {
+		error(
+			400,
+			validationError instanceof Error ? validationError.message : 'File validation failed'
+		);
+	}
+
+	// Read file content based on type
+	let content: string | Buffer;
+	if (
+		file.type === 'application/pdf' ||
+		file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
+		file.type === 'application/msword'
+	) {
+		// Convert to Buffer for AI processing (binary files)
+		const buffer = await file.arrayBuffer();
+		content = Buffer.from(buffer);
+	} else {
+		// For text files, get the text content
+		content = await file.text();
+	}
+
+	// Extract resume data with AI
+	const extractedData = await extractResumeWithAI(content, file.type);
+
+	// Update the existing resume with new extracted data
+	const updatedResume = await db.updateUserResume(userId, extractedData);
+
+	// Refresh the query
+	await getResume().refresh();
+
+	return {
+		id: updatedResume.id,
+		extractedData,
+		message: 'Resume replaced successfully'
 	};
 });

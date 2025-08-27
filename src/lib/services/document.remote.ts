@@ -2,11 +2,20 @@ import { query, form, command } from '$app/server';
 import { error } from '@sveltejs/kit';
 import * as v from 'valibot';
 import { db } from '$lib/db';
+import type { UserResume } from '$lib/types/user-resume';
+import type { UserJob } from '$lib/types/user-job';
+import type {
+	ContactInfo,
+	WorkExperience,
+	Education,
+	Certification,
+	Resume
+} from '$lib/types/resume';
 import {
 	optimizeResume as optimizeResumeWithAI,
 	generateCoverLetter as generateCoverLetterWithAI
 } from '$lib/ai';
-import { requireAuth, checkRateLimit, ErrorCodes, measurePerformance } from './utils';
+import { requireAuth, checkRateLimitV2, ErrorCodes, measurePerformance } from './utils';
 import { getJob } from './job.remote';
 import { calculateATSScore } from './scoring.remote';
 
@@ -36,8 +45,8 @@ const optimizeSchema = v.object({
 export const optimizeResume = command(optimizeSchema, async ({ jobId }) => {
 	const userId = requireAuth();
 
-	// Rate limit: 10 optimizations per hour
-	checkRateLimit(userId, 10, 3600000, 'optimize_resume');
+	// TODO: Re-enable rate limiting after pricing strategy is finalized
+	// await checkRateLimitV2('resume.optimize');
 
 	// Verify ownership and get data
 	const [resume, job] = await Promise.all([db.getUserResume(userId), db.getJob(jobId)]);
@@ -67,21 +76,25 @@ export const optimizeResume = command(optimizeSchema, async ({ jobId }) => {
 		optimizedContent: markdown
 	});
 
-	// Store as document with both HTML content and markdown in metadata
-	const doc = await db.createJobDocument(jobId, 'resume', html, {
-		atsScore: atsAnalysis.optimizedScore || optimized.score,
-		originalScore: atsAnalysis.originalScore,
-		matchedKeywords: optimized.keywords,
-		originalResumeId: resume.id,
-		markdown: markdown,
-		atsAnalysis: atsAnalysis
-	});
+	// Store document and create activity in a transaction for atomicity
+	const doc = await db.transaction(async (tx) => {
+		const newDoc = await tx.createJobDocument(jobId, 'resume', html, {
+			atsScore: atsAnalysis.optimizedScore || optimized.score,
+			originalScore: atsAnalysis.originalScore,
+			matchedKeywords: optimized.keywords,
+			originalResumeId: resume.id,
+			markdown: markdown,
+			atsAnalysis: atsAnalysis
+		});
 
-	// Create activity
-	await db.createActivity(jobId, 'document_generated', {
-		type: 'resume',
-		score: optimized.score,
-		keywordCount: optimized.keywords.length
+		// Create activity
+		await tx.createActivity(jobId, 'document_generated', {
+			type: 'resume',
+			score: optimized.score,
+			keywordCount: optimized.keywords.length
+		});
+
+		return newDoc;
 	});
 
 	// Get all documents for response
@@ -113,8 +126,8 @@ export const generateCoverLetter = command(
 	async ({ jobId, tone = 'professional' }) => {
 		const userId = requireAuth();
 
-		// Rate limit: 15 cover letters per hour
-		checkRateLimit(userId, 15, 3600000, 'generate_cover');
+		// TODO: Re-enable rate limiting after pricing strategy is finalized
+		// await checkRateLimitV2('cover-letter.generate');
 
 		// Verify ownership and get data
 		const [resume, job] = await Promise.all([db.getUserResume(userId), db.getJob(jobId)]);
@@ -136,20 +149,24 @@ export const generateCoverLetter = command(
 		const { marked } = await import('marked');
 		const coverLetterHTML = await marked(coverLetterMarkdown);
 
-		// Store document with both HTML and markdown
-		const doc = await db.createJobDocument(jobId, 'cover', coverLetterHTML, {
-			tone,
-			generatedFrom: {
-				resumeId: resume.id,
-				jobId: job.id
-			},
-			markdown: coverLetterMarkdown
-		});
+		// Store document and create activity in a transaction for atomicity
+		const doc = await db.transaction(async (tx) => {
+			const newDoc = await tx.createJobDocument(jobId, 'cover', coverLetterHTML, {
+				tone,
+				generatedFrom: {
+					resumeId: resume.id,
+					jobId: job.id
+				},
+				markdown: coverLetterMarkdown
+			});
 
-		// Create activity
-		await db.createActivity(jobId, 'document_generated', {
-			type: 'cover',
-			tone
+			// Create activity
+			await tx.createActivity(jobId, 'document_generated', {
+				type: 'cover',
+				tone
+			});
+
+			return newDoc;
 		});
 
 		// Refresh job details
@@ -173,8 +190,8 @@ const companyResearchSchema = v.object({
 export const generateCompanyResearch = command(companyResearchSchema, async ({ jobId }) => {
 	const userId = requireAuth();
 
-	// Rate limit: 5 research documents per hour
-	checkRateLimit(userId, 5, 3600000, 'generate_research');
+	// Apply tier-based rate limiting for AI analysis
+	await checkRateLimitV2('ai.analyze');
 
 	// Get job details
 	const job = await db.getJob(jobId);
@@ -189,17 +206,21 @@ export const generateCompanyResearch = command(companyResearchSchema, async ({ j
 	const { marked } = await import('marked');
 	const researchHTML = await marked(researchMarkdown);
 
-	// Store document with both HTML and markdown
-	const doc = await db.createJobDocument(jobId, 'research', researchHTML, {
-		company: job.company,
-		generatedAt: new Date().toISOString(),
-		markdown: researchMarkdown
-	});
+	// Store document and create activity in a transaction for atomicity
+	const doc = await db.transaction(async (tx) => {
+		const newDoc = await tx.createJobDocument(jobId, 'research', researchHTML, {
+			company: job.company,
+			generatedAt: new Date().toISOString(),
+			markdown: researchMarkdown
+		});
 
-	// Create activity
-	await db.createActivity(jobId, 'document_generated', {
-		type: 'research',
-		company: job.company
+		// Create activity
+		await tx.createActivity(jobId, 'document_generated', {
+			type: 'research',
+			company: job.company
+		});
+
+		return newDoc;
 	});
 
 	// Refresh job details
@@ -214,7 +235,9 @@ export const generateCompanyResearch = command(companyResearchSchema, async ({ j
 });
 
 // Helper function to format optimized resume
-function formatOptimizedResume(optimized: any): string {
+function formatOptimizedResume(
+	optimized: Resume & { score?: number; keywords?: string[] }
+): string {
 	const { contactInfo, summary, workExperience, education, certifications, skills } = optimized;
 
 	let content = `# ${contactInfo.fullName}\n\n`;
@@ -225,7 +248,7 @@ function formatOptimizedResume(optimized: any): string {
 
 	if (contactInfo.links?.length > 0) {
 		content += '\n';
-		contactInfo.links.forEach((link: any) => {
+		contactInfo.links.forEach((link) => {
 			content += `[${link.name}](${link.url})\n`;
 		});
 	}
@@ -236,7 +259,7 @@ function formatOptimizedResume(optimized: any): string {
 
 	if (workExperience?.length > 0) {
 		content += '\n## Work Experience\n';
-		workExperience.forEach((exp: any) => {
+		workExperience.forEach((exp) => {
 			content += `\n### ${exp.position} at ${exp.company}\n`;
 			if (exp.startDate || exp.endDate) {
 				content += `${exp.startDate || ''} - ${exp.isCurrent ? 'Present' : exp.endDate || ''}\n`;
@@ -255,7 +278,7 @@ function formatOptimizedResume(optimized: any): string {
 
 	if (education?.length > 0) {
 		content += '\n## Education\n';
-		education.forEach((edu: any) => {
+		education.forEach((edu) => {
 			content += `\n### ${edu.degree} in ${edu.fieldOfStudy || 'General Studies'}\n`;
 			content += `${edu.institution}`;
 			if (edu.graduationDate) content += ` - ${edu.graduationDate}`;
@@ -269,7 +292,7 @@ function formatOptimizedResume(optimized: any): string {
 
 	if (certifications?.length > 0) {
 		content += '\n## Certifications\n';
-		certifications.forEach((cert: any) => {
+		certifications.forEach((cert) => {
 			content += `- **${cert.name}** - ${cert.issuer}`;
 			if (cert.dateObtained) content += ` (${cert.dateObtained})`;
 			content += '\n';
@@ -284,7 +307,9 @@ function formatOptimizedResume(optimized: any): string {
 }
 
 // Helper function to format optimized resume as HTML
-function formatOptimizedResumeAsHTML(optimized: any): string {
+function formatOptimizedResumeAsHTML(
+	optimized: Resume & { score?: number; keywords?: string[] }
+): string {
 	const { contactInfo, summary, workExperience, education, certifications, skills } = optimized;
 
 	let html = `<div class="resume">`;
@@ -300,7 +325,7 @@ function formatOptimizedResumeAsHTML(optimized: any): string {
 
 	if (contactInfo.links?.length > 0) {
 		html += `<div class="links">`;
-		contactInfo.links.forEach((link: any) => {
+		contactInfo.links.forEach((link) => {
 			html += `<a href="${link.url}" target="_blank">${link.name}</a>`;
 		});
 		html += `</div>`;
@@ -313,7 +338,7 @@ function formatOptimizedResumeAsHTML(optimized: any): string {
 
 	if (workExperience?.length > 0) {
 		html += `<section class="resume-section"><h2>Work Experience</h2>`;
-		workExperience.forEach((exp: any) => {
+		workExperience.forEach((exp) => {
 			html += `<div class="experience-item">`;
 			html += `<h3>${exp.position} at ${exp.company}</h3>`;
 			if (exp.startDate || exp.endDate) {
@@ -336,7 +361,7 @@ function formatOptimizedResumeAsHTML(optimized: any): string {
 
 	if (education?.length > 0) {
 		html += `<section class="resume-section"><h2>Education</h2>`;
-		education.forEach((edu: any) => {
+		education.forEach((edu) => {
 			html += `<div class="education-item">`;
 			html += `<h3>${edu.degree} in ${edu.fieldOfStudy || 'General Studies'}</h3>`;
 			html += `<p>${edu.institution}`;
@@ -353,7 +378,7 @@ function formatOptimizedResumeAsHTML(optimized: any): string {
 
 	if (certifications?.length > 0) {
 		html += `<section class="resume-section"><h2>Certifications</h2><ul>`;
-		certifications.forEach((cert: any) => {
+		certifications.forEach((cert) => {
 			html += `<li><strong>${cert.name}</strong> - ${cert.issuer}`;
 			if (cert.dateObtained) html += ` (${cert.dateObtained})`;
 			html += `</li>`;
@@ -370,36 +395,30 @@ function formatOptimizedResumeAsHTML(optimized: any): string {
 }
 
 // Helper function to generate company research with AI
-async function generateCompanyResearchContent(job: any): Promise<string> {
+async function generateCompanyResearchContent(job: UserJob): Promise<string> {
 	// Import AI functions
 	const { generateText } = await import('ai');
 	const { createAnthropic } = await import('@ai-sdk/anthropic');
 	const { ANTHROPIC_API_KEY } = await import('$env/static/private');
+	const { selectModel } = await import('$lib/ai/model-selector');
+	const { SYSTEM_PROMPTS } = await import('$lib/ai/prompts');
 
 	const anthropic = createAnthropic({
 		apiKey: ANTHROPIC_API_KEY
 	});
 
+	// Use model selector for cost optimization - research can use cheaper model
+	const modelConfig = selectModel('company_research');
+	console.log(`[AI generateCompanyResearch] Using model: ${modelConfig.name}`);
+
 	try {
 		// Generate comprehensive research using AI
 		const result = await generateText({
-			model: anthropic('claude-3-5-sonnet-20241022'),
+			model: anthropic(modelConfig.name),
 			messages: [
 				{
 					role: 'system' as const,
-					content: `You are an expert company researcher and career advisor. Generate a comprehensive research document about the company and role that will help a job applicant prepare for their application and interview.
-
-Structure your response in markdown format with the following sections:
-1. Company Overview - Brief history, mission, values, size, and market position
-2. Products/Services - What the company offers and their main revenue streams  
-3. Company Culture - Work environment, values, and what employees say
-4. Recent News & Developments - Latest announcements, achievements, challenges
-5. Role Analysis - Breakdown of the specific position requirements and expectations
-6. Interview Preparation Tips - Specific advice for this company and role
-7. Compensation Insights - Salary ranges and benefits if available
-8. Growth Opportunities - Career paths and development at this company
-
-Be specific and actionable. Focus on information that would genuinely help someone prepare for this opportunity.`
+					content: SYSTEM_PROMPTS.companyResearch
 				},
 				{
 					role: 'user' as const,

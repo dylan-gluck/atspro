@@ -2,6 +2,7 @@ import { auth } from '$lib/auth'; // path to your auth file
 import { svelteKitHandler } from 'better-auth/svelte-kit';
 import { building } from '$app/environment';
 import { sequence } from '@sveltejs/kit/hooks';
+import type { Handle } from '@sveltejs/kit';
 import { handleErrorWithSentry, sentryHandle } from '@sentry/sveltekit';
 import * as Sentry from '@sentry/sveltekit';
 import { sentryConfig, getSentryUserContext } from '$lib/sentry';
@@ -13,7 +14,7 @@ if (!building) {
 	});
 }
 
-async function authHandle({ event, resolve }: any) {
+const authHandle: Handle = async ({ event, resolve }) => {
 	// Fetch current session from Better Auth
 	const session = await auth.api.getSession({
 		headers: event.request.headers
@@ -32,7 +33,7 @@ async function authHandle({ event, resolve }: any) {
 	}
 
 	return svelteKitHandler({ event, resolve, auth, building });
-}
+};
 
 // Use sequence to combine multiple handle functions
 // sentryHandle should be first to capture all errors
@@ -42,7 +43,7 @@ export const handle = sequence(sentryHandle(), authHandle);
 export const handleError = handleErrorWithSentry();
 
 // Optional: Add custom server error handling
-export function handleCustomError(error: Error, context?: Record<string, any>) {
+export function handleCustomError(error: Error, context?: Record<string, unknown>) {
 	// Log to console in development
 	if (process.env.NODE_ENV === 'development') {
 		console.error('Server error:', error, context);

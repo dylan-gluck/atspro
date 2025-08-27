@@ -1,69 +1,56 @@
-import { Pool } from 'pg';
+import { eq, and, desc, sql, isNull } from 'drizzle-orm';
+import { db as drizzleDb } from './drizzle';
+import { userResume, userJobs, jobDocuments, jobActivity, userSettings } from './schema';
 import type { UserResume } from '$lib/types/user-resume';
-import type {
-	UserJob,
-	JobDocument,
-	JobActivity,
-	JobActivityType,
-	JobStatus
-} from '$lib/types/user-job';
-import { DATABASE_URL } from '$env/static/private';
-
-// Database connection pool
-const pool = new Pool({
-	connectionString: DATABASE_URL
-});
+import type { NewUserJob } from './schema/user-jobs';
+import type { UserJob, JobDocument, JobActivity, JobActivityType } from '$lib/types/user-job';
+import type { NewJobDocument } from './schema/job-documents';
+import type { NewJobActivity, ActivityType } from './schema/job-activity';
+import type { JobStatus } from './schema/user-jobs';
+import type { UserSettings, NewUserSettings } from './schema/user-settings';
 
 // Resume operations
 export const resume = {
 	async get(userId: string): Promise<UserResume | null> {
-		const { rows } = await pool.query(`SELECT * FROM "userResume" WHERE "userId" = $1`, [userId]);
-		return rows[0] || null;
+		const result = await drizzleDb
+			.select()
+			.from(userResume)
+			.where(eq(userResume.userId, userId))
+			.limit(1);
+		return result[0] || null;
 	},
 
 	async create(userId: string, data: any): Promise<UserResume> {
-		const { rows } = await pool.query(
-			`INSERT INTO "userResume"
-       ("userId", "contactInfo", "summary", "workExperience", "education", "certifications", "skills")
-       VALUES ($1, $2, $3, $4, $5, $6, $7)
-       RETURNING *`,
-			[
+		const result = await drizzleDb
+			.insert(userResume)
+			.values({
 				userId,
-				JSON.stringify(data.contactInfo || {}),
-				data.summary || null,
-				JSON.stringify(data.workExperience || []),
-				JSON.stringify(data.education || []),
-				JSON.stringify(data.certifications || []),
-				data.skills || []
-			]
-		);
-		return rows[0];
+				contactInfo: data.contactInfo || {},
+				summary: data.summary || null,
+				workExperience: data.workExperience || [],
+				education: data.education || [],
+				certifications: data.certifications || [],
+				skills: data.skills || []
+			})
+			.returning();
+		return result[0];
 	},
 
 	async update(userId: string, data: any): Promise<UserResume> {
-		const fields: string[] = [];
-		const values: any[] = [];
-		let idx = 1;
+		const updateData: any = {};
 
 		Object.entries(data).forEach(([key, value]) => {
 			if (value !== undefined && key !== 'id' && key !== 'userId') {
-				fields.push(`"${key}" = $${idx++}`);
-				// Handle skills array specifically for PostgreSQL TEXT[] type
-				if (key === 'skills' && Array.isArray(value)) {
-					values.push(value); // PostgreSQL driver will handle array conversion
-				} else {
-					values.push(typeof value === 'object' ? JSON.stringify(value) : value);
-				}
+				updateData[key] = value;
 			}
 		});
 
-		values.push(userId);
-
-		const { rows } = await pool.query(
-			`UPDATE "userResume" SET ${fields.join(', ')} WHERE "userId" = $${idx} RETURNING *`,
-			values
-		);
-		return rows[0];
+		const result = await drizzleDb
+			.update(userResume)
+			.set(updateData)
+			.where(eq(userResume.userId, userId))
+			.returning();
+		return result[0];
 	}
 };
 
@@ -75,116 +62,123 @@ export const jobs = {
 	): Promise<{ jobs: UserJob[]; total: number }> {
 		const { status, limit = 20, offset = 0 } = options;
 
-		let query = `SELECT * FROM "userJobs" WHERE "userId" = $1`;
-		const params: any[] = [userId];
+		const whereConditions = status
+			? and(eq(userJobs.userId, userId), eq(userJobs.status, status))
+			: eq(userJobs.userId, userId);
 
-		if (status) {
-			query += ` AND "status" = $2`;
-			params.push(status);
-		}
-
-		query += ` ORDER BY "createdAt" DESC LIMIT ${limit} OFFSET ${offset}`;
-
+		// Get jobs with their latest ATS scores from resume documents
 		const [jobsResult, countResult] = await Promise.all([
-			pool.query(query, params),
-			pool.query(
-				`SELECT COUNT(*) FROM "userJobs" WHERE "userId" = $1${status ? ` AND "status" = $2` : ''}`,
-				params.slice(0, status ? 2 : 1)
-			)
+			drizzleDb
+				.select({
+					job: userJobs,
+					atsScore: sql<number | null>`(
+						SELECT "atsScore" 
+						FROM "jobDocuments" 
+						WHERE "jobDocuments"."jobId" = "userJobs"."id" 
+						AND "jobDocuments"."type" = 'resume' 
+						AND "jobDocuments"."isActive" = true 
+						LIMIT 1
+					)`
+				})
+				.from(userJobs)
+				.where(whereConditions)
+				.orderBy(desc(userJobs.createdAt))
+				.limit(limit)
+				.offset(offset),
+			drizzleDb
+				.select({ count: sql<number>`count(*)` })
+				.from(userJobs)
+				.where(whereConditions)
 		]);
 
+		// Map results to include ATS score in job object
+		const jobsWithScores = jobsResult.map((row) => ({
+			...row.job,
+			atsScore: row.atsScore
+		}));
+
 		return {
-			jobs: jobsResult.rows,
-			total: parseInt(countResult.rows[0].count)
+			jobs: jobsWithScores,
+			total: Number(countResult[0].count)
 		};
 	},
 
 	async get(jobId: string): Promise<UserJob | null> {
-		const { rows } = await pool.query(`SELECT * FROM "userJobs" WHERE "id" = $1`, [jobId]);
-		return rows[0] || null;
+		const result = await drizzleDb.select().from(userJobs).where(eq(userJobs.id, jobId)).limit(1);
+		return result[0] || null;
 	},
 
 	async create(userId: string, data: any): Promise<UserJob> {
-		const { rows } = await pool.query(
-			`INSERT INTO "userJobs"
-       ("userId", "company", "title", "description", "salary", "responsibilities",
-        "qualifications", "logistics", "location", "additionalInfo", "link", "status", "notes")
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
-       RETURNING *`,
-			[
-				userId,
-				data.company || '',
-				data.title || '',
-				data.description || '',
-				data.salary,
-				data.responsibilities,
-				data.qualifications,
-				data.logistics,
-				data.location,
-				data.additionalInfo,
-				data.link,
-				data.status || 'tracked',
-				data.notes
-			]
-		);
-		return rows[0];
+		const insertData: NewUserJob = {
+			userId,
+			company: data.company || '',
+			title: data.title || '',
+			description: data.description || '',
+			salary: data.salary,
+			responsibilities: data.responsibilities,
+			qualifications: data.qualifications,
+			logistics: data.logistics,
+			location: data.location,
+			additionalInfo: data.additionalInfo,
+			link: data.link,
+			status: data.status || 'tracked',
+			notes: data.notes
+		};
+
+		const result = await drizzleDb.insert(userJobs).values(insertData).returning();
+		return result[0];
 	},
 
 	async updateStatus(jobId: string, status: JobStatus, appliedAt?: Date | string): Promise<void> {
-		const params: any[] = [jobId, status];
-		let query = `UPDATE "userJobs" SET "status" = $2`;
+		const updateData: any = { status };
 
 		if (appliedAt) {
-			query += `, "appliedAt" = $3`;
-			params.push(appliedAt instanceof Date ? appliedAt.toISOString() : appliedAt);
+			updateData.appliedAt = appliedAt instanceof Date ? appliedAt : new Date(appliedAt);
 		}
 
-		await pool.query(`${query} WHERE "id" = $1`, params);
+		await drizzleDb.update(userJobs).set(updateData).where(eq(userJobs.id, jobId));
 	},
 
 	async updateNotes(jobId: string, notes: string): Promise<void> {
-		await pool.query(`UPDATE "userJobs" SET "notes" = $2 WHERE "id" = $1`, [jobId, notes]);
+		await drizzleDb.update(userJobs).set({ notes }).where(eq(userJobs.id, jobId));
 	},
 
 	async update(jobId: string, updates: any): Promise<void> {
-		const fields: string[] = [];
-		const values: any[] = [];
-		let idx = 1;
+		const updateData: any = {};
 
 		Object.entries(updates).forEach(([key, value]) => {
 			if (value !== undefined && key !== 'id' && key !== 'userId') {
-				fields.push(`"${key}" = $${idx++}`);
-				values.push(value);
+				updateData[key] = value;
 			}
 		});
 
-		if (fields.length > 0) {
-			values.push(jobId);
-			await pool.query(
-				`UPDATE "userJobs" SET ${fields.join(', ')}, "updatedAt" = NOW() WHERE "id" = $${idx}`,
-				values
-			);
+		if (Object.keys(updateData).length > 0) {
+			await drizzleDb.update(userJobs).set(updateData).where(eq(userJobs.id, jobId));
 		}
 	},
 
 	async delete(jobId: string): Promise<void> {
-		await pool.query(`DELETE FROM "userJobs" WHERE "id" = $1`, [jobId]);
+		await drizzleDb.delete(userJobs).where(eq(userJobs.id, jobId));
 	}
 };
 
 // Document operations
 export const documents = {
 	async list(jobId: string): Promise<JobDocument[]> {
-		const { rows } = await pool.query(
-			`SELECT * FROM "jobDocuments" WHERE "jobId" = $1 ORDER BY "createdAt" DESC`,
-			[jobId]
-		);
-		return rows;
+		return await drizzleDb
+			.select()
+			.from(jobDocuments)
+			.where(eq(jobDocuments.jobId, jobId))
+			.orderBy(desc(jobDocuments.createdAt));
 	},
 
 	async get(documentId: string): Promise<JobDocument | null> {
-		const { rows } = await pool.query(`SELECT * FROM "jobDocuments" WHERE "id" = $1`, [documentId]);
-		return rows[0] || null;
+		const result = await drizzleDb
+			.select()
+			.from(jobDocuments)
+			.where(eq(jobDocuments.id, documentId))
+			.limit(1);
+		return result[0] || null;
 	},
 
 	async create(
@@ -193,36 +187,38 @@ export const documents = {
 		content: string,
 		metadata?: any
 	): Promise<JobDocument> {
-		// Get next version
-		const { rows: versionRows } = await pool.query(
-			`SELECT COALESCE(MAX("version"), 0) + 1 as version
-       FROM "jobDocuments" WHERE "jobId" = $1 AND "type" = $2`,
-			[jobId, type]
-		);
+		// Transaction for version management
+		return await drizzleDb.transaction(async (tx) => {
+			// Get next version
+			const versionResult = await tx
+				.select({
+					version: sql<number>`COALESCE(MAX("version"), 0) + 1`
+				})
+				.from(jobDocuments)
+				.where(and(eq(jobDocuments.jobId, jobId), eq(jobDocuments.type, type)));
 
-		// Deactivate old versions
-		await pool.query(
-			`UPDATE "jobDocuments" SET "isActive" = false WHERE "jobId" = $1 AND "type" = $2`,
-			[jobId, type]
-		);
+			const version = versionResult[0]?.version || 1;
 
-		// Create new document
-		const { rows } = await pool.query(
-			`INSERT INTO "jobDocuments" ("jobId", "type", "content", "contentMarkdown", "atsScore", "version", "metadata")
-       VALUES ($1, $2, $3, $4, $5, $6, $7)
-       RETURNING *`,
-			[
+			// Deactivate old versions
+			await tx
+				.update(jobDocuments)
+				.set({ isActive: false })
+				.where(and(eq(jobDocuments.jobId, jobId), eq(jobDocuments.type, type)));
+
+			// Create new document
+			const insertData: NewJobDocument = {
 				jobId,
 				type,
 				content,
-				metadata?.markdown || null, // Store markdown in dedicated column
-				metadata?.atsScore || null, // Store ATS score in dedicated column
-				versionRows[0].version,
-				metadata ? JSON.stringify(metadata) : null
-			]
-		);
+				contentMarkdown: metadata?.markdown || null,
+				atsScore: metadata?.atsScore || null,
+				version,
+				metadata: metadata || null
+			};
 
-		return rows[0];
+			const result = await tx.insert(jobDocuments).values(insertData).returning();
+			return result[0];
+		});
 	}
 };
 
@@ -234,30 +230,89 @@ export const activity = {
 		offset = 0
 	): Promise<{ items: JobActivity[]; total: number }> {
 		const [itemsResult, countResult] = await Promise.all([
-			pool.query(
-				`SELECT * FROM "jobActivity" WHERE "jobId" = $1 ORDER BY "createdAt" DESC LIMIT $2 OFFSET $3`,
-				[jobId, limit, offset]
-			),
-			pool.query(`SELECT COUNT(*) FROM "jobActivity" WHERE "jobId" = $1`, [jobId])
+			drizzleDb
+				.select()
+				.from(jobActivity)
+				.where(eq(jobActivity.jobId, jobId))
+				.orderBy(desc(jobActivity.createdAt))
+				.limit(limit)
+				.offset(offset),
+			drizzleDb
+				.select({ count: sql<number>`count(*)` })
+				.from(jobActivity)
+				.where(eq(jobActivity.jobId, jobId))
 		]);
 
 		return {
-			items: itemsResult.rows,
-			total: parseInt(countResult.rows[0].count)
+			items: itemsResult,
+			total: Number(countResult[0].count)
 		};
 	},
 
 	async create(jobId: string, type: JobActivityType, metadata?: any): Promise<JobActivity> {
 		const description = generateActivityDescription(type, metadata);
 
-		const { rows } = await pool.query(
-			`INSERT INTO "jobActivity" ("jobId", "type", "description", "metadata")
-       VALUES ($1, $2, $3, $4)
-       RETURNING *`,
-			[jobId, type, description, metadata ? JSON.stringify(metadata) : null]
-		);
+		const insertData: NewJobActivity = {
+			jobId,
+			type: type as ActivityType,
+			description,
+			metadata: metadata || null
+		};
 
-		return rows[0];
+		const result = await drizzleDb.insert(jobActivity).values(insertData).returning();
+		return result[0];
+	}
+};
+
+// Settings operations
+export const settings = {
+	async get(userId: string): Promise<UserSettings | null> {
+		const result = await drizzleDb
+			.select()
+			.from(userSettings)
+			.where(eq(userSettings.userId, userId))
+			.limit(1);
+		return result[0] || null;
+	},
+
+	async create(userId: string, data: Partial<UserSettings>): Promise<UserSettings> {
+		const result = await drizzleDb
+			.insert(userSettings)
+			.values({
+				userId,
+				emailNotifications: data.emailNotifications ?? true,
+				applicationUpdates: data.applicationUpdates ?? true,
+				weeklyReports: data.weeklyReports ?? false,
+				jobRecommendations: data.jobRecommendations ?? true,
+				resumeTips: data.resumeTips ?? true,
+				defaultJobStatus: data.defaultJobStatus ?? 'saved'
+			})
+			.returning();
+		return result[0];
+	},
+
+	async update(userId: string, data: Partial<UserSettings>): Promise<UserSettings> {
+		const updateData: any = {};
+
+		Object.entries(data).forEach(([key, value]) => {
+			if (
+				value !== undefined &&
+				key !== 'id' &&
+				key !== 'userId' &&
+				key !== 'createdAt' &&
+				key !== 'updatedAt'
+			) {
+				updateData[key] = value;
+			}
+		});
+
+		const result = await drizzleDb
+			.update(userSettings)
+			.set(updateData)
+			.where(eq(userSettings.userId, userId))
+			.returning();
+
+		return result[0];
 	}
 };
 
@@ -283,6 +338,11 @@ export const db = {
 	getUserResume: resume.get,
 	createUserResume: resume.create,
 	updateUserResume: resume.update,
+
+	// Settings operations
+	getUserSettings: settings.get,
+	createUserSettings: settings.create,
+	updateUserSettings: settings.update,
 
 	// Job operations
 	jobs,
@@ -317,7 +377,121 @@ export const db = {
 		const result = await activity.list(jobId, 0, 0);
 		return result.total;
 	},
-	createActivity: activity.create
+	createActivity: activity.create,
+
+	// Transaction support for atomic operations
+	transaction: async <T>(
+		callback: (tx: {
+			createUserJob: typeof jobs.create;
+			updateJobStatus: typeof jobs.updateStatus;
+			updateJobNotes: typeof jobs.updateNotes;
+			updateJob: typeof jobs.update;
+			createJobDocument: typeof documents.create;
+			createActivity: typeof activity.create;
+		}) => Promise<T>
+	): Promise<T> => {
+		return await drizzleDb.transaction(async (tx) => {
+			// Create transaction-aware versions of all operations
+			const txOps = {
+				createUserJob: async (userId: string, data: any) => {
+					const insertData: NewUserJob = {
+						userId,
+						company: data.company || '',
+						title: data.title || '',
+						description: data.description || '',
+						salary: data.salary,
+						responsibilities: data.responsibilities,
+						qualifications: data.qualifications,
+						logistics: data.logistics,
+						location: data.location,
+						additionalInfo: data.additionalInfo,
+						link: data.link,
+						status: data.status || 'tracked',
+						notes: data.notes
+					};
+					const result = await tx.insert(userJobs).values(insertData).returning();
+					return result[0] as UserJob;
+				},
+
+				updateJobStatus: async (jobId: string, status: JobStatus, appliedAt?: Date | string) => {
+					const updateData: any = { status };
+					if (appliedAt) {
+						updateData.appliedAt = appliedAt instanceof Date ? appliedAt : new Date(appliedAt);
+					}
+					await tx.update(userJobs).set(updateData).where(eq(userJobs.id, jobId));
+				},
+
+				updateJobNotes: async (jobId: string, notes: string) => {
+					await tx.update(userJobs).set({ notes }).where(eq(userJobs.id, jobId));
+				},
+
+				updateJob: async (jobId: string, updates: any) => {
+					const updateData: any = {};
+					Object.entries(updates).forEach(([key, value]) => {
+						if (value !== undefined && key !== 'id' && key !== 'userId') {
+							updateData[key] = value;
+						}
+					});
+					if (Object.keys(updateData).length > 0) {
+						await tx.update(userJobs).set(updateData).where(eq(userJobs.id, jobId));
+					}
+				},
+
+				createJobDocument: async (
+					jobId: string,
+					type: JobDocument['type'],
+					content: string,
+					metadata?: any
+				) => {
+					// Get next version
+					const versionResult = await tx
+						.select({
+							version: sql<number>`COALESCE(MAX("version"), 0) + 1`
+						})
+						.from(jobDocuments)
+						.where(and(eq(jobDocuments.jobId, jobId), eq(jobDocuments.type, type)));
+
+					const version = versionResult[0]?.version || 1;
+
+					// Deactivate old versions
+					await tx
+						.update(jobDocuments)
+						.set({ isActive: false })
+						.where(and(eq(jobDocuments.jobId, jobId), eq(jobDocuments.type, type)));
+
+					// Create new document
+					const insertData: NewJobDocument = {
+						jobId,
+						type,
+						content,
+						contentMarkdown: metadata?.markdown || null,
+						atsScore: metadata?.atsScore || null,
+						version,
+						metadata: metadata || null
+					};
+
+					const result = await tx.insert(jobDocuments).values(insertData).returning();
+					return result[0] as JobDocument;
+				},
+
+				createActivity: async (jobId: string, type: JobActivityType, metadata?: any) => {
+					const description = generateActivityDescription(type, metadata);
+
+					const insertData: NewJobActivity = {
+						jobId,
+						type: type as ActivityType,
+						description,
+						metadata: metadata || null
+					};
+
+					const result = await tx.insert(jobActivity).values(insertData).returning();
+					return result[0] as JobActivity;
+				}
+			};
+
+			return await callback(txOps);
+		});
+	}
 };
 
 export default db;

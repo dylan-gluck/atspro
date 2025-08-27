@@ -160,6 +160,67 @@
 	body {
 		@apply bg-background text-foreground;
 	}
+
+	/* Enhanced focus styles for keyboard navigation */
+	:focus-visible {
+		@apply outline-primary outline-2 outline-offset-2;
+	}
+
+	/* Remove focus outline for mouse users */
+	:focus:not(:focus-visible) {
+		@apply outline-none;
+	}
+
+	/* Skip to content link */
+	.skip-link {
+		@apply bg-primary text-primary-foreground absolute left-4 top-4 z-[100] -translate-y-16 rounded px-4 py-2 transition-transform focus:translate-y-0;
+	}
+
+	/* Better focus styles for form controls */
+	input:focus-visible,
+	textarea:focus-visible,
+	select:focus-visible {
+		@apply ring-primary ring-offset-background ring-2 ring-offset-2;
+	}
+
+	/* Focus styles for buttons and interactive elements */
+	button:focus-visible,
+	[role='button']:focus-visible,
+	a:focus-visible {
+		@apply ring-primary ring-offset-background ring-2 ring-offset-2;
+	}
+
+	/* Tab panel focus styles */
+	[role='tab']:focus-visible {
+		@apply ring-primary ring-offset-background ring-2 ring-offset-1;
+	}
+
+	/* Menu item focus styles */
+	[role='menuitem']:focus-visible,
+	[role='option']:focus-visible {
+		@apply bg-accent text-accent-foreground outline-none;
+	}
+
+	/* Dialog and modal focus styles */
+	[role='dialog']:focus-visible {
+		@apply outline-none;
+	}
+
+	/* Disabled state */
+	[disabled],
+	[aria-disabled='true'] {
+		@apply cursor-not-allowed opacity-50;
+	}
+
+	/* Screen reader only text */
+	.sr-only {
+		@apply absolute -m-px h-px w-px overflow-hidden whitespace-nowrap border-0 p-0 [clip:rect(0,0,0,0)];
+	}
+
+	/* Focus trap container */
+	[data-focus-trap='active'] {
+		@apply relative;
+	}
 }
 
 .document-content {

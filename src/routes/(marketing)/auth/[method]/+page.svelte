@@ -179,6 +179,9 @@
 						{#if error}
 							<div
 								class="border-destructive/20 bg-destructive/5 text-destructive rounded-md border px-3 py-2 text-sm"
+								role="alert"
+								aria-live="assertive"
+								aria-atomic="true"
 							>
 								{error}
 							</div>
@@ -237,8 +240,12 @@
 						{/if}
 
 						<!-- Submit button -->
-						<Button type="submit" class="w-full" disabled={loading}>
-							{loading ? 'Please wait...' : config.submitText}
+						<Button type="submit" class="w-full" disabled={loading} aria-busy={loading}>
+							{#if loading}
+								<span aria-live="polite">Please wait...</span>
+							{:else}
+								{config.submitText}
+							{/if}
 						</Button>
 
 						<!-- Social login section -->
@@ -253,12 +260,24 @@
 							</div>
 
 							<div class="grid grid-cols-2 gap-4">
-								<Button type="button" variant="outline" onclick={handleGoogleLogin}>
-									<MailIcon class="mr-2 h-4 w-4" />
+								<Button
+									type="button"
+									variant="outline"
+									onclick={handleGoogleLogin}
+									disabled={loading}
+									aria-busy={loading}
+								>
+									<MailIcon class="mr-2 h-4 w-4" aria-hidden="true" />
 									Google
 								</Button>
-								<Button type="button" variant="outline" onclick={handleGithubLogin}>
-									<GithubIcon class="mr-2 h-4 w-4" />
+								<Button
+									type="button"
+									variant="outline"
+									onclick={handleGithubLogin}
+									disabled={loading}
+									aria-busy={loading}
+								>
+									<GithubIcon class="mr-2 h-4 w-4" aria-hidden="true" />
 									GitHub
 								</Button>
 							</div>

@@ -49,6 +49,10 @@
 	import { exportDocument } from '$lib/services/export.remote';
 	import * as Dialog from '$lib/components/ui/dialog';
 	import { marked } from 'marked';
+	import { sanitizeMarkdownHtml, sanitizeHtml } from '$lib/utils/sanitize';
+
+	// Configure marked to work synchronously
+	marked.setOptions({ async: false });
 
 	// Get job ID from URL
 	let jobId = $derived(page.params.id);
@@ -192,7 +196,14 @@
 				jobId
 			});
 
-			toast.success(`Resume optimized! ATS Score: ${result.optimizationScore}%`);
+			if (result.originalScore && result.optimizationScore) {
+				const improvement = result.optimizationScore - result.originalScore;
+				toast.success(
+					`Resume optimized! ATS Score: ${result.originalScore}% → ${result.optimizationScore}% (+${improvement}%)`
+				);
+			} else {
+				toast.success(`Resume optimized! ATS Score: ${result.optimizationScore}%`);
+			}
 			// Refresh job data to get new documents
 			if (jobQuery) await jobQuery.refresh();
 		} catch (error) {
@@ -300,13 +311,18 @@
 			await updateJobStatus({
 				jobId,
 				status: newStatus,
-				appliedAt: newStatus === 'applied' && !job.appliedAt ? new Date().toISOString() : undefined
+				appliedAt:
+					newStatus === 'applied' && !job.appliedAt
+						? new Date().toISOString().split('T')[0]
+						: undefined
 			});
 
 			toast.success(`Status updated to ${newStatus}`);
 			// Data will auto-refresh via single-flight mutation
 		} catch (error) {
-			toast.error('Failed to update status');
+			console.error('Failed to update job status:', error);
+			const errorMessage = error instanceof Error ? error.message : 'Failed to update status';
+			toast.error(errorMessage);
 			console.error(error);
 		} finally {
 			statusLoading = false;
@@ -440,7 +456,7 @@
 
 		<!-- Action Buttons -->
 		<Card.Root>
-			<Card.Content class="pt-6">
+			<Card.Content>
 				<div class="flex flex-col gap-4 sm:flex-row">
 					<Select.Root
 						type="single"
@@ -628,9 +644,16 @@
 												<p class="text-muted-foreground text-sm">
 													Version {doc.version} • Created {formatDate(doc.createdAt)}
 												</p>
-												{#if doc.metadata?.atsScore}
+												{#if doc.metadata?.atsScore || doc.metadata?.originalScore}
 													<p class="text-primary mt-1 text-sm">
-														ATS Score: {doc.metadata.atsScore}%
+														{#if doc.metadata?.originalScore && doc.metadata?.atsScore}
+															ATS Score: {doc.metadata.originalScore}% → {doc.metadata.atsScore}%
+															<span class="text-green-600">
+																(+{doc.metadata.atsScore - doc.metadata.originalScore}%)
+															</span>
+														{:else if doc.metadata?.atsScore}
+															ATS Score: {doc.metadata.atsScore}%
+														{/if}
 													</p>
 												{/if}
 											</div>
@@ -819,11 +842,11 @@
 				{#if viewedDocument}
 					{#if viewedDocument.metadata?.markdown}
 						<div class="document-content">
-							{@html marked(viewedDocument.metadata.markdown)}
+							{@html sanitizeMarkdownHtml(marked(viewedDocument.metadata.markdown) as string)}
 						</div>
 					{:else if viewedDocument.content}
 						<div class="document-content">
-							{@html viewedDocument.content}
+							{@html sanitizeHtml(viewedDocument.content)}
 						</div>
 					{:else}
 						<div class="flex flex-col items-center justify-center py-12 text-center">

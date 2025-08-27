@@ -3,7 +3,7 @@ import { error } from '@sveltejs/kit';
 import * as v from 'valibot';
 import { db } from '$lib/db';
 import { extractJob as extractJobWithAI, fetchJobContent } from '$lib/ai';
-import { requireAuth, checkRateLimit, ErrorCodes } from './utils';
+import { requireAuth, checkRateLimitV2, ErrorCodes } from './utils';
 import type { JobStatus } from '$lib/types/user-job';
 
 // List user's jobs with filtering
@@ -38,6 +38,12 @@ export const getJob = query(v.pipe(v.string(), v.uuid()), async (jobId) => {
 	const userId = requireAuth();
 
 	const job = await db.getJob(jobId);
+	console.log('getJob debug:', {
+		jobId,
+		userId,
+		jobUserId: job?.userId,
+		match: job?.userId === userId
+	});
 	if (!job || job.userId !== userId) {
 		error(404, 'Job not found');
 	}
@@ -56,8 +62,8 @@ export const getJob = query(v.pipe(v.string(), v.uuid()), async (jobId) => {
 export const extractJob = form(async (data) => {
 	const userId = requireAuth();
 
-	// Rate limit: 20 job extractions per hour
-	checkRateLimit(userId, 20, 3600000, 'extract_job');
+	// TODO: Re-enable rate limiting after pricing strategy is finalized
+	// await checkRateLimitV2('job.extract');
 
 	const jobUrl = data.get('jobUrl') as string;
 	const jobDescription = data.get('jobDescription') as string;
@@ -89,12 +95,16 @@ export const extractJob = form(async (data) => {
 		extracted.link = jobUrl;
 	}
 
-	// Store in database
-	const job = await db.createUserJob(userId, extracted);
+	// Store in database with transaction for atomicity
+	const job = await db.transaction(async (tx) => {
+		const newJob = await tx.createUserJob(userId, extracted);
 
-	// Create initial activity
-	await db.createActivity(job.id, 'job_added', {
-		source: jobUrl ? 'url' : 'manual'
+		// Create initial activity
+		await tx.createActivity(newJob.id, 'job_added', {
+			source: jobUrl ? 'url' : 'manual'
+		});
+
+		return newJob;
 	});
 
 	// Single-flight mutation: refresh jobs list
@@ -117,25 +127,35 @@ export const updateJobStatus = command(updateStatusSchema, async ({ jobId, statu
 	const userId = requireAuth();
 
 	const job = await db.getJob(jobId);
+	console.log('updateJobStatus debug:', {
+		jobId,
+		userId,
+		jobUserId: job?.userId,
+		status,
+		appliedAt
+	});
 	if (!job || job.userId !== userId) {
 		error(404, 'Job not found');
 	}
 
-	// Update status
-	await db.updateJobStatus(jobId, status as JobStatus, appliedAt);
+	// Update status with transaction for atomicity
+	await db.transaction(async (tx) => {
+		// Update status
+		await tx.updateJobStatus(jobId, status as JobStatus, appliedAt);
 
-	// Create activity record
-	await db.createActivity(jobId, 'status_change', {
-		previousStatus: job.status,
-		newStatus: status
-	});
-
-	// If applied, create additional activity
-	if (status === 'applied' && appliedAt) {
-		await db.createActivity(jobId, 'applied', {
-			appliedAt
+		// Create activity record
+		await tx.createActivity(jobId, 'status_change', {
+			previousStatus: job.status,
+			newStatus: status
 		});
-	}
+
+		// If applied, create additional activity
+		if (status === 'applied' && appliedAt) {
+			await tx.createActivity(jobId, 'applied', {
+				appliedAt
+			});
+		}
+	});
 
 	// Refresh affected queries
 	await Promise.all([getJob(jobId).refresh(), getJobs({}).refresh()]);
@@ -156,21 +176,23 @@ const updateNotesSchema = v.object({
 export const updateJobNotes = command(updateNotesSchema, async ({ jobId, notes }) => {
 	const userId = requireAuth();
 
-	// Rate limit: 60 note updates per hour
-	checkRateLimit(userId, 60, 3600000, 'update_notes');
+	// Notes updates don't need strict rate limiting
 
 	const job = await db.getJob(jobId);
 	if (!job || job.userId !== userId) {
 		error(404, 'Job not found');
 	}
 
-	// Update notes
-	await db.updateJobNotes(jobId, notes);
+	// Update notes with transaction for atomicity
+	await db.transaction(async (tx) => {
+		// Update notes
+		await tx.updateJobNotes(jobId, notes);
 
-	// Create activity if notes were added (not just edited)
-	if (!job.notes && notes) {
-		await db.createActivity(jobId, 'note_added');
-	}
+		// Create activity if notes were added (not just edited)
+		if (!job.notes && notes) {
+			await tx.createActivity(jobId, 'note_added');
+		}
+	});
 
 	// Refresh job details
 	await getJob(jobId).refresh();
@@ -198,8 +220,8 @@ const createJobSchema = v.object({
 export const createJob = command(createJobSchema, async (jobData) => {
 	const userId = requireAuth();
 
-	// Rate limit: 30 job creations per hour
-	checkRateLimit(userId, 30, 3600000, 'create_job');
+	// TODO: Re-enable rate limiting after pricing strategy is finalized
+	// await checkRateLimitV2('job.extract');
 
 	// Prepare job data with defaults
 	const jobToCreate = {
@@ -218,20 +240,24 @@ export const createJob = command(createJobSchema, async (jobData) => {
 		appliedAt: jobData.status === 'applied' ? new Date() : null
 	};
 
-	// Create job in database
-	const job = await db.createUserJob(userId, jobToCreate);
+	// Create job in database with transaction for atomicity
+	const job = await db.transaction(async (tx) => {
+		const newJob = await tx.createUserJob(userId, jobToCreate);
 
-	// Create initial activity
-	await db.createActivity(job.id, 'job_added', {
-		source: 'manual'
-	});
-
-	// If status is applied, create applied activity
-	if (jobData.status === 'applied') {
-		await db.createActivity(job.id, 'applied', {
-			appliedAt: new Date()
+		// Create initial activity
+		await tx.createActivity(newJob.id, 'job_added', {
+			source: 'manual'
 		});
-	}
+
+		// If status is applied, create applied activity
+		if (jobData.status === 'applied') {
+			await tx.createActivity(newJob.id, 'applied', {
+				appliedAt: new Date()
+			});
+		}
+
+		return newJob;
+	});
 
 	// Refresh jobs list
 	await getJobs({}).refresh();
@@ -259,20 +285,22 @@ const updateJobSchema = v.object({
 export const updateJob = command(updateJobSchema, async ({ jobId, ...updates }) => {
 	const userId = requireAuth();
 
-	// Rate limit: 60 job updates per hour
-	checkRateLimit(userId, 60, 3600000, 'update_job');
+	// Job updates don't need strict rate limiting
 
 	const job = await db.getJob(jobId);
 	if (!job || job.userId !== userId) {
 		error(404, 'Job not found');
 	}
 
-	// Update job in database
-	await db.updateJob(jobId, updates);
+	// Update job in database with transaction for atomicity
+	await db.transaction(async (tx) => {
+		// Update job
+		await tx.updateJob(jobId, updates);
 
-	// Create activity record
-	await db.createActivity(jobId, 'job_updated', {
-		updatedFields: Object.keys(updates)
+		// Create activity record
+		await tx.createActivity(jobId, 'job_updated', {
+			updatedFields: Object.keys(updates)
+		});
 	});
 
 	// Refresh affected queries

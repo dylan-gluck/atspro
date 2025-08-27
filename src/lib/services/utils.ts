@@ -1,9 +1,31 @@
-import { error } from '@sveltejs/kit';
 import { getRequestEvent } from '$app/server';
+import { auth } from '$lib/auth';
+import { enforceRateLimit, getRateLimitHeaders } from './rate-limit';
+import { throwError, ErrorCode } from '$lib/utils/error-handling';
 
-// Rate limiter implementation
+// Legacy rate limiter for backward compatibility
 const rateLimiter = new Map<string, number[]>();
 
+// Use the new rate limiting system
+export async function checkRateLimitV2(endpoint: string) {
+	const event = getRequestEvent();
+	const session = await auth.api.getSession({
+		headers: event.request.headers
+	});
+
+	try {
+		await enforceRateLimit(session, endpoint);
+	} catch (err: unknown) {
+		if (err instanceof Error && err.name === 'RateLimitError') {
+			// In remote functions, we can't set headers, so just throw the error
+			// The headers will be set by the API routes if needed
+			throwError(429, err.message, ErrorCode.RATE_LIMIT_EXCEEDED);
+		}
+		throw err;
+	}
+}
+
+// Legacy function for backward compatibility
 export function checkRateLimit(
 	userId: string,
 	limit: number,
@@ -18,7 +40,11 @@ export function checkRateLimit(
 	const recent = timestamps.filter((t) => t > now - window);
 
 	if (recent.length >= limit) {
-		error(429, 'Too many requests. Please wait before trying again.');
+		throwError(
+			429,
+			'Too many requests. Please wait before trying again.',
+			ErrorCode.RATE_LIMIT_EXCEEDED
+		);
 	}
 
 	recent.push(now);
@@ -31,13 +57,13 @@ export function requireAuth() {
 	const userId = locals.user?.id;
 
 	if (!userId) {
-		error(401, 'Unauthorized');
+		throwError(401, 'Unauthorized', ErrorCode.UNAUTHORIZED);
 	}
 
 	return userId;
 }
 
-// Error codes for consistent error handling
+// Legacy error codes - use ErrorCode from error-handling instead
 export const ErrorCodes = {
 	// Auth errors
 	UNAUTHORIZED: 'UNAUTHORIZED',
@@ -75,20 +101,28 @@ export function validateFile(
 	maxSize: number = 10 * 1024 * 1024 // 10MB default
 ) {
 	if (!file) {
-		error(400, 'No file provided');
+		throwError(400, 'No file provided', ErrorCode.INVALID_INPUT);
 	}
 
 	if (!allowedTypes.includes(file.type)) {
-		error(400, `Invalid file type. Allowed types: ${allowedTypes.join(', ')}`);
+		throwError(
+			400,
+			`Invalid file type. Allowed types: ${allowedTypes.join(', ')}`,
+			ErrorCode.INVALID_FILE_TYPE
+		);
 	}
 
 	if (file.size > maxSize) {
-		error(400, `File too large. Maximum size: ${Math.round(maxSize / 1024 / 1024)}MB`);
+		throwError(
+			400,
+			`File too large. Maximum size: ${Math.round(maxSize / 1024 / 1024)}MB`,
+			ErrorCode.FILE_TOO_LARGE
+		);
 	}
 }
 
 // Logging helper
-export function logActivity(action: string, userId: string, metadata?: Record<string, any>) {
+export function logActivity(action: string, userId: string, metadata?: Record<string, unknown>) {
 	// In production, this would send to a logging service
 	console.log(
 		JSON.stringify({

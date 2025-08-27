@@ -1,6 +1,8 @@
 import { command } from '$app/server';
 import * as v from 'valibot';
 import { requireAuth } from './utils';
+import { extractATSKeywords, scoreResumewithAI } from '$lib/ai';
+import type { ATSAnalysis, FormattingAnalysis, SectionAnalysis } from '$lib/types/ats-scoring';
 
 // ATS Scoring schema
 const calculateATSScoreSchema = v.object({
@@ -14,37 +16,56 @@ export const calculateATSScore = command(
 	async ({ resumeContent, jobDescription, optimizedContent }) => {
 		requireAuth();
 
-		// Parse and analyze original resume
-		const originalAnalysis = analyzeContent(resumeContent, jobDescription);
+		try {
+			// Use AI for comprehensive ATS scoring
+			const originalAnalysis = await scoreResumewithAI(resumeContent, jobDescription);
 
-		// Calculate scores
-		const originalScore = calculateScore(originalAnalysis);
+			// If optimized content provided, analyze it too
+			let optimizedAnalysis = null;
+			if (optimizedContent) {
+				optimizedAnalysis = await scoreResumewithAI(optimizedContent, jobDescription);
+			}
 
-		// If optimized content provided, analyze it too
-		let optimizedScore = 0;
-		let optimizedAnalysis = null;
-		if (optimizedContent) {
-			optimizedAnalysis = analyzeContent(optimizedContent, jobDescription);
-			optimizedScore = calculateScore(optimizedAnalysis);
+			return {
+				originalScore: originalAnalysis.score,
+				optimizedScore: optimizedAnalysis?.score || 0,
+				analysis: {
+					original: originalAnalysis,
+					optimized: optimizedAnalysis
+				},
+				recommendations: originalAnalysis.recommendations
+			};
+		} catch (error) {
+			console.error('[calculateATSScore] AI scoring failed, falling back to rule-based:', error);
+
+			// Fallback to rule-based scoring if AI fails
+			const originalAnalysis = analyzeContent(resumeContent, jobDescription);
+			const originalScore = calculateScore(originalAnalysis);
+
+			let optimizedScore = 0;
+			let optimizedAnalysis = null;
+			if (optimizedContent) {
+				optimizedAnalysis = analyzeContent(optimizedContent, jobDescription);
+				optimizedScore = calculateScore(optimizedAnalysis);
+			}
+
+			const recommendations = generateRecommendations(originalAnalysis, jobDescription);
+
+			return {
+				originalScore,
+				optimizedScore,
+				analysis: {
+					original: originalAnalysis,
+					optimized: optimizedAnalysis
+				},
+				recommendations
+			};
 		}
-
-		// Generate recommendations
-		const recommendations = generateRecommendations(originalAnalysis, jobDescription);
-
-		return {
-			originalScore,
-			optimizedScore,
-			analysis: {
-				original: originalAnalysis,
-				optimized: optimizedAnalysis
-			},
-			recommendations
-		};
 	}
 );
 
 // Analyze content against job description
-function analyzeContent(content: string, jobDescription: string) {
+function analyzeContent(content: string, jobDescription: string): ATSAnalysis {
 	const contentLower = content.toLowerCase();
 	const jobLower = jobDescription.toLowerCase();
 
@@ -82,7 +103,7 @@ function analyzeContent(content: string, jobDescription: string) {
 }
 
 // Calculate ATS score based on analysis
-function calculateScore(analysis: any): number {
+function calculateScore(analysis: ATSAnalysis): number {
 	let score = 0;
 
 	// Keyword matching (40 points)
@@ -189,7 +210,7 @@ function extractKeywords(text: string): string[] {
 }
 
 // Analyze formatting for ATS compatibility
-function analyzeFormatting(content: string): any {
+function analyzeFormatting(content: string): FormattingAnalysis {
 	return {
 		hasProperHeaders: /##?\s+(experience|education|skills|summary)/i.test(content),
 		hasContactInfo: /email:|phone:|address:/i.test(content) || /@.*\./i.test(content),
@@ -262,7 +283,7 @@ function findActionVerbs(content: string): string[] {
 }
 
 // Analyze section structure
-function analyzeSections(content: string): any {
+function analyzeSections(content: string): SectionAnalysis {
 	const contentLower = content.toLowerCase();
 	return {
 		hasSummary: /(summary|objective|profile)\s*[:|\n]/i.test(contentLower),
@@ -289,7 +310,7 @@ function calculateKeywordDensity(content: string, keywords: string[]): number {
 }
 
 // Generate recommendations based on analysis
-function generateRecommendations(analysis: any, jobDescription: string): string[] {
+function generateRecommendations(analysis: ATSAnalysis, jobDescription: string): string[] {
 	const recommendations = [];
 
 	// Keyword recommendations
