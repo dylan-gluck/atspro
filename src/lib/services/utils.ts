@@ -17,11 +17,8 @@ export async function checkRateLimitV2(endpoint: string) {
 		await enforceRateLimit(session, endpoint);
 	} catch (err: unknown) {
 		if (err instanceof Error && err.name === 'RateLimitError') {
-			const rateLimitHeaders = await getRateLimitHeaders(session, endpoint);
-			// Set headers on the response
-			Object.entries(rateLimitHeaders).forEach(([key, value]) => {
-				event.setHeaders({ [key]: value });
-			});
+			// In remote functions, we can't set headers, so just throw the error
+			// The headers will be set by the API routes if needed
 			throwError(429, err.message, ErrorCode.RATE_LIMIT_EXCEEDED);
 		}
 		throw err;

@@ -45,8 +45,8 @@ const optimizeSchema = v.object({
 export const optimizeResume = command(optimizeSchema, async ({ jobId }) => {
 	const userId = requireAuth();
 
-	// Apply tier-based rate limiting
-	await checkRateLimitV2('resume.optimize');
+	// TODO: Re-enable rate limiting after pricing strategy is finalized
+	// await checkRateLimitV2('resume.optimize');
 
 	// Verify ownership and get data
 	const [resume, job] = await Promise.all([db.getUserResume(userId), db.getJob(jobId)]);
@@ -126,8 +126,8 @@ export const generateCoverLetter = command(
 	async ({ jobId, tone = 'professional' }) => {
 		const userId = requireAuth();
 
-		// Apply tier-based rate limiting
-		await checkRateLimitV2('cover-letter.generate');
+		// TODO: Re-enable rate limiting after pricing strategy is finalized
+		// await checkRateLimitV2('cover-letter.generate');
 
 		// Verify ownership and get data
 		const [resume, job] = await Promise.all([db.getUserResume(userId), db.getJob(jobId)]);

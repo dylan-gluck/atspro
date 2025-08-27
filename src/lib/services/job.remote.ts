@@ -62,8 +62,8 @@ export const getJob = query(v.pipe(v.string(), v.uuid()), async (jobId) => {
 export const extractJob = form(async (data) => {
 	const userId = requireAuth();
 
-	// Apply tier-based rate limiting
-	await checkRateLimitV2('job.extract');
+	// TODO: Re-enable rate limiting after pricing strategy is finalized
+	// await checkRateLimitV2('job.extract');
 
 	const jobUrl = data.get('jobUrl') as string;
 	const jobDescription = data.get('jobDescription') as string;
@@ -220,8 +220,8 @@ const createJobSchema = v.object({
 export const createJob = command(createJobSchema, async (jobData) => {
 	const userId = requireAuth();
 
-	// Apply tier-based rate limiting
-	await checkRateLimitV2('job.extract');
+	// TODO: Re-enable rate limiting after pricing strategy is finalized
+	// await checkRateLimitV2('job.extract');
 
 	// Prepare job data with defaults
 	const jobToCreate = {
