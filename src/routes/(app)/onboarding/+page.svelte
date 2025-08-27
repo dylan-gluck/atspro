@@ -654,7 +654,7 @@
 
 		<!-- Main card -->
 		<Card class="w-full">
-			<CardContent class="pt-6">
+			<CardContent>
 				{#if currentStep === 1}
 					{@render welcomeStep()}
 				{:else if currentStep === 2}

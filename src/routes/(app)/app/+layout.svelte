@@ -61,14 +61,14 @@
 			<Sidebar.Header>
 				<Sidebar.Menu>
 					<Sidebar.MenuItem>
-						<Sidebar.MenuButton size="lg" class="md:h-8 md:p-0">
+						<Sidebar.MenuButton size="lg" class="pointer-events-none md:h-8 md:p-0">
 							<div
 								class="bg-primary text-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg"
 							>
 								<span class="text-sm font-semibold">AT</span>
 							</div>
 							<div class="grid flex-1 text-left text-sm leading-tight">
-								<span class="truncate font-semibold">ATSPro</span>
+								<span class="truncate font-semibold">ATS Pro</span>
 								<span class="text-muted-foreground truncate text-xs">Resume Optimizer</span>
 							</div>
 						</Sidebar.MenuButton>
@@ -104,7 +104,7 @@
 				<Sidebar.Menu>
 					<Sidebar.MenuItem>
 						<DropdownMenu.Root>
-							<DropdownMenu.Trigger>
+							<DropdownMenu.Trigger class="hover:bg-accent/60 cursor-pointer">
 								{#snippet child({ props })}
 									<Sidebar.MenuButton
 										size="lg"

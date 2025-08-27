@@ -45,7 +45,7 @@
 						</Accordion.Trigger>
 						<Accordion.Content>
 							<Card>
-								<CardContent class="space-y-4 pt-6">
+								<CardContent class="space-y-4">
 									<!-- Contact fields skeleton -->
 									{#if item === 'contact'}
 										<div>

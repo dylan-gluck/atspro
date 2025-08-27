@@ -511,7 +511,7 @@
 						</Accordion.Trigger>
 						<Accordion.Content>
 							<Card>
-								<CardContent class="space-y-4 pt-6">
+								<CardContent class="space-y-4">
 									<div>
 										<Label for="fullName">Full Name</Label>
 										<Input id="fullName" bind:value={resume.contactInfo.fullName} />
@@ -604,7 +604,7 @@
 						</Accordion.Trigger>
 						<Accordion.Content>
 							<Card>
-								<CardContent class="pt-6">
+								<CardContent>
 									<Textarea
 										placeholder="Write a brief professional summary..."
 										bind:value={resume.summary}
@@ -651,7 +651,7 @@
 						</Accordion.Trigger>
 						<Accordion.Content>
 							<Card>
-								<CardContent class="space-y-4 pt-6">
+								<CardContent class="space-y-4">
 									<Button
 										variant="outline"
 										onclick={addWorkExperience}
@@ -820,7 +820,7 @@
 						</Accordion.Trigger>
 						<Accordion.Content>
 							<Card>
-								<CardContent class="space-y-4 pt-6">
+								<CardContent class="space-y-4">
 									<Button
 										variant="outline"
 										onclick={addEducation}
@@ -944,7 +944,7 @@
 						</Accordion.Trigger>
 						<Accordion.Content>
 							<Card>
-								<CardContent class="space-y-4 pt-6">
+								<CardContent class="space-y-4">
 									<Button
 										variant="outline"
 										onclick={addCertification}
@@ -1066,7 +1066,7 @@
 						</Accordion.Trigger>
 						<Accordion.Content>
 							<Card>
-								<CardContent class="space-y-4 pt-6">
+								<CardContent class="space-y-4">
 									<div class="flex gap-2">
 										<Input
 											id="new-skill"
