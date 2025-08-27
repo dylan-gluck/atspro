@@ -310,7 +310,9 @@
 			toast.success(`Status updated to ${newStatus}`);
 			// Data will auto-refresh via single-flight mutation
 		} catch (error) {
-			toast.error('Failed to update status');
+			console.error('Failed to update job status:', error);
+			const errorMessage = error instanceof Error ? error.message : 'Failed to update status';
+			toast.error(errorMessage);
 			console.error(error);
 		} finally {
 			statusLoading = false;

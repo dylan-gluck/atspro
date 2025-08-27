@@ -38,6 +38,12 @@ export const getJob = query(v.pipe(v.string(), v.uuid()), async (jobId) => {
 	const userId = requireAuth();
 
 	const job = await db.getJob(jobId);
+	console.log('getJob debug:', {
+		jobId,
+		userId,
+		jobUserId: job?.userId,
+		match: job?.userId === userId
+	});
 	if (!job || job.userId !== userId) {
 		error(404, 'Job not found');
 	}
@@ -121,6 +127,13 @@ export const updateJobStatus = command(updateStatusSchema, async ({ jobId, statu
 	const userId = requireAuth();
 
 	const job = await db.getJob(jobId);
+	console.log('updateJobStatus debug:', {
+		jobId,
+		userId,
+		jobUserId: job?.userId,
+		status,
+		appliedAt
+	});
 	if (!job || job.userId !== userId) {
 		error(404, 'Job not found');
 	}
