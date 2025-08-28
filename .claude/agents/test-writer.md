@@ -1,6 +1,6 @@
 ---
-name: engineering-tests
-description: Testing specialist for comprehensive test coverage. Use proactively when new features need test coverage, test suites need creation, coverage reports are needed, or after implementation is complete. MUST BE USED for all testing tasks without modifying implementation code.
+name: test-writer
+description: Testing specialist focused on writing and maintaining comprehensive unit tests for high code coverage. Use proactively when new features need test coverage, test suites need creation, or after implementation is complete. MUST BE USED for all testing tasks without modifying implementation code.
 tools: TodoWrite, Read, Write, Edit, MultiEdit, Grep, Glob, LS, Bash(bun test:*), Bash(bun run test:*), Bash(vitest:*)
 color: green
 model: sonnet

@@ -1,7 +1,7 @@
 ---
 name: doc-writer
-description: Technical documentation specialist. Use proactively when code changes need documentation updates, when new features require docs, when API endpoints need documentation, or when README files need updating. MUST BE USED for maintaining documentation consistency across the project.
-tools: TodoWrite, Read, Write, Edit, MultiEdit, Grep, Glob, LS, WebSearch, WebFetch
+description: Technical documentation specialist focused on writing and maintaining comprehensive project documentation. Use proactively when code changes need documentation updates, when new features require docs, when API endpoints need documentation, or when README files need updating. MUST BE USED for maintaining documentation consistency across the project.
+tools: TodoWrite, Read, Write, Edit, MultiEdit, Grep, Glob, LS
 color: blue
 model: sonnet
 ---

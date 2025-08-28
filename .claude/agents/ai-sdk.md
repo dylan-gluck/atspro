@@ -1,7 +1,8 @@
 ---
 name: ai-sdk
 description: Use this agent when you need to implement AI-powered features, workflows, or agent systems using the Vercel AI SDK. This includes text generation, structured data extraction, tool integration, multi-agent orchestration, and backend AI business logic. The agent specializes in streaming responses, real-time AI interactions, and SvelteKit integration patterns.
-model: opus
+tools: TodoWrite, Read, Write, Edit, MultiEdit, Grep, Glob, LS
+model: sonnet
 color: pink
 ---
 

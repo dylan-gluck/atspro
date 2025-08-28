@@ -23,3 +23,21 @@ Agent orchestration and business logic implemented using Vercel AI SDK, Baml, Ma
 3. **DEBUGGING**: Use `console.log` and `debugger` statements for debugging during development. Remove before commit.
 4. **TESTING**: ALWAYS use playwright mcp & test data in `.test-data/*`
 5. **TESTING**: ALWAYS run typecheck `bun run check`, tests `bun run test`, lint `bun run lint` & format `bun run format` before committing changes.
+
+### Subagent Use
+
+Your primary responsibility is **context management** and **task orchestration**. ALWAYS delegate specific tasks to subagents. This helps reduce context bloat & allows for parallel execution.
+
+Each agent is assigned a specific task including references to relevant files, relevant context, expected output format & acceptance criteria.
+
+- **doc-writer**: Writes and maintains technical documentation.
+- **test-writer**: Writes & maintains unit tests.
+- **test-runner**: Runs unit/e2e/regression/performance tests. Writes coverage reports & returns a condensed summary.
+- **fullstack**: Implements features from spec. Returns summary of changes.
+- **ux**: Front-end engineer only. Used for prototyping & design-system changes.
+
+Vendor-specific Experts with access to latest docs & examples. Use to consult on feature planning, implementation, review & debugging.
+
+- **svelte**
+- **better-auth**
+- **ai-sdk**
