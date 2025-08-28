@@ -35,18 +35,13 @@ export async function registerUser(
 	// Wait for the form to be fully loaded
 	await page.waitForSelector('input', { timeout: 5000 });
 
-	// Use simple input field selectors like in the debug test
-	const nameField = page.locator('input').first();
-	const emailField = page.locator('input').nth(1);
-	const passwordField = page.locator('input').nth(2);
+	// Use placeholder-based selectors like the working auth tests
+	await page.getByPlaceholder(/john doe|full name/i).fill(user.name);
+	await page.getByPlaceholder(/name@example.com|email/i).fill(user.email);
+	await page.getByPlaceholder(/enter your password|create password|password/i).fill(user.password);
 
-	await nameField.fill(user.name);
-	await emailField.fill(user.email);
-	await passwordField.fill(user.password);
-
-	// Submit registration using submit button
-	const submitButton = page.locator('button[type="submit"]').first();
-	await submitButton.click();
+	// Submit registration using the button text like the auth tests
+	await page.getByRole('button', { name: /sign up|create account/i }).click();
 
 	// Wait for navigation to onboarding page with timeout
 	await expect(page).toHaveURL(/.*\/onboarding/, { timeout });
@@ -72,11 +67,14 @@ export async function loginUser(
 	await page.getByPlaceholder(/name@example.com|email/i).fill(email);
 	await page.getByPlaceholder(/enter your password|password/i).fill(password);
 
-	// Submit login using the form submit button (not the header button)
+	// Submit login using form button (not header button)
 	await page
-		.locator('form button[type="submit"], #main-content button:has-text("Sign In")')
-		.first()
+		.locator('#main-content')
+		.getByRole('button', { name: /sign in|log in/i })
 		.click();
+
+	// Wait a moment for response
+	await page.waitForTimeout(2000);
 
 	// Login should redirect to app dashboard
 	await expect(page).toHaveURL(/.*\/app/, { timeout });
@@ -177,8 +175,11 @@ export async function attemptLogin(
 	await page.getByPlaceholder(/name@example.com|email/i).fill(email);
 	await page.getByPlaceholder(/enter your password|password/i).fill(password);
 
-	// Submit
-	await page.getByRole('button', { name: /sign in|log in/i }).click();
+	// Submit using the form button (not the header button)
+	await page
+		.locator('#main-content')
+		.getByRole('button', { name: /sign in|log in/i })
+		.click();
 
 	// Wait for response
 	await page.waitForTimeout(2000);
