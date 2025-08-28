@@ -1,0 +1,98 @@
+{
+	"applicant_user": {
+		"name": "Applicant Test User",
+		"email": "applicant.test@example.com",
+		"password": "Test123!",
+		"tier": "applicant",
+		"usage": {
+			"monthly_optimizations_used": 0,
+			"monthly_ats_reports_used": 0,
+			"active_job_applications": 5
+		},
+		"limits": {
+			"optimizations": 0,
+			"ats_reports": 0,
+			"active_jobs": 10
+		},
+		"expected_behavior": {
+			"can_create_jobs": true,
+			"job_limit_reached_at": 10,
+			"can_optimize_resume": false,
+			"can_generate_ats_report": false,
+			"shows_upgrade_prompts": true
+		}
+	},
+	"candidate_user": {
+		"name": "Candidate Test User",
+		"email": "candidate.test@example.com",
+		"password": "Test123!",
+		"tier": "candidate",
+		"usage": {
+			"monthly_optimizations_used": 10,
+			"monthly_ats_reports_used": 15,
+			"active_job_applications": 25
+		},
+		"limits": {
+			"optimizations": 50,
+			"ats_reports": 50,
+			"active_jobs": 999999
+		},
+		"expected_behavior": {
+			"can_create_jobs": true,
+			"job_limit_reached_at": null,
+			"can_optimize_resume": true,
+			"optimization_limit_reached_at": 50,
+			"can_generate_ats_report": true,
+			"ats_report_limit_reached_at": 50,
+			"shows_upgrade_prompts": false
+		}
+	},
+	"candidate_user_maxed_out": {
+		"name": "Candidate Maxed User",
+		"email": "candidate.maxed@example.com",
+		"password": "Test123!",
+		"tier": "candidate",
+		"usage": {
+			"monthly_optimizations_used": 50,
+			"monthly_ats_reports_used": 50,
+			"active_job_applications": 100
+		},
+		"limits": {
+			"optimizations": 50,
+			"ats_reports": 50,
+			"active_jobs": 999999
+		},
+		"expected_behavior": {
+			"can_create_jobs": true,
+			"job_limit_reached_at": null,
+			"can_optimize_resume": false,
+			"can_generate_ats_report": false,
+			"shows_upgrade_prompts": true
+		}
+	},
+	"executive_user": {
+		"name": "Executive Test User",
+		"email": "executive.test@example.com",
+		"password": "Test123!",
+		"tier": "executive",
+		"usage": {
+			"monthly_optimizations_used": 500,
+			"monthly_ats_reports_used": 300,
+			"active_job_applications": 1000
+		},
+		"limits": {
+			"optimizations": 999999,
+			"ats_reports": 999999,
+			"active_jobs": 999999
+		},
+		"expected_behavior": {
+			"can_create_jobs": true,
+			"job_limit_reached_at": null,
+			"can_optimize_resume": true,
+			"optimization_limit_reached_at": null,
+			"can_generate_ats_report": true,
+			"ats_report_limit_reached_at": null,
+			"shows_upgrade_prompts": false
+		}
+	}
+}

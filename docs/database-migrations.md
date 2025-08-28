@@ -20,7 +20,10 @@ migrations/
 ├── 000_create_betterauth_tables.sql # Better-Auth authentication tables
 ├── 001_create_atspro_tables.sql     # Core application tables
 ├── 002_add_job_added_activity_type.sql # Activity type enum update
-└── 003_add_markdown_columns.sql     # Markdown storage columns
+├── 003_add_markdown_columns.sql     # Markdown storage columns
+├── 004_add_subscription_tiers.sql   # Initial subscription system
+├── 005_add_user_settings.sql       # User preferences and settings
+└── 006_update_subscription_tiers.sql # ⚠️ BREAKING: New tier structure with usage tracking
 ```
 
 ## Naming Convention
@@ -198,6 +201,122 @@ The `migrations` table tracks all executed migrations:
 2. **Review migrations**: Always review migration SQL before running
 3. **Backup before major changes**: Take a database backup before running destructive migrations
 4. **Use least privilege**: Migration user should only have necessary permissions
+
+## Breaking Migration Alert: 006_update_subscription_tiers.sql
+
+**⚠️ This migration introduces breaking changes to the subscription system.**
+
+### What It Does
+
+1. **Updates tier names:** free → applicant, professional → candidate, premium → executive
+2. **Adds usage tracking:** New columns for monthly usage limits
+3. **Creates usage history table:** Detailed tracking of feature usage
+4. **Updates constraints:** New enum values and validation rules
+
+### Pre-Migration Checklist
+
+Before running this migration:
+
+- [ ] **Backup database:** Take a full backup before applying
+- [ ] **Update application code:** Ensure new tier names are supported
+- [ ] **Update test data:** Change test fixtures to use new tier names
+- [ ] **Notify users:** Send communication about tier changes
+- [ ] **Prepare rollback plan:** Have rollback script ready if needed
+
+### Migration Content
+
+```sql
+-- Drop the existing check constraint first
+ALTER TABLE "user"
+DROP CONSTRAINT IF EXISTS user_subscription_tier_check;
+
+-- Update existing tier values
+UPDATE "user"
+SET subscription_tier = CASE
+    WHEN subscription_tier = 'free' THEN 'applicant'
+    WHEN subscription_tier = 'professional' THEN 'candidate'
+    WHEN subscription_tier = 'premium' THEN 'executive'
+    WHEN subscription_tier IS NULL THEN 'applicant'
+    ELSE subscription_tier
+END;
+
+-- Add the new check constraint
+ALTER TABLE "user"
+ADD CONSTRAINT user_subscription_tier_check
+CHECK (subscription_tier IN ('applicant', 'candidate', 'executive'));
+
+-- Add usage tracking columns
+ALTER TABLE "user"
+ADD COLUMN IF NOT EXISTS monthly_optimizations_used INTEGER DEFAULT 0,
+ADD COLUMN IF NOT EXISTS monthly_ats_reports_used INTEGER DEFAULT 0,
+ADD COLUMN IF NOT EXISTS active_job_applications INTEGER DEFAULT 0;
+
+-- Create usage tracking table for detailed history
+CREATE TABLE IF NOT EXISTS subscription_usage (
+    id TEXT PRIMARY KEY DEFAULT ('su_' || substr(md5(random()::text || clock_timestamp()::text), 1, 16)),
+    user_id TEXT NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
+    feature TEXT NOT NULL,
+    used_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    metadata JSONB,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_subscription_usage_user_feature ON subscription_usage(user_id, feature);
+CREATE INDEX IF NOT EXISTS idx_subscription_usage_used_at ON subscription_usage(used_at);
+```
+
+### Post-Migration Verification
+
+After running the migration:
+
+```sql
+-- Verify tier conversion worked
+SELECT subscription_tier, COUNT(*) as user_count
+FROM "user"
+GROUP BY subscription_tier;
+-- Should show: applicant, candidate, executive (no old values)
+
+-- Check usage tracking table exists
+SELECT table_name FROM information_schema.tables
+WHERE table_name = 'subscription_usage';
+
+-- Verify new columns exist
+SELECT column_name, data_type, column_default
+FROM information_schema.columns
+WHERE table_name = 'user'
+AND column_name IN ('monthly_optimizations_used', 'monthly_ats_reports_used', 'active_job_applications');
+```
+
+### Rollback Script (Emergency Use Only)
+
+```sql
+-- ⚠️ WARNING: This will lose all usage tracking data
+-- Only use in emergency situations
+
+-- Revert tier names
+UPDATE "user" SET subscription_tier = CASE
+    WHEN subscription_tier = 'applicant' THEN 'free'
+    WHEN subscription_tier = 'candidate' THEN 'professional'
+    WHEN subscription_tier = 'executive' THEN 'premium'
+    ELSE subscription_tier
+END;
+
+-- Drop new columns
+ALTER TABLE "user"
+DROP COLUMN IF EXISTS monthly_optimizations_used,
+DROP COLUMN IF EXISTS monthly_ats_reports_used,
+DROP COLUMN IF EXISTS active_job_applications;
+
+-- Drop usage table
+DROP TABLE IF EXISTS subscription_usage;
+
+-- Update constraint
+ALTER TABLE "user" DROP CONSTRAINT IF EXISTS user_subscription_tier_check;
+ALTER TABLE "user" ADD CONSTRAINT user_subscription_tier_check
+CHECK (subscription_tier IN ('free', 'professional', 'premium'));
+```
+
+---
 
 ## Examples
 

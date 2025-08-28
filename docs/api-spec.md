@@ -607,20 +607,184 @@ Retrieves the activity timeline for a specific job.
 
 ---
 
-## Rate Limiting
+### 15. Get Subscription Info
 
-To prevent abuse and ensure fair usage:
+**GET** `/api/subscription`
+
+Retrieves the user's current subscription tier and usage statistics.
+
+#### Response
+
+```json
+{
+	"success": true,
+	"data": {
+		"tier": "candidate",
+		"expiresAt": "2025-02-28T23:59:59Z",
+		"usage": {
+			"optimizations": {
+				"used": 23,
+				"limit": 50
+			},
+			"atsReports": {
+				"used": 12,
+				"limit": 50
+			},
+			"activeJobs": {
+				"used": 7,
+				"limit": 999999
+			}
+		},
+		"resetAt": "2025-02-01T00:00:00Z",
+		"features": {
+			"resumeOptimization": true,
+			"atsReports": true,
+			"unlimitedJobs": true,
+			"coverLetterGeneration": true,
+			"companyResearch": true,
+			"interviewPrep": false,
+			"careerCoach": false
+		}
+	}
+}
+```
+
+#### Error Codes
+
+- `SUBSCRIPTION_NOT_FOUND`: User has no subscription record
+
+---
+
+### 16. Update Subscription (Debug Only)
+
+**POST** `/api/subscription/debug`
+
+Updates subscription settings for testing purposes. Only available in development mode.
+
+#### Request
+
+```typescript
+{
+	tier?: "applicant" | "candidate" | "executive",
+	resetUsage?: boolean,
+	maxOutUsage?: boolean
+}
+```
+
+#### Response
+
+```json
+{
+	"success": true,
+	"data": {
+		"tier": "executive",
+		"message": "Subscription updated successfully",
+		"usage": {
+			"optimizations": { "used": 0, "limit": 999999 },
+			"atsReports": { "used": 0, "limit": 999999 },
+			"activeJobs": { "used": 0, "limit": 999999 }
+		}
+	}
+}
+```
+
+#### Error Codes
+
+- `DEBUG_MODE_DISABLED`: Endpoint only available in development
+- `INVALID_TIER`: Provided tier value is not valid
+
+---
+
+### 17. Track Feature Usage
+
+**POST** `/api/subscription/track`
+
+Internal endpoint for tracking feature usage. Called automatically by other endpoints.
+
+#### Request
+
+```typescript
+{
+	feature: 'resume_optimization' | 'ats_report' | 'job_application';
+}
+```
+
+#### Response
+
+```json
+{
+	"success": true,
+	"data": {
+		"feature": "resume_optimization",
+		"newUsageCount": 24,
+		"limit": 50,
+		"resetDate": "2025-02-01T00:00:00Z"
+	}
+}
+```
+
+#### Error Codes
+
+- `USAGE_LIMIT_EXCEEDED`: Feature usage limit reached for current tier
+- `INVALID_FEATURE`: Feature name not recognized
+
+---
+
+## Subscription-Based Rate Limiting
+
+ATSPro enforces usage limits based on subscription tiers:
+
+### Subscription Tiers
+
+| Tier          | Monthly Cost | Resume Optimizations | ATS Reports | Active Jobs | Other Features         |
+| ------------- | ------------ | -------------------- | ----------- | ----------- | ---------------------- |
+| **Applicant** | Free         | 0/month              | 0/month     | 10 active   | Basic features only    |
+| **Candidate** | $20/month    | 50/month             | 50/month    | Unlimited   | All features           |
+| **Executive** | $50/month    | Unlimited            | Unlimited   | Unlimited   | All features + premium |
+
+### Rate Limited Endpoints
+
+**Subscription-Based Limits:**
+
+- `POST /api/optimize` - Resume optimization (tier-based monthly limits)
+- `POST /api/generate/ats-report` - ATS report generation (tier-based monthly limits)
+- `POST /api/jobs` - Job application creation (10 active for Applicant tier)
+
+**General Rate Limits:**
 
 - **Resume/Job Extraction**: 10 requests per hour
-- **Document Generation**: 20 requests per hour
+- **Document Generation**: 20 requests per hour (not including optimization/reports)
 - **Read Operations**: 100 requests per minute
 - **Update Operations**: 50 requests per minute
+
+### Rate Limit Response Format
+
+When subscription limits are exceeded:
+
+```json
+{
+	"success": false,
+	"error": {
+		"code": "SUBSCRIPTION_LIMIT_EXCEEDED",
+		"message": "Monthly optimization limit reached. Please upgrade to continue.",
+		"details": {
+			"tier": "applicant",
+			"feature": "resume_optimization",
+			"used": 0,
+			"limit": 0,
+			"resetDate": "2025-02-01T00:00:00Z"
+		}
+	}
+}
+```
 
 Rate limit headers are included in responses:
 
 - `X-RateLimit-Limit`: Maximum requests allowed
 - `X-RateLimit-Remaining`: Requests remaining
 - `X-RateLimit-Reset`: Unix timestamp when limit resets
+- `X-Subscription-Tier`: Current user subscription tier
+- `X-Usage-Reset-Date`: When monthly usage counters reset
 
 ## Webhooks (Future Enhancement)
 
