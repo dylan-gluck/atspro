@@ -13,22 +13,3 @@ ATSPro is an AI-powered ATS resume optimization platform built with SvelteKit, B
 3. **DEBUGGING**: Use `console.log` and `debugger` statements for debugging
 4. **TESTING**: ALWAYS use playwright mcp & test data in `.test-data/*`
 5. **TESTING**: ALWAYS run typecheck `bun run check` and tests `bun run test`
-
-## Key Documentation:
-
-Always Read: @TODO.md
-
-Reference when working on related features:
-
-- Bun: `.claude/docs/bun/*`
-- Svelte: `.claude/docs/svelte/*`
-- Sveltekit: `.claude/docs/sveltekit/*`
-- Better-auth: `.claude/docs/better-auth/*`
-- Vercel AI SDK: `.claude/docs/ai-sdk/*`
-
-## MCP Servers
-
-- `mcp__postgres__query` Use for confirming db changes, Read only
-- `mcp__playwright__*` Use for testing features while developing & running end-to-end tests.
-- `mcp__language-server__*` Always use for finding symbols and references across project
-- `mcp__shadcn-ui__*` Always use when building new views

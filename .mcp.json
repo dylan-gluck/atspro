@@ -12,17 +12,6 @@
 				"postgresql://postgres:postgres@localhost/atspro"
 			]
 		},
-		"language-server": {
-			"command": "mcp-language-server",
-			"args": [
-				"--workspace",
-				"/Users/dylan/Workspace/projects/atspro-bun",
-				"--lsp",
-				"typescript-language-server",
-				"--",
-				"--stdio"
-			]
-		},
 		"shadcn-ui": {
 			"command": "npx",
 			"args": ["@jpisnice/shadcn-ui-mcp-server", "--framework", "svelte"]

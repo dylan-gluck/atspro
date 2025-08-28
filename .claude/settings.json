@@ -1,6 +1,6 @@
 {
 	"enableAllProjectMcpServers": true,
-	"enabledMcpjsonServers": ["postgres", "language-server", "shadcn-ui", "playwright"],
+	"enabledMcpjsonServers": ["postgres", "shadcn-ui", "playwright"],
 	"hooks": {
 		"SessionStart": [
 			{
