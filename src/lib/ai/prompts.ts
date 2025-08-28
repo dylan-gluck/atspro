@@ -12,14 +12,11 @@ export const SYSTEM_PROMPTS = {
 
 	// Resume optimization - reduced from ~150 tokens to ~85 tokens
 	optimizeResume: `ATS optimization expert. Transform resume:
-1. Rewrite for ATS parsing
-2. Add job keywords naturally
-3. Fix formatting issues
-4. Emphasize relevant skills
-5. Standardize dates
-6. Use standard headings
-7. Quantify achievements
-Maintain authenticity.`,
+1. Rewriting section content for better ATS readability
+2. Incorporating key terminology from the job description throughout
+3. Reformatting any elements that might cause parsing issues
+4. Enhancing content to emphasize relevant skills and experiences
+Maintain authenticity while optimizing for ATS systems.`,
 
 	// Cover letter generation - reduced from ~100 tokens to ~60 tokens
 	coverLetter: {
@@ -85,47 +82,3 @@ export const USER_PROMPTS = {
 	industryScoring: (resume: string, job: string, industry: string) =>
 		`Score resume for ${industry} industry:\n\nResume:\n${resume}\n\nJob:\n${job}`
 };
-
-// Helper to get token count estimate (rough approximation)
-export function estimateTokens(text: string): number {
-	// Rough estimate: 1 token ≈ 4 characters
-	return Math.ceil(text.length / 4);
-}
-
-// Calculate token savings
-export function calculateTokenSavings(): Record<string, number> {
-	const oldPrompts = {
-		extractResume:
-			'You are an expert resume parser. Extract all information from this resume and return structured data with contact info, summary, work experience, education, certifications, and skills. Be thorough and accurate.',
-		extractJob:
-			'You are an expert job posting analyzer. Extract all relevant information from job postings including company, title, description, salary, responsibilities, qualifications, logistics, location, and any additional information.',
-		optimizeResume: `You are an expert ATS (Applicant Tracking System) optimization specialist. Your task is to optimize resumes to maximize their compatibility with ATS systems while maintaining authenticity.
-
-Transform the resume by:
-1. Rewriting section content for optimal ATS parsing and readability
-2. Incorporating key terminology and keywords from the job description naturally throughout
-3. Reformatting any elements that might cause ATS parsing issues
-4. Enhancing content to emphasize relevant skills, experiences, and achievements
-5. Ensuring all dates are in consistent, ATS-friendly format
-6. Using industry-standard section headings
-7. Quantifying achievements where possible
-
-Maintain the authenticity and truthfulness of all experiences while optimizing for ATS systems.`
-	};
-
-	const newPrompts = {
-		extractResume: SYSTEM_PROMPTS.extractResume,
-		extractJob: SYSTEM_PROMPTS.extractJob,
-		optimizeResume: SYSTEM_PROMPTS.optimizeResume
-	};
-
-	const savings: Record<string, number> = {};
-
-	for (const key in oldPrompts) {
-		const oldTokens = estimateTokens(oldPrompts[key as keyof typeof oldPrompts]);
-		const newTokens = estimateTokens(newPrompts[key as keyof typeof newPrompts]);
-		savings[key] = Math.round(((oldTokens - newTokens) / oldTokens) * 100);
-	}
-
-	return savings;
-}

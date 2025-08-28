@@ -9,7 +9,7 @@ thoughts/
 │   ├── plans/       # Implementation plans
 │   ├── tickets/     # Ticket documentation
 │   └── prs/         # PR descriptions
-├── allison/         # Personal thoughts (user-specific)
+├── dylan/         # Personal thoughts (user-specific)
 │   ├── tickets/
 │   └── notes/
 ├── global/          # Cross-repository thoughts
