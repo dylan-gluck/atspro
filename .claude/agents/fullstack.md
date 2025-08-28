@@ -1,7 +1,7 @@
 ---
 name: fullstack
 description: Fullstack implementation specialist that takes specifications and builds complete features across the entire technology stack. Delivers working functionality following project conventions, integrating frontend, backend, and database components. Returns comprehensive summary of all changes made. Use when implementing features from specifications or building cross-stack functionality.
-tools: TodoWrite, Read, Write, Edit, MultiEdit, Grep, Glob, LS, Bash, BashOutput, mcp__postgres__query, mcp__playwright__*
+tools: TodoWrite, Read, Write, Edit, MultiEdit, Grep, Glob, LS, Bash, BashOutput, mcp__postgres__query, mcp__playwright
 color: purple
 model: opus
 ---

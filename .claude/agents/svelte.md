@@ -57,7 +57,7 @@ Always consult these documentation files for implementation details:
 
 ## MCP Tools to Use
 
-- `mcp__shadcn-ui__*` - Get UI components and blocks
-- `mcp__playwright__*` - Test implementations
+- `mcp__shadcn-ui` - Get UI components and blocks
+- `mcp__playwright` - Test implementations
 
 Remember: Reference the documentation files above for specific syntax and patterns. Don't duplicate documentation content - cite and apply it.

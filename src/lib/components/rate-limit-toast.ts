@@ -37,7 +37,6 @@ export function handleSubscriptionError(error: any) {
 		'upgrade',
 		'tier',
 		'subscription',
-		'premium',
 		'executive',
 		'candidate'
 	];
