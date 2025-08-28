@@ -30,9 +30,9 @@ describe('Rate Limiting Service', () => {
 	});
 
 	describe('getUserTier', () => {
-		it('should return FREE tier for anonymous users', async () => {
+		it('should return APPLICANT tier for anonymous users', async () => {
 			const tier = await getUserTier(null);
-			expect(tier).toBe(SubscriptionTier.FREE);
+			expect(tier).toBe(SubscriptionTier.APPLICANT);
 		});
 
 		it('should return user subscription tier from database', async () => {
@@ -40,23 +40,23 @@ describe('Rate Limiting Service', () => {
 			mockPool.query.mockResolvedValueOnce({
 				rows: [
 					{
-						subscription_tier: SubscriptionTier.PROFESSIONAL,
+						subscription_tier: SubscriptionTier.CANDIDATE,
 						subscription_expires_at: new Date(Date.now() + 86400000)
 					}
 				]
 			});
 
 			const tier = await getUserTier(session);
-			expect(tier).toBe(SubscriptionTier.PROFESSIONAL);
+			expect(tier).toBe(SubscriptionTier.CANDIDATE);
 		});
 
-		it('should downgrade expired subscriptions to FREE', async () => {
+		it('should downgrade expired subscriptions to APPLICANT', async () => {
 			const session = createMockSession('user-123');
 			mockPool.query
 				.mockResolvedValueOnce({
 					rows: [
 						{
-							subscription_tier: SubscriptionTier.PROFESSIONAL,
+							subscription_tier: SubscriptionTier.CANDIDATE,
 							subscription_expires_at: new Date(Date.now() - 86400000) // Expired
 						}
 					]
@@ -64,16 +64,16 @@ describe('Rate Limiting Service', () => {
 				.mockResolvedValueOnce({ rowCount: 1 }); // Update query
 
 			const tier = await getUserTier(session);
-			expect(tier).toBe(SubscriptionTier.FREE);
+			expect(tier).toBe(SubscriptionTier.APPLICANT);
 			expect(mockPool.query).toHaveBeenCalledTimes(2);
 		});
 
-		it('should return FREE for users not in database', async () => {
+		it('should return APPLICANT for users not in database', async () => {
 			const session = createMockSession('user-123');
 			mockPool.query.mockResolvedValueOnce({ rows: [] });
 
 			const tier = await getUserTier(session);
-			expect(tier).toBe(SubscriptionTier.FREE);
+			expect(tier).toBe(SubscriptionTier.APPLICANT);
 		});
 	});
 
@@ -82,41 +82,43 @@ describe('Rate Limiting Service', () => {
 			const result = await checkRateLimit(null, 'resume.optimize');
 
 			expect(result.allowed).toBe(false);
-			expect(result.limit).toBe(RATE_LIMITS['resume.optimize'][SubscriptionTier.FREE].maxRequests);
+			expect(result.limit).toBe(
+				RATE_LIMITS['resume.optimize'][SubscriptionTier.APPLICANT].maxRequests
+			);
 			expect(result.remaining).toBe(0);
 		});
 
-		it('should allow requests within rate limit', async () => {
+		it('should check requests against rate limit', async () => {
 			const session = createMockSession('user-123');
 
-			// Mock getUserTier
+			// Mock getUserTier - using CANDIDATE tier for actual limits
 			mockPool.query
-				.mockResolvedValueOnce({ rows: [{ subscription_tier: SubscriptionTier.FREE }] })
+				.mockResolvedValueOnce({ rows: [{ subscription_tier: SubscriptionTier.CANDIDATE }] })
 				.mockResolvedValueOnce({ rowCount: 1 }) // Delete old records
-				.mockResolvedValueOnce({ rows: [{ count: '1' }] }) // Current usage
+				.mockResolvedValueOnce({ rows: [{ count: '10' }] }) // Current usage
 				.mockResolvedValueOnce({ rowCount: 1 }); // Insert new record
 
 			const result = await checkRateLimit(session, 'resume.optimize');
 
 			expect(result.allowed).toBe(true);
-			expect(result.limit).toBe(3); // FREE tier limit for resume.optimize
-			expect(result.remaining).toBe(1); // 3 - 1 (current) - 1 (this request)
+			expect(result.limit).toBe(50); // CANDIDATE tier limit for resume.optimize
+			expect(result.remaining).toBe(39); // 50 - 10 (current) - 1 (this request)
 		});
 
 		it('should deny requests exceeding rate limit', async () => {
 			const session = createMockSession('user-123');
 
-			// Mock getUserTier
+			// Mock getUserTier - APPLICANT has 0 limit for optimization
 			mockPool.query
-				.mockResolvedValueOnce({ rows: [{ subscription_tier: SubscriptionTier.FREE }] })
+				.mockResolvedValueOnce({ rows: [{ subscription_tier: SubscriptionTier.APPLICANT }] })
 				.mockResolvedValueOnce({ rowCount: 1 }) // Delete old records
-				.mockResolvedValueOnce({ rows: [{ count: '3' }] }) // At limit
+				.mockResolvedValueOnce({ rows: [{ count: '0' }] }) // At limit (0 allowed)
 				.mockResolvedValueOnce({ rows: [{ oldest: new Date() }] }); // Oldest request
 
 			const result = await checkRateLimit(session, 'resume.optimize');
 
 			expect(result.allowed).toBe(false);
-			expect(result.limit).toBe(3);
+			expect(result.limit).toBe(0);
 			expect(result.remaining).toBe(0);
 			expect(result.retryAfter).toBeDefined();
 		});
@@ -124,9 +126,9 @@ describe('Rate Limiting Service', () => {
 		it('should use different limits for different tiers', async () => {
 			const session = createMockSession('user-123');
 
-			// Test PREMIUM tier
+			// Test EXECUTIVE tier
 			mockPool.query
-				.mockResolvedValueOnce({ rows: [{ subscription_tier: SubscriptionTier.PREMIUM }] })
+				.mockResolvedValueOnce({ rows: [{ subscription_tier: SubscriptionTier.EXECUTIVE }] })
 				.mockResolvedValueOnce({ rowCount: 1 })
 				.mockResolvedValueOnce({ rows: [{ count: '50' }] })
 				.mockResolvedValueOnce({ rowCount: 1 });
@@ -134,15 +136,15 @@ describe('Rate Limiting Service', () => {
 			const result = await checkRateLimit(session, 'resume.optimize');
 
 			expect(result.allowed).toBe(true);
-			expect(result.limit).toBe(200); // PREMIUM tier limit
-			expect(result.remaining).toBe(149); // 200 - 50 - 1
+			expect(result.limit).toBe(999999); // EXECUTIVE tier limit (unlimited)
+			expect(result.remaining).toBe(999948); // 999999 - 50 - 1
 		});
 
 		it('should use default limits for unknown endpoints', async () => {
 			const session = createMockSession('user-123');
 
 			mockPool.query
-				.mockResolvedValueOnce({ rows: [{ subscription_tier: SubscriptionTier.FREE }] })
+				.mockResolvedValueOnce({ rows: [{ subscription_tier: SubscriptionTier.APPLICANT }] })
 				.mockResolvedValueOnce({ rowCount: 1 })
 				.mockResolvedValueOnce({ rows: [{ count: '0' }] })
 				.mockResolvedValueOnce({ rowCount: 1 });
@@ -150,7 +152,7 @@ describe('Rate Limiting Service', () => {
 			const result = await checkRateLimit(session, 'unknown.endpoint');
 
 			expect(result.allowed).toBe(true);
-			expect(result.limit).toBe(60); // Default FREE tier limit (per minute)
+			expect(result.limit).toBe(60); // Default APPLICANT tier limit (per minute)
 		});
 	});
 
@@ -159,9 +161,9 @@ describe('Rate Limiting Service', () => {
 			const session = createMockSession('user-123');
 
 			mockPool.query
-				.mockResolvedValueOnce({ rows: [{ subscription_tier: SubscriptionTier.FREE }] })
+				.mockResolvedValueOnce({ rows: [{ subscription_tier: SubscriptionTier.APPLICANT }] })
 				.mockResolvedValueOnce({ rowCount: 1 })
-				.mockResolvedValueOnce({ rows: [{ count: '3' }] })
+				.mockResolvedValueOnce({ rows: [{ count: '0' }] })
 				.mockResolvedValueOnce({ rows: [{ oldest: new Date() }] });
 
 			await expect(enforceRateLimit(session, 'resume.optimize')).rejects.toThrow(RateLimitError);
@@ -171,7 +173,7 @@ describe('Rate Limiting Service', () => {
 			const session = createMockSession('user-123');
 
 			mockPool.query
-				.mockResolvedValueOnce({ rows: [{ subscription_tier: SubscriptionTier.FREE }] })
+				.mockResolvedValueOnce({ rows: [{ subscription_tier: SubscriptionTier.CANDIDATE }] })
 				.mockResolvedValueOnce({ rowCount: 1 })
 				.mockResolvedValueOnce({ rows: [{ count: '0' }] })
 				.mockResolvedValueOnce({ rowCount: 1 });
@@ -185,15 +187,15 @@ describe('Rate Limiting Service', () => {
 			const session = createMockSession('user-123');
 
 			mockPool.query
-				.mockResolvedValueOnce({ rows: [{ subscription_tier: SubscriptionTier.FREE }] })
+				.mockResolvedValueOnce({ rows: [{ subscription_tier: SubscriptionTier.CANDIDATE }] })
 				.mockResolvedValueOnce({ rowCount: 1 })
-				.mockResolvedValueOnce({ rows: [{ count: '1' }] })
+				.mockResolvedValueOnce({ rows: [{ count: '10' }] })
 				.mockResolvedValueOnce({ rowCount: 1 });
 
 			const headers = await getRateLimitHeaders(session, 'resume.optimize');
 
-			expect(headers['X-RateLimit-Limit']).toBe('3');
-			expect(headers['X-RateLimit-Remaining']).toBe('1');
+			expect(headers['X-RateLimit-Limit']).toBe('50');
+			expect(headers['X-RateLimit-Remaining']).toBe('39');
 			expect(headers['X-RateLimit-Reset']).toBeDefined();
 			expect(headers['Retry-After']).toBeUndefined();
 		});
@@ -202,14 +204,14 @@ describe('Rate Limiting Service', () => {
 			const session = createMockSession('user-123');
 
 			mockPool.query
-				.mockResolvedValueOnce({ rows: [{ subscription_tier: SubscriptionTier.FREE }] })
+				.mockResolvedValueOnce({ rows: [{ subscription_tier: SubscriptionTier.APPLICANT }] })
 				.mockResolvedValueOnce({ rowCount: 1 })
-				.mockResolvedValueOnce({ rows: [{ count: '3' }] })
+				.mockResolvedValueOnce({ rows: [{ count: '0' }] })
 				.mockResolvedValueOnce({ rows: [{ oldest: new Date() }] });
 
 			const headers = await getRateLimitHeaders(session, 'resume.optimize');
 
-			expect(headers['X-RateLimit-Limit']).toBe('3');
+			expect(headers['X-RateLimit-Limit']).toBe('0');
 			expect(headers['X-RateLimit-Remaining']).toBe('0');
 			expect(headers['Retry-After']).toBeDefined();
 		});
@@ -219,13 +221,13 @@ describe('Rate Limiting Service', () => {
 		it('should have proper tier hierarchy for all endpoints', () => {
 			Object.entries(RATE_LIMITS).forEach(([endpoint, limits]) => {
 				if (endpoint !== 'default') {
-					const freeLimits = limits[SubscriptionTier.FREE];
-					const proLimits = limits[SubscriptionTier.PROFESSIONAL];
-					const premiumLimits = limits[SubscriptionTier.PREMIUM];
+					const freeLimits = limits[SubscriptionTier.APPLICANT];
+					const proLimits = limits[SubscriptionTier.CANDIDATE];
+					const premiumLimits = limits[SubscriptionTier.EXECUTIVE];
 
-					// Premium should have highest limits
+					// Executive should have highest limits
 					expect(premiumLimits.maxRequests).toBeGreaterThanOrEqual(proLimits.maxRequests);
-					// Professional should have higher limits than free
+					// Candidate should have higher limits than applicant
 					expect(proLimits.maxRequests).toBeGreaterThanOrEqual(freeLimits.maxRequests);
 				}
 			});
@@ -234,9 +236,9 @@ describe('Rate Limiting Service', () => {
 		it('should have reasonable time windows', () => {
 			Object.entries(RATE_LIMITS).forEach(([endpoint, limits]) => {
 				Object.values(limits).forEach((config) => {
-					// Windows should be between 1 minute and 1 day
+					// Windows should be between 1 minute and very long (for active jobs)
 					expect(config.windowMs).toBeGreaterThanOrEqual(60000); // 1 minute
-					expect(config.windowMs).toBeLessThanOrEqual(86400000); // 1 day
+					expect(config.windowMs).toBeLessThanOrEqual(999999999999); // Very long for active jobs
 				});
 			});
 		});

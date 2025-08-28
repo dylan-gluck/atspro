@@ -220,8 +220,21 @@ const createJobSchema = v.object({
 export const createJob = command(createJobSchema, async (jobData) => {
 	const userId = requireAuth();
 
-	// TODO: Re-enable rate limiting after pricing strategy is finalized
-	// await checkRateLimitV2('job.extract');
+	// Import subscription functions
+	const { getSubscriptionInfo, updateActiveJobCount } = await import('./subscription.remote');
+
+	// Check active job limit for applicant tier
+	const subscription = await getSubscriptionInfo();
+	if (subscription.tier === 'applicant') {
+		// Get current active job count
+		const activeJobCount = await updateActiveJobCount({});
+		if (activeJobCount.count >= 10) {
+			error(
+				403,
+				'You have reached the limit of 10 active job applications. Please upgrade to track more jobs.'
+			);
+		}
+	}
 
 	// Prepare job data with defaults
 	const jobToCreate = {
@@ -258,6 +271,9 @@ export const createJob = command(createJobSchema, async (jobData) => {
 
 		return newJob;
 	});
+
+	// Update active job count
+	await updateActiveJobCount({});
 
 	// Refresh jobs list
 	await getJobs({}).refresh();
@@ -323,6 +339,10 @@ export const deleteJob = command(v.pipe(v.string(), v.uuid()), async (jobId) => 
 
 	// Delete job (cascades to documents and activities)
 	await db.deleteJob(jobId);
+
+	// Update active job count
+	const { updateActiveJobCount } = await import('./subscription.remote');
+	await updateActiveJobCount({});
 
 	// Refresh jobs list
 	await getJobs({}).refresh();

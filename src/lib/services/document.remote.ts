@@ -45,8 +45,11 @@ const optimizeSchema = v.object({
 export const optimizeResume = command(optimizeSchema, async ({ jobId }) => {
 	const userId = requireAuth();
 
-	// TODO: Re-enable rate limiting after pricing strategy is finalized
-	// await checkRateLimitV2('resume.optimize');
+	// Check rate limit for optimization
+	await checkRateLimitV2(
+		'resume.optimize',
+		'You have reached your monthly optimization limit. Please upgrade to continue.'
+	);
 
 	// Verify ownership and get data
 	const [resume, job] = await Promise.all([db.getUserResume(userId), db.getJob(jobId)]);
@@ -126,8 +129,11 @@ export const generateCoverLetter = command(
 	async ({ jobId, tone = 'professional' }) => {
 		const userId = requireAuth();
 
-		// TODO: Re-enable rate limiting after pricing strategy is finalized
-		// await checkRateLimitV2('cover-letter.generate');
+		// Check rate limit for cover letters (executive only)
+		await checkRateLimitV2(
+			'cover-letter.generate',
+			'Cover letter generation is only available for Executive tier subscribers.'
+		);
 
 		// Verify ownership and get data
 		const [resume, job] = await Promise.all([db.getUserResume(userId), db.getJob(jobId)]);

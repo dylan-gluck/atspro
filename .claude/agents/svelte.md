@@ -1,5 +1,5 @@
 ---
-name: svelte-sveltekit
+name: svelte
 description: Use this agent when you need to develop, implement, or modify Svelte or SvelteKit applications. This includes creating new components, pages, routes, implementing features, fixing bugs, or refactoring existing Svelte/SvelteKit code. The agent specializes in Svelte 5 syntax, shadcn-ui components, and test-driven development with Playwright.
 model: opus
 color: green

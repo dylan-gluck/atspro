@@ -1,27 +1,45 @@
 import { getRequestEvent } from '$app/server';
 import { auth } from '$lib/auth';
-import { enforceRateLimit, getRateLimitHeaders } from './rate-limit';
+import {
+	enforceRateLimit,
+	getRateLimitHeaders,
+	checkRateLimit as checkRateLimitNew
+} from './rate-limit';
 import { throwError, ErrorCode } from '$lib/utils/error-handling';
+import { getSubscriptionInfo, trackUsage } from './subscription.remote';
+import { error } from '@sveltejs/kit';
 
 // Legacy rate limiter for backward compatibility
 const rateLimiter = new Map<string, number[]>();
 
 // Use the new rate limiting system
-export async function checkRateLimitV2(endpoint: string) {
+export async function checkRateLimitV2(endpoint: string, customMessage?: string): Promise<void> {
 	const event = getRequestEvent();
 	const session = await auth.api.getSession({
 		headers: event.request.headers
 	});
 
-	try {
-		await enforceRateLimit(session, endpoint);
-	} catch (err: unknown) {
-		if (err instanceof Error && err.name === 'RateLimitError') {
-			// In remote functions, we can't set headers, so just throw the error
-			// The headers will be set by the API routes if needed
-			throwError(429, err.message, ErrorCode.RATE_LIMIT_EXCEEDED);
+	// Check subscription-based limits for specific features
+	if (endpoint === 'resume.optimize' || endpoint === 'ats.report') {
+		const subscription = await getSubscriptionInfo();
+		const feature = endpoint === 'resume.optimize' ? 'optimizations' : 'atsReports';
+
+		if (subscription.usage[feature].used >= subscription.usage[feature].limit) {
+			throw error(
+				429,
+				customMessage || `Monthly ${feature} limit reached. Please upgrade to continue.`
+			);
 		}
-		throw err;
+
+		// Track usage
+		await trackUsage({ feature: endpoint.replace('.', '_') });
+		return; // Skip standard rate limiting for subscription-tracked features
+	}
+
+	// Standard rate limiting for other endpoints
+	const result = await checkRateLimitNew(session, endpoint);
+	if (!result.allowed) {
+		throw error(429, customMessage || 'Rate limit exceeded');
 	}
 }
 

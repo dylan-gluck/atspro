@@ -18,8 +18,8 @@ Agent orchestration and business logic implemented using Vercel AI SDK, Baml, Ma
 ### Key Implementation Notes
 
 0. **ALWAYS**: Keep project documentation updated with concise accurate information. Spec-first approach. Reduce redundancy & reference existing documentation using paths.
-1. **ALWAYS**: Use Svelte 5 syntax with runes (`$state`, `$derived`, `$effect`)
-2. **ALWAYS**: Use SvelteKit Remote Functions NOT traditional API / form actions
+1. **SVELTE**: Always use Svelte 5 syntax with runes (`$state`, `$derived`, `$effect`). This project uses SvelteKit Remote Functions NOT traditional API / form actions
+2. **DB**: Use the `postgres` mcp server for READ operations. Always write migrations and run using `bun run migrate`.
 3. **DEBUGGING**: Use `console.log` and `debugger` statements for debugging during development. Remove before commit.
 4. **TESTING**: ALWAYS use playwright mcp & test data in `.test-data/*`
-5. **TESTING**: ALWAYS run typecheck `bun run check` and tests `bun run test`
+5. **TESTING**: ALWAYS run typecheck `bun run check`, tests `bun run test`, lint `bun run lint` & format `bun run format` before committing changes.

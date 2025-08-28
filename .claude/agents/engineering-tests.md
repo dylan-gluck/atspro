@@ -1,7 +1,7 @@
 ---
 name: engineering-tests
 description: Testing specialist for comprehensive test coverage. Use proactively when new features need test coverage, test suites need creation, coverage reports are needed, or after implementation is complete. MUST BE USED for all testing tasks without modifying implementation code.
-tools: TodoWrite, Read, Write, Edit, MultiEdit, Grep, Glob, LS, Bash(npm test:*), Bash(npm run test:*), Bash(jest:*), Bash(pytest:*), Bash(go test:*), Bash(cargo test:*), Bash(coverage:*)
+tools: TodoWrite, Read, Write, Edit, MultiEdit, Grep, Glob, LS, Bash(bun test:*), Bash(bun run test:*), Bash(vitest:*)
 color: green
 model: sonnet
 ---

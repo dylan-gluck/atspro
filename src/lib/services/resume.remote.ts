@@ -38,8 +38,8 @@ export const extractResume = form(async (data) => {
 		throw authError;
 	}
 
-	// TODO: Re-enable rate limiting after pricing strategy is finalized
-	// await checkRateLimitV2('ai.analyze');
+	// Check rate limit for AI extraction
+	await checkRateLimitV2('ai.analyze');
 
 	// Check for existing resume
 	const existing = await db.getUserResume(userId);
@@ -135,8 +135,8 @@ export const updateResume = command(updateResumeSchema, async (updates) => {
 export const replaceResume = form(async (data) => {
 	const userId = requireAuth();
 
-	// TODO: Re-enable rate limiting after pricing strategy is finalized
-	// await checkRateLimitV2('ai.analyze');
+	// Check rate limit for AI extraction
+	await checkRateLimitV2('ai.analyze');
 
 	// Ensure user has an existing resume
 	const existing = await db.getUserResume(userId);
