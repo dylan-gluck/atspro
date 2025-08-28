@@ -26,6 +26,7 @@ Thumbs.db
 # Vite
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
-coverage/
+/coverage/
 .playwright-mcp
+playwright-report
 test-results

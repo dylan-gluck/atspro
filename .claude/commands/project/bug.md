@@ -2,7 +2,6 @@
 allowed-tools: Task, Read, Write, Bash(ls:*), Bash(pwd:*), Glob
 description: Generate bug ticket from observation or document using parallel research agents
 argument-hint: <observation|file-path>
-model: opus
 ---
 
 # Bug Ticket Generator

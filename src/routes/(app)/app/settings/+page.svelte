@@ -415,7 +415,7 @@
 											}
 										}}
 									>
-										<Select.Trigger>
+										<Select.Trigger data-testid="tier-select">
 											<span>Set Tier: {subscription.tier}</span>
 										</Select.Trigger>
 										<Select.Content>
@@ -429,6 +429,7 @@
 										<Button
 											variant="outline"
 											size="sm"
+											data-testid="reset-usage-button"
 											onclick={async () => {
 												await updateSubscriptionDebug({ resetUsage: true });
 												toast.success('Usage reset successfully');
@@ -439,6 +440,7 @@
 										<Button
 											variant="outline"
 											size="sm"
+											data-testid="max-out-usage-button"
 											onclick={async () => {
 												await updateSubscriptionDebug({ maxOutUsage: true });
 												toast.success('Usage maxed out');
@@ -454,7 +456,9 @@
 						<!-- Upgrade Button -->
 						{#if subscription.tier !== 'executive'}
 							<div class="pt-4">
-								<Button onclick={() => goto('/pricing')}>Upgrade Plan</Button>
+								<Button data-testid="upgrade-plan-button" onclick={() => goto('/#pricing')}
+									>Upgrade Plan</Button
+								>
 							</div>
 						{/if}
 					{:else}

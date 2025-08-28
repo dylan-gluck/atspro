@@ -1,8 +1,7 @@
 ---
-allowed-tools: Task, Read, Write, Bash(ls:*), Bash(pwd:*), Bash(mkdir:*), Glob
+allowed-tools: Task, Read, Write, Edit, Glob, Grep, Bash, LS
 description: Generate feature ticket from description or document using parallel research agents
 argument-hint: <description|file-path>
-model: opus
 ---
 
 # Feature Ticket Generator

@@ -28,24 +28,30 @@
 </script>
 
 {#if subscription}
-	<div class="flex items-center gap-2">
-		<Badge variant={tierVariant} class="text-xs">
+	<div class="flex items-center gap-2" data-testid="subscription-badge">
+		<Badge variant={tierVariant} class="text-xs" data-testid="tier-badge">
 			{tierLabel}
 		</Badge>
 
 		{#if showCredits && subscription.tier === 'candidate'}
-			<div class="bg-accent flex items-center gap-3 rounded-md px-2 py-1 text-xs">
-				<span class="flex items-center gap-1">
+			<div
+				class="bg-accent flex items-center gap-3 rounded-md px-2 py-1 text-xs"
+				data-testid="candidate-credits"
+			>
+				<span class="flex items-center gap-1" data-testid="optimizations-count">
 					<FileText class="h-3 w-3" />
 					{subscription.usage.optimizations.limit - subscription.usage.optimizations.used}
 				</span>
-				<span class="flex items-center gap-1">
+				<span class="flex items-center gap-1" data-testid="ats-reports-count">
 					<ChartBar class="h-3 w-3" />
 					{subscription.usage.atsReports.limit - subscription.usage.atsReports.used}
 				</span>
 			</div>
 		{:else if showCredits && subscription.tier === 'applicant'}
-			<div class="bg-accent flex items-center gap-1 rounded-md px-2 py-1 text-xs">
+			<div
+				class="bg-accent flex items-center gap-1 rounded-md px-2 py-1 text-xs"
+				data-testid="applicant-jobs"
+			>
 				<Briefcase class="h-3 w-3" />
 				{10 - subscription.usage.activeJobs.used}/10 jobs
 			</div>
