@@ -15,7 +15,8 @@
 		ChevronUp,
 		LogOut,
 		User,
-		Menu
+		Menu,
+		FilePlus2
 	} from 'lucide-svelte';
 	import ModeToggle from '@/components/mode-toggle.svelte';
 	import { authClient } from '$lib/auth-client';
@@ -65,7 +66,7 @@
 							<div
 								class="bg-primary text-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg"
 							>
-								<span class="text-sm font-semibold">AT</span>
+								<span class="text-sm font-semibold"><FilePlus2 /></span>
 							</div>
 							<div class="grid flex-1 text-left text-sm leading-tight">
 								<span class="truncate font-semibold">ATS Pro</span>
@@ -150,13 +151,12 @@
 		<!-- Main Content Area -->
 		<div class="flex flex-1 flex-col overflow-hidden">
 			<!-- Top Header -->
-			<header class="bg-background flex h-14 items-center justify-between border-b px-4 lg:px-6">
+			<header class="bg-background flex h-12 items-center justify-between border-b px-4">
 				<div class="flex items-center gap-4">
-					<Sidebar.Trigger class="md:hidden" aria-label="Toggle navigation menu">
+					<Sidebar.Trigger aria-label="Toggle navigation menu">
 						<Menu class="size-5" aria-hidden="true" />
 						<span class="sr-only">Toggle navigation menu</span>
 					</Sidebar.Trigger>
-					<h1 class="text-lg font-semibold">ATSPro</h1>
 				</div>
 
 				<div class="flex items-center gap-2">

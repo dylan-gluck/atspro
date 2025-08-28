@@ -13,7 +13,9 @@
 		Twitter,
 		Linkedin,
 		Mail,
-		LayoutDashboard
+		LayoutDashboard,
+		File,
+		FilePlus2
 	} from 'lucide-svelte';
 	import type { LayoutData } from './$types';
 
@@ -49,8 +51,8 @@
 			<div class="flex h-16 items-center justify-between">
 				<!-- Logo -->
 				<div class="flex items-center gap-2">
-					<a href="/" class="flex items-center gap-2 text-xl font-bold" aria-label="ATSPro home">
-						<BrainCircuit class="text-primary h-8 w-8" aria-hidden="true" />
+					<a href="/" class="flex items-center gap-2 text-xl font-bold" aria-label="ATSPro">
+						<FilePlus2 class="text-primary h-8 w-8" aria-hidden="true" />
 						<span>ATSPro</span>
 					</a>
 				</div>

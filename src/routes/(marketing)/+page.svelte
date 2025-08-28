@@ -79,12 +79,11 @@
 				<div class="space-y-4">
 					<h1 class="text-4xl font-bold tracking-tight md:text-5xl lg:text-6xl">
 						Stop Letting ATS Systems
-						<span class="text-primary"> Ignore Your Perfect Resume</span>
+						<span class="text-primary"> Ignore Your Resume</span>
 					</h1>
 					<p class="text-muted-foreground max-w-2xl text-lg md:text-xl">
 						85% of qualified candidates never get past ATS filters. Our platform increases your ATS
-						pass rate from 15% to 85%, delivering a <strong>400% increase in interview rates</strong
-						>.
+						pass rate, delivering a <strong>400% increase in interview rates</strong>.
 					</p>
 				</div>
 
