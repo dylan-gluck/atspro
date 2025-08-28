@@ -15,6 +15,14 @@ Agent orchestration and business logic implemented using Vercel AI SDK, Baml, Ma
 - **Data Model**: `docs/data-model.md`
 - **Vendor Docs**: `.claude/docs/*`
 
+### Templates
+
+- **Workflow**: `.claude/templates/workflow.md`
+- **Spec**: `.claude/templates/spec.md`
+- **Feature**: `.claude/templates/feature-request.md`
+- **Bug**: `.claude/templates/bug-report.md`
+- **PRD**: `.claude/templates/prd.md`
+
 ### Key Implementation Notes
 
 1. **SVELTE**: Always use Svelte 5 syntax with runes (`$state`, `$derived`, `$effect`). This project uses SvelteKit Remote Functions NOT traditional API / form actions

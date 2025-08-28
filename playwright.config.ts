@@ -2,6 +2,7 @@ import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
 	testDir: './tests/e2e',
+	globalSetup: './tests/e2e/global-setup.ts',
 	fullyParallel: true,
 	forbidOnly: !!process.env.CI,
 	retries: process.env.CI ? 2 : 0,
@@ -14,37 +15,13 @@ export default defineConfig({
 		video: 'retain-on-failure'
 	},
 
-	projects: process.env.CI
-		? [
-				// Only run on Chromium in CI
-				{
-					name: 'chromium',
-					use: { ...devices['Desktop Chrome'] }
-				}
-			]
-		: [
-				{
-					name: 'chromium',
-					use: { ...devices['Desktop Chrome'] }
-				},
-				{
-					name: 'firefox',
-					use: { ...devices['Desktop Firefox'] }
-				},
-				{
-					name: 'webkit',
-					use: { ...devices['Desktop Safari'] }
-				},
-				// Mobile viewports
-				{
-					name: 'Mobile Chrome',
-					use: { ...devices['Pixel 5'] }
-				},
-				{
-					name: 'Mobile Safari',
-					use: { ...devices['iPhone 12'] }
-				}
-			],
+	projects: [
+		// Only use Chromium for now (other browsers need installation)
+		{
+			name: 'chromium',
+			use: { ...devices['Desktop Chrome'] }
+		}
+	],
 
 	// Run your dev server before starting the tests
 	webServer: process.env.CI
