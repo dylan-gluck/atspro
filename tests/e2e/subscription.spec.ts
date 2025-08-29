@@ -10,6 +10,7 @@ import {
 	attemptLoginWithRetry,
 	type TestUser
 } from './utils/auth-helpers';
+import { TestUserFactory } from './utils/test-user-factory';
 
 // Use existing test user data to avoid registration issues
 const getExistingTestUser = async (): Promise<TestUser> => {
@@ -113,10 +114,19 @@ async function createJob(page: Page, jobData: typeof testJob) {
 
 test.describe('Subscription Tier System', () => {
 	test.describe('Subscription Badge Display', () => {
+		let testUser: TestUser;
+
+		test.beforeAll(async () => {
+			// Get dedicated user for this test group
+			testUser = await TestUserFactory.getOrCreateUser('subscription', 'badge');
+		});
+
 		test('should display subscription badge in header for Applicant tier', async ({ page }) => {
-			// Login or skip if auth fails
-			const loginSuccess = await loginOrSkip(page, 'Applicant tier badge');
-			if (!loginSuccess) return;
+			// Login with isolated user
+			const loginResult = await attemptLoginWithRetry(page, testUser.email, testUser.password);
+			if (loginResult !== 'success') {
+				test.skip(true, 'Authentication failed - skipping test');
+			}
 
 			// Set tier to applicant (should be default)
 			await setUserTier(page, 'applicant');
@@ -139,9 +149,11 @@ test.describe('Subscription Tier System', () => {
 		});
 
 		test('should display subscription badge for Candidate tier with credits', async ({ page }) => {
-			// Login or skip if auth fails
-			const loginSuccess = await loginOrSkip(page, 'Candidate tier badge');
-			if (!loginSuccess) return;
+			// Login with isolated user
+			const loginResult = await attemptLoginWithRetry(page, testUser.email, testUser.password);
+			if (loginResult !== 'success') {
+				test.skip(true, 'Authentication failed - skipping test');
+			}
 
 			// Set tier to candidate
 			await setUserTier(page, 'candidate');
@@ -171,9 +183,11 @@ test.describe('Subscription Tier System', () => {
 		});
 
 		test('should display subscription badge for Executive tier', async ({ page }) => {
-			// Login or skip if auth fails
-			const loginSuccess = await loginOrSkip(page, 'Executive tier badge');
-			if (!loginSuccess) return;
+			// Login with isolated user
+			const loginResult = await attemptLoginWithRetry(page, testUser.email, testUser.password);
+			if (loginResult !== 'success') {
+				test.skip(true, 'Authentication failed - skipping test');
+			}
 
 			// Set tier to executive
 			await setUserTier(page, 'executive');
@@ -199,10 +213,19 @@ test.describe('Subscription Tier System', () => {
 	});
 
 	test.describe('Settings Page Subscription Management', () => {
+		let testUser: TestUser;
+
+		test.beforeAll(async () => {
+			// Get dedicated user for this test group
+			testUser = await TestUserFactory.getOrCreateUser('subscription', 'settings');
+		});
+
 		test('should navigate to settings and display billing tab correctly', async ({ page }) => {
-			// Register and login user
-			const loginSuccess = await loginOrSkip(page, 'Settings billing tab');
-			if (!loginSuccess) return;
+			// Login with isolated user
+			const loginResult = await attemptLoginWithRetry(page, testUser.email, testUser.password);
+			if (loginResult !== 'success') {
+				test.skip(true, 'Authentication failed - skipping test');
+			}
 
 			// Navigate to settings
 			await page.goto('/app/settings');
@@ -220,9 +243,11 @@ test.describe('Subscription Tier System', () => {
 		});
 
 		test('should display current plan correctly in billing tab', async ({ page }) => {
-			// Register user and set to candidate tier
-			const loginSuccess = await loginOrSkip(page, 'Candidate tier test');
-			if (!loginSuccess) return;
+			// Login with isolated user
+			const loginResult = await attemptLoginWithRetry(page, testUser.email, testUser.password);
+			if (loginResult !== 'success') {
+				test.skip(true, 'Authentication failed - skipping test');
+			}
 			await setUserTier(page, 'candidate');
 
 			// Navigate to settings billing
@@ -242,9 +267,11 @@ test.describe('Subscription Tier System', () => {
 		});
 
 		test('should show debug controls in development mode', async ({ page }) => {
-			// Register user
-			const loginSuccess = await loginOrSkip(page, 'Settings billing tab');
-			if (!loginSuccess) return;
+			// Login with isolated user
+			const loginResult = await attemptLoginWithRetry(page, testUser.email, testUser.password);
+			if (loginResult !== 'success') {
+				test.skip(true, 'Authentication failed - skipping test');
+			}
 
 			// Navigate to settings billing
 			await page.goto('/app/settings');
@@ -277,9 +304,11 @@ test.describe('Subscription Tier System', () => {
 		});
 
 		test('should show upgrade button for non-executive tiers', async ({ page }) => {
-			// Register user and set to applicant
-			const loginSuccess = await loginOrSkip(page, 'Settings billing tab');
-			if (!loginSuccess) return;
+			// Login with isolated user
+			const loginResult = await attemptLoginWithRetry(page, testUser.email, testUser.password);
+			if (loginResult !== 'success') {
+				test.skip(true, 'Authentication failed - skipping test');
+			}
 			await setUserTier(page, 'applicant');
 
 			// Navigate to settings billing
@@ -302,9 +331,11 @@ test.describe('Subscription Tier System', () => {
 		});
 
 		test('should not show upgrade button for executive tier', async ({ page }) => {
-			// Register user and set to executive
-			const loginSuccess = await loginOrSkip(page, 'Executive tier test');
-			if (!loginSuccess) return;
+			// Login with isolated user
+			const loginResult = await attemptLoginWithRetry(page, testUser.email, testUser.password);
+			if (loginResult !== 'success') {
+				test.skip(true, 'Authentication failed - skipping test');
+			}
 			await setUserTier(page, 'executive');
 
 			// Navigate to settings billing
@@ -321,10 +352,19 @@ test.describe('Subscription Tier System', () => {
 	});
 
 	test.describe('Rate Limiting Enforcement', () => {
+		let testUser: TestUser;
+
+		test.beforeAll(async () => {
+			// Get dedicated user for this test group
+			testUser = await TestUserFactory.getOrCreateUser('subscription', 'ratelimit');
+		});
+
 		test('should enforce job creation limits for Applicant tier', async ({ page }) => {
-			// Register user and set to applicant tier
-			const loginSuccess = await loginOrSkip(page, 'Settings billing tab');
-			if (!loginSuccess) return;
+			// Login with isolated user
+			const loginResult = await attemptLoginWithRetry(page, testUser.email, testUser.password);
+			if (loginResult !== 'success') {
+				test.skip(true, 'Authentication failed - skipping test');
+			}
 			await setUserTier(page, 'applicant');
 
 			// Try to create multiple jobs (up to the limit of 10)
@@ -358,9 +398,11 @@ test.describe('Subscription Tier System', () => {
 		});
 
 		test('should prevent resume optimization for Applicant tier', async ({ page }) => {
-			// Register user and set to applicant tier
-			const loginSuccess = await loginOrSkip(page, 'Settings billing tab');
-			if (!loginSuccess) return;
+			// Login with isolated user
+			const loginResult = await attemptLoginWithRetry(page, testUser.email, testUser.password);
+			if (loginResult !== 'success') {
+				test.skip(true, 'Authentication failed - skipping test');
+			}
 			await setUserTier(page, 'applicant');
 
 			// Create a job first
@@ -383,9 +425,11 @@ test.describe('Subscription Tier System', () => {
 		});
 
 		test('should enforce resume optimization limits for Candidate tier', async ({ page }) => {
-			// Register user and set to candidate tier
-			const loginSuccess = await loginOrSkip(page, 'Candidate tier test');
-			if (!loginSuccess) return;
+			// Login with isolated user
+			const loginResult = await attemptLoginWithRetry(page, testUser.email, testUser.password);
+			if (loginResult !== 'success') {
+				test.skip(true, 'Authentication failed - skipping test');
+			}
 			await setUserTier(page, 'candidate');
 
 			// Max out usage using debug controls
@@ -415,9 +459,11 @@ test.describe('Subscription Tier System', () => {
 		});
 
 		test('should allow unlimited optimizations for Executive tier', async ({ page }) => {
-			// Register user and set to executive tier
-			const loginSuccess = await loginOrSkip(page, 'Executive tier test');
-			if (!loginSuccess) return;
+			// Login with isolated user
+			const loginResult = await attemptLoginWithRetry(page, testUser.email, testUser.password);
+			if (loginResult !== 'success') {
+				test.skip(true, 'Authentication failed - skipping test');
+			}
 			await setUserTier(page, 'executive');
 
 			// Create a job
@@ -446,10 +492,19 @@ test.describe('Subscription Tier System', () => {
 	});
 
 	test.describe('Usage Tracking', () => {
+		let testUser: TestUser;
+
+		test.beforeAll(async () => {
+			// Get dedicated user for this test group
+			testUser = await TestUserFactory.getOrCreateUser('subscription', 'usage');
+		});
+
 		test('should update usage counters after actions', async ({ page }) => {
-			// Register user and set to candidate tier
-			const loginSuccess = await loginOrSkip(page, 'Candidate tier test');
-			if (!loginSuccess) return;
+			// Login with isolated user
+			const loginResult = await attemptLoginWithRetry(page, testUser.email, testUser.password);
+			if (loginResult !== 'success') {
+				test.skip(true, 'Authentication failed - skipping test');
+			}
 			await setUserTier(page, 'candidate');
 
 			// Reset usage first
@@ -474,9 +529,11 @@ test.describe('Subscription Tier System', () => {
 		});
 
 		test('should track job count updates', async ({ page }) => {
-			// Register user and set to applicant tier
-			const loginSuccess = await loginOrSkip(page, 'Settings billing tab');
-			if (!loginSuccess) return;
+			// Login with isolated user
+			const loginResult = await attemptLoginWithRetry(page, testUser.email, testUser.password);
+			if (loginResult !== 'success') {
+				test.skip(true, 'Authentication failed - skipping test');
+			}
 			await setUserTier(page, 'applicant');
 
 			// Check initial job count in header (should show X/10 jobs)
@@ -502,9 +559,11 @@ test.describe('Subscription Tier System', () => {
 		});
 
 		test('should persist usage across page refreshes', async ({ page }) => {
-			// Register user and set to candidate tier
-			const loginSuccess = await loginOrSkip(page, 'Candidate tier test');
-			if (!loginSuccess) return;
+			// Login with isolated user
+			const loginResult = await attemptLoginWithRetry(page, testUser.email, testUser.password);
+			if (loginResult !== 'success') {
+				test.skip(true, 'Authentication failed - skipping test');
+			}
 			await setUserTier(page, 'candidate');
 
 			// Create a job to change usage
@@ -532,9 +591,11 @@ test.describe('Subscription Tier System', () => {
 		});
 
 		test('should show usage reset functionality', async ({ page }) => {
-			// Register user and set to candidate tier
-			const loginSuccess = await loginOrSkip(page, 'Candidate tier test');
-			if (!loginSuccess) return;
+			// Login with isolated user
+			const loginResult = await attemptLoginWithRetry(page, testUser.email, testUser.password);
+			if (loginResult !== 'success') {
+				test.skip(true, 'Authentication failed - skipping test');
+			}
 			await setUserTier(page, 'candidate');
 
 			// Max out usage first
@@ -574,9 +635,11 @@ test.describe('Subscription Tier System', () => {
 					{ name: 'executive', expectedText: 'Executive' }
 				];
 
-			// Register user once
-			const loginSuccess = await loginOrSkip(page, 'Settings billing tab');
-			if (!loginSuccess) return;
+			// Login with isolated user
+			const loginResult = await attemptLoginWithRetry(page, testUser.email, testUser.password);
+			if (loginResult !== 'success') {
+				test.skip(true, 'Authentication failed - skipping test');
+			}
 
 			for (const tier of tiers) {
 				// Set tier
@@ -605,10 +668,19 @@ test.describe('Subscription Tier System', () => {
 	});
 
 	test.describe('Integration Tests', () => {
+		let testUser: TestUser;
+
+		test.beforeAll(async () => {
+			// Get dedicated user for this test group
+			testUser = await TestUserFactory.getOrCreateUser('subscription', 'integration');
+		});
+
 		test('should handle tier changes during active session', async ({ page }) => {
-			// Register user and start as applicant
-			const loginSuccess = await loginOrSkip(page, 'Settings billing tab');
-			if (!loginSuccess) return;
+			// Login with isolated user
+			const loginResult = await attemptLoginWithRetry(page, testUser.email, testUser.password);
+			if (loginResult !== 'success') {
+				test.skip(true, 'Authentication failed - skipping test');
+			}
 			await setUserTier(page, 'applicant');
 
 			// Verify applicant badge
@@ -636,9 +708,11 @@ test.describe('Subscription Tier System', () => {
 		});
 
 		test('should show appropriate error messages for each tier', async ({ page }) => {
-			// Test Applicant tier limitations
-			const loginSuccess = await loginOrSkip(page, 'Settings billing tab');
-			if (!loginSuccess) return;
+			// Login with isolated user
+			const loginResult = await attemptLoginWithRetry(page, testUser.email, testUser.password);
+			if (loginResult !== 'success') {
+				test.skip(true, 'Authentication failed - skipping test');
+			}
 			await setUserTier(page, 'applicant');
 
 			// Try to optimize (should fail)
@@ -660,9 +734,11 @@ test.describe('Subscription Tier System', () => {
 		});
 
 		test('should handle upgrade flow correctly from settings', async ({ page }) => {
-			// Register user as applicant
-			const loginSuccess = await loginOrSkip(page, 'Settings billing tab');
-			if (!loginSuccess) return;
+			// Login with isolated user
+			const loginResult = await attemptLoginWithRetry(page, testUser.email, testUser.password);
+			if (loginResult !== 'success') {
+				test.skip(true, 'Authentication failed - skipping test');
+			}
 			await setUserTier(page, 'applicant');
 
 			// Navigate to settings billing tab
@@ -683,9 +759,11 @@ test.describe('Subscription Tier System', () => {
 		});
 
 		test('should maintain consistent state during navigation', async ({ page }) => {
-			// Register user and set to candidate tier
-			const loginSuccess = await loginOrSkip(page, 'Candidate tier test');
-			if (!loginSuccess) return;
+			// Login with isolated user
+			const loginResult = await attemptLoginWithRetry(page, testUser.email, testUser.password);
+			if (loginResult !== 'success') {
+				test.skip(true, 'Authentication failed - skipping test');
+			}
 			await setUserTier(page, 'candidate');
 
 			// Create some jobs to change usage state
@@ -717,9 +795,11 @@ test.describe('Subscription Tier System', () => {
 		});
 
 		test('should handle edge cases for usage limits', async ({ page }) => {
-			// Register user and set to candidate tier
-			const loginSuccess = await loginOrSkip(page, 'Candidate tier test');
-			if (!loginSuccess) return;
+			// Login with isolated user
+			const loginResult = await attemptLoginWithRetry(page, testUser.email, testUser.password);
+			if (loginResult !== 'success') {
+				test.skip(true, 'Authentication failed - skipping test');
+			}
 			await setUserTier(page, 'candidate');
 
 			// Reset usage to start fresh
@@ -779,9 +859,19 @@ test.describe('Subscription Tier System', () => {
 	});
 
 	test.describe('Error Handling and Edge Cases', () => {
+		let testUser: TestUser;
+
+		test.beforeAll(async () => {
+			// Get dedicated user for this test group
+			testUser = await TestUserFactory.getOrCreateUser('subscription', 'errors');
+		});
+
 		test('should gracefully handle network errors during tier changes', async ({ page }) => {
-			const loginSuccess = await loginOrSkip(page, 'Settings billing tab');
-			if (!loginSuccess) return;
+			// Login with isolated user
+			const loginResult = await attemptLoginWithRetry(page, testUser.email, testUser.password);
+			if (loginResult !== 'success') {
+				test.skip(true, 'Authentication failed - skipping test');
+			}
 
 			// Navigate to settings
 			await page.goto('/app/settings');
@@ -807,8 +897,11 @@ test.describe('Subscription Tier System', () => {
 		});
 
 		test('should handle rapid navigation between pages', async ({ page }) => {
-			const loginSuccess = await loginOrSkip(page, 'Candidate tier test');
-			if (!loginSuccess) return;
+			// Login with isolated user
+			const loginResult = await attemptLoginWithRetry(page, testUser.email, testUser.password);
+			if (loginResult !== 'success') {
+				test.skip(true, 'Authentication failed - skipping test');
+			}
 			await setUserTier(page, 'candidate');
 
 			// Rapidly navigate between pages
@@ -827,9 +920,11 @@ test.describe('Subscription Tier System', () => {
 		});
 
 		test('should handle subscription badge visibility on page load', async ({ page }) => {
-			// Test that badge appears correctly on initial page load
-			const loginSuccess = await loginOrSkip(page, 'Executive tier test');
-			if (!loginSuccess) return;
+			// Login with isolated user
+			const loginResult = await attemptLoginWithRetry(page, testUser.email, testUser.password);
+			if (loginResult !== 'success') {
+				test.skip(true, 'Authentication failed - skipping test');
+			}
 			await setUserTier(page, 'executive');
 
 			// Refresh the page to simulate fresh load

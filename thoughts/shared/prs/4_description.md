@@ -2,7 +2,7 @@
 
 ## Summary
 
-Implements a comprehensive subscription tier system with usage limits and breaking changes, transforming the pricing model from FREE/PROFESSIONAL/PREMIUM to APPLICANT/CANDIDATE/EXECUTIVE tiers with monthly credit tracking and rate limiting.
+Implements a comprehensive subscription tier system with usage limits and breaking changes, transforming the pricing model from FREE/PROFESSIONAL/PREMIUM to APPLICANT/CANDIDATE/EXECUTIVE tiers with monthly credit tracking and rate limiting. Additionally removes obsolete agent configurations and updates model references.
 
 ## Type of Change
 
@@ -11,7 +11,7 @@ Implements a comprehensive subscription tier system with usage limits and breaki
 - [x] Breaking change (fix or feature causing existing functionality to not work as expected)
 - [x] Documentation update
 - [ ] Performance improvement
-- [ ] Refactoring (no functional changes)
+- [x] Refactoring (no functional changes)
 
 ## Changes Made
 
@@ -48,14 +48,15 @@ Implements a comprehensive subscription tier system with usage limits and breaki
 - **Developer Experience:**
   - Updated test:e2e script to check if dev server is running before tests
   - Enhanced check-dev-server.py script with --bool flag for proper exit codes
-  - Removed obsolete agent configuration files
+  - Removed obsolete agent configuration files (engineering-lead, engineering-tests, engineering-writer, research-project)
+  - Updated agent model references from opus to sonnet
 
 ## Testing
 
-- [x] Unit tests pass
-- [x] E2E tests pass (subscription tests updated with new tier data)
+- [ ] Unit tests pass (46 pass, 11 fail - module resolution issues with $app/server)
+- [ ] E2E tests pass (timeout during execution)
 - [ ] Manual testing completed
-- [x] Lint & typecheck pass
+- [ ] Lint & typecheck pass (lint has formatting issues, typecheck passes with warnings)
 
 ## Screenshots/Demo
 
@@ -112,3 +113,24 @@ N/A
 - All existing users will be automatically migrated to the new tier system
 - Test data has been updated to reflect new tier structure
 - E2E test command now verifies dev server is running before execution
+- Agent configurations have been cleaned up and models updated to sonnet
+
+## Latest Commits
+
+- 53218dd Feat: Updated pricing strategy doc
+- abbca21 feat: implement subscription tier system with usage limits
+- ca46e9e Feat: Updated agent config
+- 0788840 Feat: Updates e2e Tests
+- e80805d Updates agent config
+- 5239249 fix: update e2e test data and document breaking changes
+- b014cd2 feat: add dev server check to e2e test script
+- 48f6fb1 test: improve e2e test infrastructure and fix auth flow
+- 081b2f1 test: fix subscription E2E tests authentication flow
+- 8aab291 feat: Updates project:docs command
+
+## Test Issues Requiring Attention
+
+- **Unit Tests**: Module resolution issues with `$app/server` causing 11 test failures
+- **E2E Tests**: Timeout issues preventing completion
+- **Lint**: Formatting issue in `thoughts/dylan/bugs/start-end-dates-resume.md`
+- **Typecheck**: Passes but has 12 accessibility warnings for invalid href attributes
