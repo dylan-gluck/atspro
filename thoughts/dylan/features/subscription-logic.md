@@ -11,7 +11,7 @@ The goal of this feature is to update the pricing model and usage/rate limitatio
 - ✅ Basic ATS compatibility score
 - ✅ Basic Company Info
 
-### Candidate ($20/mo | $190/yr)
+### Candidate ($20/mo)
 
 - ✅ Everything in Applicant +
 - ✅ Application Tracking (Unlimited)
@@ -19,7 +19,7 @@ The goal of this feature is to update the pricing model and usage/rate limitatio
 - ✅ ATS Compatibility Report (50/month)
 - ✅ Interview Question DB
 
-### Executive ($50/mo | $390/yr)
+### Executive ($50/mo)
 
 - ✅ Everything in Candidate +
 - ✅ Cover Letters
