@@ -1169,10 +1169,7 @@
 													</div>
 													<div class="text-muted-foreground text-right text-sm">
 														{#if exp.startDate}
-															{new Date(exp.startDate).toLocaleDateString('en-US', {
-																month: 'short',
-																year: 'numeric'
-															})}
+															{exp.startDate}
 														{/if}
 														{#if exp.startDate && (exp.endDate || exp.isCurrent)}
 															-
@@ -1180,10 +1177,7 @@
 														{#if exp.isCurrent}
 															Present
 														{:else if exp.endDate}
-															{new Date(exp.endDate).toLocaleDateString('en-US', {
-																month: 'short',
-																year: 'numeric'
-															})}
+															{exp.endDate}
 														{/if}
 													</div>
 												</div>
@@ -1225,10 +1219,7 @@
 													</div>
 													<div class="text-muted-foreground text-right text-sm">
 														{#if edu.graduationDate}
-															{new Date(edu.graduationDate).toLocaleDateString('en-US', {
-																month: 'short',
-																year: 'numeric'
-															})}
+															{edu.graduationDate}
 														{/if}
 														{#if edu.gpa}
 															<div>GPA: {edu.gpa}</div>
@@ -1256,10 +1247,7 @@
 													</div>
 													<div class="text-muted-foreground text-right text-sm">
 														{#if cert.dateObtained}
-															{new Date(cert.dateObtained).toLocaleDateString('en-US', {
-																month: 'short',
-																year: 'numeric'
-															})}
+															{cert.dateObtained}
 														{/if}
 													</div>
 												</div>
