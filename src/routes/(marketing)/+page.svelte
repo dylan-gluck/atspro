@@ -524,7 +524,7 @@
 		</div>
 
 		<div class="mt-16 text-center">
-			<Button size="lg" onclick={() => goto('/auth/signup')} class="group">
+			<Button size="lg" onclick={() => goto('/auth/sign-up')} class="group">
 				<Rocket class="mr-2 h-5 w-5" />
 				Start Free - No Credit Card Required
 				<ArrowRight class="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
@@ -549,16 +549,16 @@
 			</p>
 			<Badge variant="default" class="mt-4 bg-green-500 px-4 py-2">
 				<Sparkles class="mr-2 h-4 w-4" />
-				🎉 Limited Time: 50% off first 3 months for Professional/Premium plans
+				🎉 Limited Time: Save with annual billing on Candidate/Executive plans
 			</Badge>
 		</div>
 
 		<div class="mx-auto grid max-w-6xl gap-8 md:grid-cols-3">
-			<!-- Starter Plan -->
+			<!-- Applicant Plan -->
 			<Card class="relative border-2">
 				<CardHeader>
-					<CardTitle>Starter</CardTitle>
-					<CardDescription>Get Your Foot in the Door</CardDescription>
+					<CardTitle>Applicant</CardTitle>
+					<CardDescription>Start Your Job Search Journey</CardDescription>
 					<div class="pt-4">
 						<span class="text-3xl font-bold">$0</span>
 						<span class="text-muted-foreground">/month</span>
@@ -568,36 +568,32 @@
 					<ul class="space-y-3 text-sm">
 						<li class="flex items-start gap-2">
 							<CheckCircle class="mt-0.5 h-4 w-4 shrink-0 text-green-500" />
-							<span>3 ATS resume scans per month</span>
+							<span>Track up to 10 active job applications</span>
 						</li>
 						<li class="flex items-start gap-2">
 							<CheckCircle class="mt-0.5 h-4 w-4 shrink-0 text-green-500" />
-							<span>Basic keyword matching analysis</span>
+							<span>Manual resume tailoring tools</span>
 						</li>
 						<li class="flex items-start gap-2">
 							<CheckCircle class="mt-0.5 h-4 w-4 shrink-0 text-green-500" />
-							<span>Application tracking (10 active jobs)</span>
+							<span>Application status tracking</span>
 						</li>
 						<li class="flex items-start gap-2">
 							<CheckCircle class="mt-0.5 h-4 w-4 shrink-0 text-green-500" />
-							<span>Resume formatting checker</span>
+							<span>Basic resume formatting checker</span>
 						</li>
 						<li class="flex items-start gap-2">
 							<CheckCircle class="mt-0.5 h-4 w-4 shrink-0 text-green-500" />
-							<span>Basic ATS compatibility score</span>
-						</li>
-						<li class="flex items-start gap-2">
-							<CheckCircle class="mt-0.5 h-4 w-4 shrink-0 text-green-500" />
-							<span>Email support (48-hour response)</span>
+							<span>Email support</span>
 						</li>
 					</ul>
-					<Button variant="outline" class="w-full" onclick={() => goto('/auth/signup')}
+					<Button variant="outline" class="w-full" onclick={() => goto('/auth/sign-up')}
 						>Get Started Free</Button
 					>
 				</CardContent>
 			</Card>
 
-			<!-- Professional Plan -->
+			<!-- Candidate Plan -->
 			<Card class="border-primary relative border-2 shadow-lg">
 				<div class="absolute -top-4 left-1/2 -translate-x-1/2">
 					<Badge class="px-3 py-1">
@@ -606,39 +602,35 @@
 					</Badge>
 				</div>
 				<CardHeader>
-					<CardTitle>Professional</CardTitle>
-					<CardDescription>Land Your Dream Role</CardDescription>
+					<CardTitle>Candidate</CardTitle>
+					<CardDescription>Accelerate Your Career</CardDescription>
 					<div class="pt-4">
-						<span class="text-3xl font-bold">$19</span>
+						<span class="text-3xl font-bold">$20</span>
 						<span class="text-muted-foreground">/month</span>
-						<div class="text-muted-foreground mt-1 text-sm">or $190/year (save $38)</div>
+						<div class="text-muted-foreground mt-1 text-sm">or $190/year (save $50)</div>
 					</div>
 				</CardHeader>
 				<CardContent class="space-y-4">
 					<ul class="space-y-3 text-sm">
 						<li class="flex items-start gap-2">
 							<CheckCircle class="mt-0.5 h-4 w-4 shrink-0 text-green-500" />
-							<span>Unlimited ATS optimization scans</span>
+							<span>Unlimited job application tracking</span>
 						</li>
 						<li class="flex items-start gap-2">
 							<CheckCircle class="mt-0.5 h-4 w-4 shrink-0 text-green-500" />
-							<span>Company research reports (50+ data points)</span>
+							<span>50 AI resume optimizations per month</span>
 						</li>
 						<li class="flex items-start gap-2">
 							<CheckCircle class="mt-0.5 h-4 w-4 shrink-0 text-green-500" />
-							<span>Interview question database (10,000+ questions)</span>
+							<span>50 ATS compatibility reports per month</span>
 						</li>
 						<li class="flex items-start gap-2">
 							<CheckCircle class="mt-0.5 h-4 w-4 shrink-0 text-green-500" />
-							<span>Advanced keyword suggestions</span>
+							<span>Advanced keyword optimization</span>
 						</li>
 						<li class="flex items-start gap-2">
 							<CheckCircle class="mt-0.5 h-4 w-4 shrink-0 text-green-500" />
-							<span>Unlimited application tracking</span>
-						</li>
-						<li class="flex items-start gap-2">
-							<CheckCircle class="mt-0.5 h-4 w-4 shrink-0 text-green-500" />
-							<span>Email & chat support (4-hour response)</span>
+							<span>Priority email support</span>
 						</li>
 						<li class="flex items-start gap-2">
 							<CheckCircle class="mt-0.5 h-4 w-4 shrink-0 text-green-500" />
@@ -646,83 +638,67 @@
 						</li>
 						<li class="flex items-start gap-2">
 							<CheckCircle class="mt-0.5 h-4 w-4 shrink-0 text-green-500" />
-							<span>LinkedIn profile optimization</span>
-						</li>
-						<li class="flex items-start gap-2">
-							<CheckCircle class="mt-0.5 h-4 w-4 shrink-0 text-green-500" />
-							<span>20+ ATS-optimized templates</span>
+							<span>Interview preparation resources</span>
 						</li>
 					</ul>
 					<div class="space-y-2">
 						<p class="text-muted-foreground text-xs italic">
-							"Sarah increased her interview rate by 400% with Professional"
+							"Sarah increased her interview rate by 400% with Candidate"
 						</p>
-						<Button class="relative w-full" onclick={() => goto('/auth/signup')}>
-							<Badge class="absolute -right-2 -top-2 bg-green-500">50% OFF</Badge>
-							Start Professional Trial
+						<Button class="w-full" onclick={() => goto('/auth/sign-up')}>
+							Start Candidate Plan
 						</Button>
 					</div>
 				</CardContent>
 			</Card>
 
-			<!-- Premium Plan -->
+			<!-- Executive Plan -->
 			<Card class="relative border-2">
 				<CardHeader>
-					<CardTitle>Premium</CardTitle>
-					<CardDescription>Dominate Your Industry</CardDescription>
+					<CardTitle>Executive</CardTitle>
+					<CardDescription>Unlimited Professional Power</CardDescription>
 					<div class="pt-4">
-						<span class="text-3xl font-bold">$39</span>
+						<span class="text-3xl font-bold">$50</span>
 						<span class="text-muted-foreground">/month</span>
-						<div class="text-muted-foreground mt-1 text-sm">or $390/year (save $78)</div>
+						<div class="text-muted-foreground mt-1 text-sm">or $390/year (save $210)</div>
 					</div>
 				</CardHeader>
 				<CardContent class="space-y-4">
 					<ul class="space-y-3 text-sm">
 						<li class="flex items-start gap-2">
 							<CheckCircle class="mt-0.5 h-4 w-4 shrink-0 text-green-500" />
-							<span>Everything in Professional, plus:</span>
+							<span>Everything in Candidate, plus:</span>
 						</li>
 						<li class="flex items-start gap-2">
 							<CheckCircle class="mt-0.5 h-4 w-4 shrink-0 text-green-500" />
-							<span>AI-powered interview simulation</span>
+							<span>Unlimited AI resume optimizations</span>
 						</li>
 						<li class="flex items-start gap-2">
 							<CheckCircle class="mt-0.5 h-4 w-4 shrink-0 text-green-500" />
-							<span>Personal branding consultation (quarterly)</span>
+							<span>Unlimited ATS compatibility reports</span>
 						</li>
 						<li class="flex items-start gap-2">
 							<CheckCircle class="mt-0.5 h-4 w-4 shrink-0 text-green-500" />
-							<span>Executive resume review</span>
+							<span>Advanced analytics and insights</span>
 						</li>
 						<li class="flex items-start gap-2">
 							<CheckCircle class="mt-0.5 h-4 w-4 shrink-0 text-green-500" />
-							<span>Salary negotiation toolkit</span>
+							<span>Priority phone and email support</span>
 						</li>
 						<li class="flex items-start gap-2">
 							<CheckCircle class="mt-0.5 h-4 w-4 shrink-0 text-green-500" />
-							<span>Priority support (1-hour response)</span>
+							<span>Custom integration options</span>
 						</li>
 						<li class="flex items-start gap-2">
 							<CheckCircle class="mt-0.5 h-4 w-4 shrink-0 text-green-500" />
-							<span>White-glove job matching</span>
+							<span>White-glove onboarding</span>
 						</li>
 						<li class="flex items-start gap-2">
 							<CheckCircle class="mt-0.5 h-4 w-4 shrink-0 text-green-500" />
-							<span>Industry networking insights</span>
-						</li>
-						<li class="flex items-start gap-2">
-							<CheckCircle class="mt-0.5 h-4 w-4 shrink-0 text-green-500" />
-							<span>Custom cover letter generation</span>
-						</li>
-						<li class="flex items-start gap-2">
-							<CheckCircle class="mt-0.5 h-4 w-4 shrink-0 text-green-500" />
-							<span>Advanced analytics & ROI tracking</span>
+							<span>Quarterly strategy sessions</span>
 						</li>
 					</ul>
-					<Button class="relative w-full" onclick={() => goto('/auth/signup')}>
-						<Badge class="absolute -right-2 -top-2 bg-green-500">50% OFF</Badge>
-						Start Premium Trial
-					</Button>
+					<Button class="w-full" onclick={() => goto('/auth/sign-up')}>Start Executive Plan</Button>
 				</CardContent>
 			</Card>
 		</div>
@@ -730,7 +706,7 @@
 		<div class="mt-8 text-center">
 			<Badge variant="secondary" class="px-4 py-2">
 				<Sparkles class="mr-2 h-4 w-4" />
-				Limited Time: 50% off first 3 months for Professional/Premium plans
+				Save with annual billing on Candidate/Executive plans
 			</Badge>
 		</div>
 	</div>
@@ -748,7 +724,7 @@
 				Start your free trial today and see the difference AI-powered optimization can make.
 			</p>
 			<div class="flex flex-col justify-center gap-4 sm:flex-row">
-				<Button size="lg" onclick={() => goto('/auth/signup')} class="group">
+				<Button size="lg" onclick={() => goto('/auth/sign-up')} class="group">
 					<Rocket class="mr-2 h-5 w-5" />
 					Start Free - No Credit Card Required
 					<ArrowRight class="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
