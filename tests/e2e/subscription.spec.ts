@@ -7,6 +7,7 @@ import {
 	loginUser,
 	registerAndCompleteOnboarding,
 	attemptLogin,
+	attemptLoginWithRetry,
 	type TestUser
 } from './utils/auth-helpers';
 
@@ -22,10 +23,10 @@ const getExistingTestUser = async (): Promise<TestUser> => {
 	};
 };
 
-// Helper to login or skip test if auth fails
+// Helper to login or skip test if auth fails - now uses retry logic
 async function loginOrSkip(page: Page, testName: string): Promise<boolean> {
 	const testUser = await getExistingTestUser();
-	const result = await attemptLogin(page, testUser.email, testUser.password);
+	const result = await attemptLoginWithRetry(page, testUser.email, testUser.password);
 	if (result !== 'success') {
 		test.skip(true, `${testName}: Login failed - skipping subscription test (auth issue)`);
 		return false;

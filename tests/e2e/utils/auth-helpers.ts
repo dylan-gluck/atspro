@@ -195,6 +195,60 @@ export async function attemptLogin(
 }
 
 /**
+ * Attempts to login with retry logic for improved reliability
+ * @param page - Playwright page instance
+ * @param email - User email
+ * @param password - User password
+ * @param maxRetries - Maximum number of retry attempts (default 3)
+ */
+export async function attemptLoginWithRetry(
+	page: Page,
+	email: string,
+	password: string,
+	maxRetries: number = 3
+): Promise<'success' | 'error'> {
+	for (let attempt = 1; attempt <= maxRetries; attempt++) {
+		try {
+			// Clear any existing auth state
+			await page.context().clearCookies();
+
+			// Navigate to login page
+			await page.goto('/auth/sign-in');
+			await page.waitForLoadState('networkidle');
+
+			// Wait for form to be ready
+			await page.waitForSelector('input[type="email"]', { timeout: 5000 });
+
+			// Fill form with explicit waits
+			await page.fill('input[type="email"]', email);
+			await page.fill('input[type="password"]', password);
+
+			// Click submit button with proper scope
+			await page
+				.locator('#main-content')
+				.getByRole('button', { name: /sign in|log in/i })
+				.click();
+
+			// Wait for navigation with longer timeout - accept /app or /app/*
+			await page.waitForURL(/.*\/app(\/.*)?$/, { timeout: 10000 });
+
+			return 'success';
+		} catch (error) {
+			console.log(
+				`Login attempt ${attempt} failed:`,
+				error instanceof Error ? error.message : String(error)
+			);
+			if (attempt === maxRetries) {
+				return 'error';
+			}
+			// Wait before retry
+			await page.waitForTimeout(1000);
+		}
+	}
+	return 'error';
+}
+
+/**
  * Logout the current user
  */
 export async function logoutUser(page: Page): Promise<void> {
