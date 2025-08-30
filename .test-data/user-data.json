@@ -12,5 +12,59 @@
 		"https://job-boards.greenhouse.io/anthropic/jobs/4816199008",
 		"https://job-boards.greenhouse.io/anthropic/jobs/4018206008"
 	],
-	"job_docs": [".test-data/job_openai.md"]
+	"job_docs": [".test-data/job_openai.md"],
+	"subscription": {
+		"tier": "candidate",
+		"usage": {
+			"monthly_optimizations_used": 5,
+			"monthly_ats_reports_used": 3,
+			"active_job_applications": 2
+		},
+		"limits": {
+			"optimizations": 50,
+			"ats_reports": 50,
+			"active_jobs": 999999
+		}
+	},
+	"test_scenarios": {
+		"applicant_user": {
+			"tier": "applicant",
+			"usage": {
+				"monthly_optimizations_used": 0,
+				"monthly_ats_reports_used": 0,
+				"active_job_applications": 8
+			},
+			"limits": {
+				"optimizations": 0,
+				"ats_reports": 0,
+				"active_jobs": 10
+			}
+		},
+		"candidate_user": {
+			"tier": "candidate",
+			"usage": {
+				"monthly_optimizations_used": 25,
+				"monthly_ats_reports_used": 15,
+				"active_job_applications": 50
+			},
+			"limits": {
+				"optimizations": 50,
+				"ats_reports": 50,
+				"active_jobs": 999999
+			}
+		},
+		"executive_user": {
+			"tier": "executive",
+			"usage": {
+				"monthly_optimizations_used": 100,
+				"monthly_ats_reports_used": 75,
+				"active_job_applications": 200
+			},
+			"limits": {
+				"optimizations": 999999,
+				"ats_reports": 999999,
+				"active_jobs": 999999
+			}
+		}
+	}
 }

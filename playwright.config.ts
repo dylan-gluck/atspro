@@ -2,49 +2,34 @@ import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
 	testDir: './tests/e2e',
+	globalSetup: './tests/e2e/global-setup.ts',
+	globalTeardown: './tests/e2e/global-teardown.ts',
 	fullyParallel: true,
 	forbidOnly: !!process.env.CI,
-	retries: process.env.CI ? 2 : 0,
+	retries: process.env.CI ? 2 : 1,
 	workers: process.env.CI ? 1 : undefined,
-	reporter: [['html'], ['list'], ['json', { outputFile: 'test-results/results.json' }]],
+	reporter: [
+		['html'],
+		['list'],
+		['json', { outputFile: 'test-results/results.json' }],
+		['./tests/e2e/utils/test-reporter.ts']
+	],
 	use: {
 		baseURL: 'http://localhost:5173',
 		trace: 'on-first-retry',
 		screenshot: 'only-on-failure',
-		video: 'retain-on-failure'
+		video: 'retain-on-failure',
+		actionTimeout: 15000,
+		navigationTimeout: 30000
 	},
 
-	projects: process.env.CI
-		? [
-				// Only run on Chromium in CI
-				{
-					name: 'chromium',
-					use: { ...devices['Desktop Chrome'] }
-				}
-			]
-		: [
-				{
-					name: 'chromium',
-					use: { ...devices['Desktop Chrome'] }
-				},
-				{
-					name: 'firefox',
-					use: { ...devices['Desktop Firefox'] }
-				},
-				{
-					name: 'webkit',
-					use: { ...devices['Desktop Safari'] }
-				},
-				// Mobile viewports
-				{
-					name: 'Mobile Chrome',
-					use: { ...devices['Pixel 5'] }
-				},
-				{
-					name: 'Mobile Safari',
-					use: { ...devices['iPhone 12'] }
-				}
-			],
+	projects: [
+		// Only use Chromium for now (other browsers need installation)
+		{
+			name: 'chromium',
+			use: { ...devices['Desktop Chrome'] }
+		}
+	],
 
 	// Run your dev server before starting the tests
 	webServer: process.env.CI

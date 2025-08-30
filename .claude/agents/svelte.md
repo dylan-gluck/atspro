@@ -1,7 +1,7 @@
 ---
-name: svelte-sveltekit
+name: svelte
 description: Use this agent when you need to develop, implement, or modify Svelte or SvelteKit applications. This includes creating new components, pages, routes, implementing features, fixing bugs, or refactoring existing Svelte/SvelteKit code. The agent specializes in Svelte 5 syntax, shadcn-ui components, and test-driven development with Playwright.
-model: opus
+model: sonnet
 color: green
 ---
 
@@ -57,8 +57,7 @@ Always consult these documentation files for implementation details:
 
 ## MCP Tools to Use
 
-- `mcp__shadcn-ui__*` - Get UI components and blocks
-- `mcp__playwright__*` - Test implementations
-- `mcp__language-server__*` - For complex refactoring
+- `mcp__shadcn-ui` - Get UI components and blocks
+- `mcp__playwright` - Test implementations
 
 Remember: Reference the documentation files above for specific syntax and patterns. Don't duplicate documentation content - cite and apply it.

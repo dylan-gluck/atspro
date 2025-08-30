@@ -2,7 +2,6 @@
 allowed-tools: Task, Read, Write, Bash(ls:*), Bash(pwd:*), Glob
 description: Generate bug ticket from observation or document using parallel research agents
 argument-hint: <observation|file-path>
-model: opus
 ---
 
 # Bug Ticket Generator
@@ -48,7 +47,7 @@ Use the web-search-researcher agent to:
 - Research best practices related to the issue
 
 ### Task 5: Project Context
-Use the research-project agent to:
+Use the codebase-analyzer agent to:
 - Review project documentation for relevant context
 - Check recent commits for related changes
 - Examine TODO items and known issues
@@ -59,7 +58,7 @@ Use the research-project agent to:
 After completing the research phase, create a comprehensive bug ticket:
 
 1. **Parse Input**
-   - If $ARGUMENTS is a file path (starts with / or ./ or contains /), read the file
+   - If $ARGUMENTS is a file path, read the file
    - Otherwise, treat $ARGUMENTS as the observation text
 
 2. **Load Template**
@@ -73,7 +72,7 @@ After completing the research phase, create a comprehensive bug ticket:
    - Note any patterns of similar issues
 
 4. **Generate Bug Ticket**
-   - Create a unique filename: `thoughts/tickets/bug-{timestamp}-{brief-description}.md`
+   - Create a unique filename: `thoughts/shared/tickets/bug-{timestamp}-{brief-description}.md`
    - Fill in all sections of the template with researched information:
      - Summary: Clear, actionable bug description
      - Environment: Current branch, version, and system details
@@ -95,7 +94,7 @@ After completing the research phase, create a comprehensive bug ticket:
 
 ## Output Requirements
 
-- Generate a complete bug ticket in `thoughts/tickets/`
+- Generate a complete bug ticket in `thoughts/shared/tickets/`
 - Include all research findings in appropriate sections
 - Provide clear reproduction steps
 - Document but DO NOT attempt to fix the bug

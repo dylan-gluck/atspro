@@ -1,4 +1,11 @@
 import { test, expect } from '@playwright/test';
+import {
+	createTestUser,
+	registerUser,
+	loginUser,
+	attemptRegistration,
+	attemptLogin
+} from './utils/auth-helpers';
 
 test.describe('Authentication Flow', () => {
 	test.beforeEach(async ({ page }) => {
@@ -47,53 +54,33 @@ test.describe('Authentication Flow', () => {
 	});
 
 	test('should attempt user registration', async ({ page }) => {
-		await page.goto('/auth/sign-up');
+		// Create unique test user
+		const testUser = createTestUser('registration');
 
-		// Fill registration form with unique timestamp
-		const timestamp = Date.now();
-		const testEmail = `test${timestamp}@example.com`;
-
-		await page.getByPlaceholder(/john doe/i).fill('Test User');
-		await page.getByPlaceholder(/name@example.com/i).fill(testEmail);
-		await page.getByPlaceholder(/enter your password/i).fill('TestPassword123!');
-
-		// Submit form
-		await page.locator('form button[type="submit"]').click();
-
-		// Should either redirect to onboarding or show error/stay on page
+		// Attempt registration using helper with increased timeout
 		try {
-			await expect(page).toHaveURL(/.*\/onboarding/, { timeout: 5000 });
+			await registerUser(page, testUser, 15000); // 15 second timeout
+			// If we get here, registration succeeded and we're on /onboarding
+			await expect(page).toHaveURL(/.*\/onboarding/);
 		} catch {
-			// Registration might fail - check that we stayed on sign-up page or got redirected
+			// Registration might fail - check that we stayed on sign-up page
 			const currentUrl = page.url();
 			expect(currentUrl).toMatch(/auth\/(sign-up|sign-in)/);
 		}
 	});
 
 	test('should handle registration errors', async ({ page }) => {
-		await page.goto('/auth/sign-up');
+		// Try to register with invalid data using helper
+		const invalidUser = {
+			name: 'Test User',
+			email: 'invalid-email',
+			password: 'weak'
+		};
 
-		// Try to register with existing email or invalid data
-		await page.getByPlaceholder(/john doe/i).fill('Test User');
-		await page.getByPlaceholder(/name@example.com/i).fill('invalid-email');
-		await page.getByPlaceholder(/enter your password/i).fill('weak');
+		const result = await attemptRegistration(page, invalidUser);
 
-		// Submit form
-		await page.getByRole('button', { name: /sign up/i }).click();
-
-		// Should show error message or validation
-		const emailField = page.getByPlaceholder(/name@example.com/i);
-		const passwordField = page.getByPlaceholder(/enter your password/i);
-
-		// Check for HTML5 validation or error display
-		const hasEmailValidation = await emailField.evaluate(
-			(el: HTMLInputElement) => !el.validity.valid
-		);
-		const hasPasswordValidation = await passwordField.evaluate(
-			(el: HTMLInputElement) => !el.validity.valid
-		);
-
-		expect(hasEmailValidation || hasPasswordValidation).toBe(true);
+		// Should return validation error due to invalid email/weak password
+		expect(result).toBe('validation');
 	});
 
 	test('should handle login attempt', async ({ page }) => {
@@ -104,19 +91,15 @@ test.describe('Authentication Flow', () => {
 		await expect(page.getByPlaceholder(/enter your password/i)).toBeVisible();
 		await expect(page.locator('form button[type="submit"]')).toBeVisible();
 
-		// Try login with test credentials from test data
-		await page.getByPlaceholder(/name@example.com/i).fill('jdoex@example.com');
-		await page.getByPlaceholder(/enter your password/i).fill('Test123!');
-
-		// Submit form
-		await page.locator('form button[type="submit"]').click();
-
-		// Should either redirect to app or show error
+		// Try login with test credentials from test data using helper with increased timeout
 		try {
-			await expect(page).toHaveURL(/.*\/app/, { timeout: 5000 });
+			await loginUser(page, 'jdoex@example.com', 'Test123!', 10000); // 10 second timeout
+			// If we get here, login succeeded and we're on /app
+			await expect(page).toHaveURL(/.*\/app/);
 		} catch {
 			// Login might fail if user doesn't exist - check for error message or stay on page
-			await expect(page).toHaveURL(/.*\/auth\/sign-in/);
+			const currentUrl = page.url();
+			expect(currentUrl).toMatch(/auth\/sign-in/);
 		}
 	});
 

@@ -3,9 +3,9 @@ import { sql } from 'drizzle-orm';
 import type { Session } from '$lib/auth';
 
 export enum SubscriptionTier {
-	FREE = 'free',
-	PROFESSIONAL = 'professional',
-	PREMIUM = 'premium'
+	APPLICANT = 'applicant',
+	CANDIDATE = 'candidate',
+	EXECUTIVE = 'executive'
 }
 
 export interface RateLimitConfig {
@@ -14,41 +14,51 @@ export interface RateLimitConfig {
 }
 
 export interface TierLimits {
-	[SubscriptionTier.FREE]: RateLimitConfig;
-	[SubscriptionTier.PROFESSIONAL]: RateLimitConfig;
-	[SubscriptionTier.PREMIUM]: RateLimitConfig;
+	[SubscriptionTier.APPLICANT]: RateLimitConfig;
+	[SubscriptionTier.CANDIDATE]: RateLimitConfig;
+	[SubscriptionTier.EXECUTIVE]: RateLimitConfig;
 }
 
 export const RATE_LIMITS: Record<string, TierLimits> = {
 	'resume.optimize': {
-		[SubscriptionTier.FREE]: { windowMs: 86400000, maxRequests: 3 }, // 3 per day
-		[SubscriptionTier.PROFESSIONAL]: { windowMs: 86400000, maxRequests: 50 }, // 50 per day
-		[SubscriptionTier.PREMIUM]: { windowMs: 86400000, maxRequests: 200 } // 200 per day
+		[SubscriptionTier.APPLICANT]: { windowMs: 2592000000, maxRequests: 0 }, // 0 per month (30 days)
+		[SubscriptionTier.CANDIDATE]: { windowMs: 2592000000, maxRequests: 50 }, // 50 per month
+		[SubscriptionTier.EXECUTIVE]: { windowMs: 2592000000, maxRequests: 999999 } // Unlimited
+	},
+	'ats.report': {
+		[SubscriptionTier.APPLICANT]: { windowMs: 2592000000, maxRequests: 0 }, // 0 per month
+		[SubscriptionTier.CANDIDATE]: { windowMs: 2592000000, maxRequests: 50 }, // 50 per month
+		[SubscriptionTier.EXECUTIVE]: { windowMs: 2592000000, maxRequests: 999999 } // Unlimited
+	},
+	'job.applications': {
+		[SubscriptionTier.APPLICANT]: { windowMs: 999999999999, maxRequests: 10 }, // 10 active
+		[SubscriptionTier.CANDIDATE]: { windowMs: 999999999999, maxRequests: 999999 }, // Unlimited
+		[SubscriptionTier.EXECUTIVE]: { windowMs: 999999999999, maxRequests: 999999 } // Unlimited
 	},
 	'job.extract': {
-		[SubscriptionTier.FREE]: { windowMs: 86400000, maxRequests: 5 }, // 5 per day
-		[SubscriptionTier.PROFESSIONAL]: { windowMs: 86400000, maxRequests: 100 }, // 100 per day
-		[SubscriptionTier.PREMIUM]: { windowMs: 86400000, maxRequests: 500 } // 500 per day
+		[SubscriptionTier.APPLICANT]: { windowMs: 86400000, maxRequests: 5 }, // 5 per day
+		[SubscriptionTier.CANDIDATE]: { windowMs: 86400000, maxRequests: 100 }, // 100 per day
+		[SubscriptionTier.EXECUTIVE]: { windowMs: 86400000, maxRequests: 500 } // 500 per day
 	},
 	'cover-letter.generate': {
-		[SubscriptionTier.FREE]: { windowMs: 86400000, maxRequests: 1 }, // 1 per day
-		[SubscriptionTier.PROFESSIONAL]: { windowMs: 86400000, maxRequests: 20 }, // 20 per day
-		[SubscriptionTier.PREMIUM]: { windowMs: 86400000, maxRequests: 100 } // 100 per day
+		[SubscriptionTier.APPLICANT]: { windowMs: 2592000000, maxRequests: 0 }, // Not available
+		[SubscriptionTier.CANDIDATE]: { windowMs: 2592000000, maxRequests: 0 }, // Not available
+		[SubscriptionTier.EXECUTIVE]: { windowMs: 2592000000, maxRequests: 999999 } // Unlimited
 	},
 	'export.pdf': {
-		[SubscriptionTier.FREE]: { windowMs: 86400000, maxRequests: 5 }, // 5 per day
-		[SubscriptionTier.PROFESSIONAL]: { windowMs: 86400000, maxRequests: 50 }, // 50 per day
-		[SubscriptionTier.PREMIUM]: { windowMs: 86400000, maxRequests: 200 } // 200 per day
+		[SubscriptionTier.APPLICANT]: { windowMs: 86400000, maxRequests: 5 }, // 5 per day
+		[SubscriptionTier.CANDIDATE]: { windowMs: 86400000, maxRequests: 50 }, // 50 per day
+		[SubscriptionTier.EXECUTIVE]: { windowMs: 86400000, maxRequests: 200 } // 200 per day
 	},
 	'ai.analyze': {
-		[SubscriptionTier.FREE]: { windowMs: 3600000, maxRequests: 10 }, // 10 per hour
-		[SubscriptionTier.PROFESSIONAL]: { windowMs: 3600000, maxRequests: 100 }, // 100 per hour
-		[SubscriptionTier.PREMIUM]: { windowMs: 3600000, maxRequests: 500 } // 500 per hour
+		[SubscriptionTier.APPLICANT]: { windowMs: 3600000, maxRequests: 10 }, // 10 per hour
+		[SubscriptionTier.CANDIDATE]: { windowMs: 3600000, maxRequests: 100 }, // 100 per hour
+		[SubscriptionTier.EXECUTIVE]: { windowMs: 3600000, maxRequests: 500 } // 500 per hour
 	},
 	default: {
-		[SubscriptionTier.FREE]: { windowMs: 60000, maxRequests: 60 }, // 60 per minute
-		[SubscriptionTier.PROFESSIONAL]: { windowMs: 60000, maxRequests: 300 }, // 300 per minute
-		[SubscriptionTier.PREMIUM]: { windowMs: 60000, maxRequests: 1000 } // 1000 per minute
+		[SubscriptionTier.APPLICANT]: { windowMs: 60000, maxRequests: 60 }, // 60 per minute
+		[SubscriptionTier.CANDIDATE]: { windowMs: 60000, maxRequests: 300 }, // 300 per minute
+		[SubscriptionTier.EXECUTIVE]: { windowMs: 60000, maxRequests: 1000 } // 1000 per minute
 	}
 };
 
@@ -65,7 +75,7 @@ export class RateLimitError extends Error {
 
 export async function getUserTier(session: Session | null): Promise<SubscriptionTier> {
 	if (!session?.user?.id) {
-		return SubscriptionTier.FREE;
+		return SubscriptionTier.APPLICANT;
 	}
 
 	const pool = getPool();
@@ -77,7 +87,7 @@ export async function getUserTier(session: Session | null): Promise<Subscription
 	);
 
 	if (result.rows.length === 0) {
-		return SubscriptionTier.FREE;
+		return SubscriptionTier.APPLICANT;
 	}
 
 	const user = result.rows[0] as {
@@ -89,7 +99,7 @@ export async function getUserTier(session: Session | null): Promise<Subscription
 	if (
 		user.subscription_expires_at &&
 		new Date(user.subscription_expires_at) < new Date() &&
-		user.subscription_tier !== SubscriptionTier.FREE
+		user.subscription_tier !== SubscriptionTier.APPLICANT
 	) {
 		// Update to free tier if subscription expired
 		await pool.query(
@@ -97,12 +107,12 @@ export async function getUserTier(session: Session | null): Promise<Subscription
 				SET subscription_tier = $1, 
 					subscription_expires_at = NULL 
 				WHERE id = $2`,
-			[SubscriptionTier.FREE, session.user.id]
+			[SubscriptionTier.APPLICANT, session.user.id]
 		);
-		return SubscriptionTier.FREE;
+		return SubscriptionTier.APPLICANT;
 	}
 
-	return (user.subscription_tier as SubscriptionTier) || SubscriptionTier.FREE;
+	return (user.subscription_tier as SubscriptionTier) || SubscriptionTier.APPLICANT;
 }
 
 export async function checkRateLimit(
@@ -121,7 +131,7 @@ export async function checkRateLimit(
 
 	if (!session?.user?.id) {
 		// For anonymous users, use stricter limits
-		const anonConfig = limits[SubscriptionTier.FREE];
+		const anonConfig = limits[SubscriptionTier.APPLICANT];
 		return {
 			allowed: false,
 			limit: anonConfig.maxRequests,

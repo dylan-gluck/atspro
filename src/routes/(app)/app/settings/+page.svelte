@@ -14,6 +14,8 @@
 		updateUserSettings,
 		updateUserProfile
 	} from '$lib/services/settings.remote';
+	import { getSubscriptionInfo, updateSubscriptionDebug } from '$lib/services/subscription.remote';
+	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import { Loader2 } from 'lucide-svelte';
 
@@ -21,6 +23,10 @@
 	let settingsQuery = getUserSettings();
 	let settings = $derived(settingsQuery.current);
 	let settingsLoading = $derived(settingsQuery.loading);
+
+	// Fetch subscription data
+	let subscriptionQuery = getSubscriptionInfo();
+	let subscription = $derived(subscriptionQuery.current);
 
 	// Get user data from page
 	let user = $derived(page.data.user);
@@ -330,24 +336,135 @@
 		<Tabs.Content value="billing" class="mt-6 space-y-4">
 			<Card.Root>
 				<Card.Header>
-					<Card.Title>Billing Information</Card.Title>
-					<Card.Description>Manage your subscription and billing details</Card.Description>
+					<Card.Title>Subscription & Usage</Card.Title>
+					<Card.Description>Manage your subscription and track usage</Card.Description>
 				</Card.Header>
-				<Card.Content>
-					<div class="space-y-4">
+				<Card.Content class="space-y-6">
+					{#if subscription}
+						<!-- Current Plan -->
 						<div class="bg-muted/50 rounded-lg p-4">
-							<h3 class="mb-2 font-semibold">Current Plan</h3>
-							<p class="text-muted-foreground">Free Plan</p>
-							<ul class="text-muted-foreground mt-3 space-y-2 text-sm">
-								<li>• Track up to 10 jobs</li>
-								<li>• Basic ATS optimization</li>
-								<li>• Limited resume uploads</li>
-							</ul>
+							<h3 class="mb-2 font-semibold">
+								Current Plan: {subscription.tier === 'applicant'
+									? 'Applicant'
+									: subscription.tier === 'candidate'
+										? 'Candidate'
+										: 'Executive'}
+							</h3>
+
+							{#if subscription.tier === 'applicant'}
+								<p class="text-muted-foreground">Free Plan</p>
+								<ul class="text-muted-foreground mt-3 space-y-2 text-sm">
+									<li>✅ Resume Editor</li>
+									<li>
+										✅ Application Tracking ({10 - subscription.usage.activeJobs.used}/10 active
+										jobs)
+									</li>
+									<li>✅ Basic ATS compatibility score</li>
+									<li>✅ Basic Company Info</li>
+								</ul>
+							{:else if subscription.tier === 'candidate'}
+								<p class="text-muted-foreground">$20/month</p>
+								<ul class="text-muted-foreground mt-3 space-y-2 text-sm">
+									<li>✅ Everything in Applicant +</li>
+									<li>
+										✅ Resume Optimization ({subscription.usage.optimizations.limit -
+											subscription.usage.optimizations.used}/{subscription.usage.optimizations
+											.limit} remaining)
+									</li>
+									<li>
+										✅ ATS Reports ({subscription.usage.atsReports.limit -
+											subscription.usage.atsReports.used}/{subscription.usage.atsReports.limit} remaining)
+									</li>
+									<li>✅ Unlimited Applications</li>
+									<li>✅ Interview Question DB</li>
+								</ul>
+							{:else if subscription.tier === 'executive'}
+								<p class="text-muted-foreground">$50/month</p>
+								<ul class="text-muted-foreground mt-3 space-y-2 text-sm">
+									<li>✅ Everything in Candidate +</li>
+									<li>✅ Unlimited Optimizations & Reports</li>
+									<li>✅ Cover Letters</li>
+									<li>✅ In-depth Company Research</li>
+									<li>✅ Salary Negotiation Toolkit</li>
+									<li>✅ Interview Prep</li>
+									<li>✅ Career Coach</li>
+								</ul>
+							{/if}
+
+							{#if subscription.resetAt}
+								<p class="text-muted-foreground mt-4 text-xs">
+									Usage resets: {new Date(subscription.resetAt).toLocaleDateString()}
+								</p>
+							{/if}
 						</div>
-						<div class="pt-4">
-							<Button variant="outline" disabled>Upgrade to Pro (Coming Soon)</Button>
-						</div>
-					</div>
+
+						<!-- Debug Controls (Development Only) -->
+						{#if import.meta.env.DEV}
+							<div class="rounded-lg border-2 border-dashed border-yellow-500 p-4">
+								<h4 class="mb-3 font-semibold text-yellow-600">Debug Controls</h4>
+								<div class="space-y-3">
+									<Select.Root
+										type="single"
+										value={subscription.tier}
+										onValueChange={async (tier: string | undefined) => {
+											if (tier) {
+												await updateSubscriptionDebug({
+													tier: tier as 'applicant' | 'candidate' | 'executive'
+												});
+												toast.success('Tier updated to ' + tier);
+											}
+										}}
+									>
+										<Select.Trigger data-testid="tier-select">
+											<span>Set Tier: {subscription.tier}</span>
+										</Select.Trigger>
+										<Select.Content>
+											<Select.Item value="applicant">Applicant (Free)</Select.Item>
+											<Select.Item value="candidate">Candidate ($20)</Select.Item>
+											<Select.Item value="executive">Executive ($50)</Select.Item>
+										</Select.Content>
+									</Select.Root>
+
+									<div class="flex gap-2">
+										<Button
+											variant="outline"
+											size="sm"
+											data-testid="reset-usage-button"
+											onclick={async () => {
+												await updateSubscriptionDebug({ resetUsage: true });
+												toast.success('Usage reset successfully');
+											}}
+										>
+											Reset Usage
+										</Button>
+										<Button
+											variant="outline"
+											size="sm"
+											data-testid="max-out-usage-button"
+											onclick={async () => {
+												await updateSubscriptionDebug({ maxOutUsage: true });
+												toast.success('Usage maxed out');
+											}}
+										>
+											Max Out Usage
+										</Button>
+									</div>
+								</div>
+							</div>
+						{/if}
+
+						<!-- Upgrade Button -->
+						{#if subscription.tier !== 'executive'}
+							<div class="pt-4">
+								<Button data-testid="upgrade-plan-button" onclick={() => goto('/#pricing')}
+									>Upgrade Plan</Button
+								>
+							</div>
+						{/if}
+					{:else}
+						<!-- Loading state -->
+						<Skeleton class="h-48 w-full" />
+					{/if}
 				</Card.Content>
 			</Card.Root>
 		</Tabs.Content>

@@ -23,6 +23,7 @@
 	import type { LayoutData } from './$types';
 	import KeyboardShortcuts from '$lib/components/keyboard-shortcuts.svelte';
 	import { Toaster } from '$lib/components/ui/sonner';
+	import SubscriptionBadge from '$lib/components/subscription/subscription-badge.svelte';
 
 	let { children, data }: { children: any; data: LayoutData } = $props();
 
@@ -160,6 +161,9 @@
 				</div>
 
 				<div class="flex items-center gap-2">
+					<!-- Subscription Badge -->
+					<SubscriptionBadge />
+
 					<!-- Light/Dark Mode Toggle -->
 					<ModeToggle />
 

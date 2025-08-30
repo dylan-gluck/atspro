@@ -1,7 +1,8 @@
 ---
 name: better-auth
 description: Use this agent when you need to configure, maintain, or troubleshoot Better-Auth authentication systems. This includes setting up authentication providers, managing database migrations, configuring plugins, implementing authorization flows, or resolving authentication-related issues. The agent should be invoked for any Better-Auth specific tasks such as user management setup, session handling configuration, or security policy implementation.
-model: opus
+tools: TodoWrite, Read, Write, Edit, MultiEdit, Grep, Glob, LS
+model: sonnet
 color: red
 ---
 

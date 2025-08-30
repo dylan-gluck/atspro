@@ -1,0 +1,137 @@
+{
+	"tier_system": {
+		"name": "subscription_tiers",
+		"version": "2.0",
+		"updated": "2025-01-01",
+		"migration": {
+			"old_tiers": ["free", "professional", "premium"],
+			"new_tiers": ["applicant", "candidate", "executive"],
+			"mapping": {
+				"free": "applicant",
+				"professional": "candidate",
+				"premium": "executive"
+			}
+		}
+	},
+	"tiers": {
+		"applicant": {
+			"id": "applicant",
+			"name": "Applicant",
+			"price": 0,
+			"currency": "USD",
+			"billing_cycle": "monthly",
+			"limits": {
+				"monthly_optimizations": 0,
+				"monthly_ats_reports": 0,
+				"active_jobs": 10
+			},
+			"features": [
+				"Basic job tracking (up to 10 active jobs)",
+				"Manual resume tailoring",
+				"Application status tracking"
+			],
+			"restrictions": [
+				"No AI resume optimization",
+				"No ATS report generation",
+				"Limited to 10 active job applications"
+			],
+			"upgrade_available": true
+		},
+		"candidate": {
+			"id": "candidate",
+			"name": "Candidate",
+			"price": 20,
+			"currency": "USD",
+			"billing_cycle": "monthly",
+			"limits": {
+				"monthly_optimizations": 50,
+				"monthly_ats_reports": 50,
+				"active_jobs": 999999
+			},
+			"features": [
+				"Unlimited job tracking",
+				"50 AI resume optimizations per month",
+				"50 ATS reports per month",
+				"Priority email support"
+			],
+			"restrictions": ["Monthly credit limits for AI features"],
+			"upgrade_available": true
+		},
+		"executive": {
+			"id": "executive",
+			"name": "Executive",
+			"price": 50,
+			"currency": "USD",
+			"billing_cycle": "monthly",
+			"limits": {
+				"monthly_optimizations": 999999,
+				"monthly_ats_reports": 999999,
+				"active_jobs": 999999
+			},
+			"features": [
+				"Unlimited everything",
+				"Unlimited AI resume optimizations",
+				"Unlimited ATS reports",
+				"Unlimited job tracking",
+				"Priority phone and email support",
+				"Advanced analytics",
+				"Custom integrations"
+			],
+			"restrictions": [],
+			"upgrade_available": false
+		}
+	},
+	"usage_tracking": {
+		"reset_cycle": "monthly",
+		"reset_day": 1,
+		"tracking_fields": [
+			"monthly_optimizations_used",
+			"monthly_ats_reports_used",
+			"active_job_applications"
+		],
+		"feature_mapping": {
+			"optimization": "monthly_optimizations_used",
+			"ats_report": "monthly_ats_reports_used",
+			"job_application": "active_job_applications"
+		}
+	},
+	"test_scenarios": {
+		"rate_limiting": [
+			{
+				"scenario": "applicant_job_limit",
+				"tier": "applicant",
+				"action": "create_job",
+				"limit": 10,
+				"expected_error_at": 11
+			},
+			{
+				"scenario": "applicant_optimization_blocked",
+				"tier": "applicant",
+				"action": "optimize_resume",
+				"limit": 0,
+				"expected_error_at": 1
+			},
+			{
+				"scenario": "candidate_optimization_limit",
+				"tier": "candidate",
+				"action": "optimize_resume",
+				"limit": 50,
+				"expected_error_at": 51
+			},
+			{
+				"scenario": "candidate_ats_report_limit",
+				"tier": "candidate",
+				"action": "generate_ats_report",
+				"limit": 50,
+				"expected_error_at": 51
+			},
+			{
+				"scenario": "executive_unlimited",
+				"tier": "executive",
+				"action": "all_actions",
+				"limit": null,
+				"expected_error_at": null
+			}
+		]
+	}
+}
